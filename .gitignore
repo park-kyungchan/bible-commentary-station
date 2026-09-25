@@ -1,5 +1,7 @@
 # SQLite & Database binary dumps
 *.db
+*.db-wal
+*.db-shm
 *.db.gz
 *.sqlite
 *.sqlite3

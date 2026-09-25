@@ -1,8 +1,9 @@
-const CACHE_NAME = 'bible-workstation-v1';
+const CACHE_NAME = 'bible-workstation-v3';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './bible_data.js',
+  './bible_krv.json',
   './manifest.json',
   './icon.svg'
 ];

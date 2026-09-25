@@ -343,6 +343,25 @@
       font-family: var(--font-ui);
     }
 
+    .scripture-attribution {
+      padding: 5px 20px;
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border-color);
+      color: var(--text-muted);
+      font-family: var(--font-ui);
+      font-size: 11px;
+      flex-shrink: 0;
+    }
+
+    .scripture-attribution a {
+      color: var(--brand-navy);
+      text-decoration: underline;
+    }
+
+    .scripture-attribution[hidden] {
+      display: none;
+    }
+
     .scripture-content {
       flex: 1;
       overflow-y: auto;
@@ -755,6 +774,61 @@
       font-family: var(--font-ui);
     }
 
+    @media (max-width: 700px) {
+      body { height: 100vh; height: 100dvh; }
+      header {
+        height: auto;
+        min-height: 0;
+        padding: 8px 10px;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+      .app-title-area { flex: 1 1 100%; min-width: 0; gap: 8px; }
+      .app-badge { flex-shrink: 0; font-size: 9px; padding: 4px 6px; }
+      .pastor-name { min-width: 0; flex-wrap: wrap; gap: 4px; font-size: 12px; line-height: 1.3; }
+      .live-data-badge { display: none; }
+      .top-controls { width: 100%; justify-content: flex-end; gap: 6px; }
+      .theme-selector, .pulpit-toggle-btn { padding: 6px 8px; font-size: 11px; }
+
+      main { flex-direction: column; overflow-x: hidden; overflow-y: auto; }
+      .panel-nav {
+        width: 100%;
+        min-width: 0;
+        max-width: none;
+        height: 38vh;
+        flex: 0 0 38vh;
+        border-right: 0;
+        border-bottom: 1px solid var(--border-color);
+      }
+      .nav-header, .chain-ref-box { padding: 7px 10px; }
+      .chapter-pills-container { padding: 6px 10px; }
+      .chapter-pills { max-height: 74px; overflow-y: auto; }
+      .book-list { min-height: 0; }
+
+      .panel-scripture {
+        min-width: 0;
+        min-height: 68vh;
+        flex: 0 0 68vh;
+        border-right: 0;
+        border-bottom: 1px solid var(--border-color);
+      }
+      .scripture-header { gap: 6px; padding: 9px 10px; }
+      .current-chapter-title { gap: 4px; font-size: 16px; }
+      .version-select { max-width: 48%; padding: 5px 6px; font-size: 11px; }
+      .scripture-attribution { padding: 5px 10px; }
+      .scripture-content { padding: 14px 16px; font-size: 16px; }
+
+      .panel-commentary {
+        width: 100%;
+        min-width: 0;
+        min-height: 72vh;
+        flex: 0 0 72vh;
+      }
+      .comm-tab { padding: 10px 9px; font-size: 11px; }
+      .comm-body { flex: 0 0 36vh; padding: 12px; }
+      .sermon-studio { flex: 0 0 36vh; min-height: 260px; }
+    }
+
     @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes slideUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
   </style>
@@ -824,10 +898,15 @@
         <div class="current-chapter-title" id="chapterHeader">창세기 2장</div>
         <select class="version-select" id="versionSelect" onchange="switchVersion(this.value)">
           <option value="rnkv">개역개정판 (RNKV)</option>
-          <option value="krv">개역한글 (KRV)</option>
+          <option value="krv" selected>개역한글판 (KRV, 1961)</option>
           <option value="esv">ESV (English Standard)</option>
           <option value="orig">원어 본문 (히브리어/헬라어)</option>
         </select>
+      </div>
+
+      <div class="scripture-attribution" id="scriptureAttribution" role="note">
+        성경전서 개역한글판 (1961) © 대한성서공회 ·
+        <a href="https://bible.bskorea.or.kr/copyright_notice" target="_blank" rel="noopener noreferrer">저작권 안내</a>
       </div>
 
       <div class="scripture-content" id="scriptureContainer">
@@ -897,8 +976,12 @@
     let currentChapterNum = 2;
     let currentVerseNum = 7;
     let currentCommKey = "crossref"; // 관주 탭 기본 활성화
-    let currentVersion = "rnkv";
+    let currentVersion = "krv";
     let openedCrossrefVerse = 7;
+    let currentChapterData = null;
+    let fullKrvCorpus = null;
+    let fullKrvLoadPromise = null;
+    let chapterLoadSequence = 0;
 
     // Default Sermon Outline State
     let sermonOutline = [
@@ -1023,24 +1106,107 @@
       loadChapter(currentBookId, currentChapterNum);
     }
 
-    function loadChapter(bookId, chNum, forceVerseNum = null) {
+    function syncVersionOptions(bookId, chNum) {
+      const key = `${bookId}_${chNum}`;
+      const hasCuratedVersions = Boolean(BIBLE_DATABASE.chapters[key]);
+      const selector = document.getElementById('versionSelect');
+
+      Array.from(selector.options).forEach(option => {
+        option.disabled = option.value !== 'krv' && !hasCuratedVersions;
+      });
+
+      if (!hasCuratedVersions) currentVersion = 'krv';
+      selector.value = currentVersion;
+      document.getElementById('scriptureAttribution').hidden = currentVersion !== 'krv';
+    }
+
+    function loadFullKrvCorpus() {
+      if (fullKrvCorpus) return Promise.resolve(fullKrvCorpus);
+      if (!fullKrvLoadPromise) {
+        fullKrvLoadPromise = fetch('./bible_krv.json')
+          .then(response => {
+            if (!response.ok) throw new Error(`KRV data request failed: HTTP ${response.status}`);
+            return response.json();
+          })
+          .then(data => {
+            if (!data || typeof data !== 'object' || !data.GEN || !data.REV) {
+              throw new Error('KRV data file has an unexpected structure.');
+            }
+            fullKrvCorpus = data;
+            return data;
+          })
+          .catch(error => {
+            fullKrvLoadPromise = null;
+            throw error;
+          });
+      }
+      return fullKrvLoadPromise;
+    }
+
+    async function loadChapter(bookId, chNum, forceVerseNum = null) {
+      const loadSequence = ++chapterLoadSequence;
       const chKey = `${bookId}_${chNum}`;
-      const chapterData = BIBLE_DATABASE.chapters[chKey];
       const book = BIBLE_DATABASE.books.find(b => b.id === bookId);
       const headerTitle = document.getElementById('chapterHeader');
+      const scriptureContainer = document.getElementById('scriptureContainer');
+      const commContainer = document.getElementById('commContent');
+      const curatedChapter = BIBLE_DATABASE.chapters[chKey];
+      let chapterData = curatedChapter;
+
+      currentChapterData = null;
+      syncVersionOptions(bookId, chNum);
+
+      if (currentVersion === 'krv') {
+        headerTitle.innerText = `${book ? book.name : bookId} ${chNum}장`;
+        scriptureContainer.innerHTML = '<div style="padding:40px; text-align:center; color:var(--text-muted);">개역한글 본문을 불러오는 중…</div>';
+        try {
+          const corpus = await loadFullKrvCorpus();
+          if (loadSequence !== chapterLoadSequence) return;
+
+          const chapterVerses = corpus[bookId] && corpus[bookId][String(chNum)];
+          if (!Array.isArray(chapterVerses) || chapterVerses.length === 0) {
+            throw new Error(`KRV chapter data is missing: ${chKey}`);
+          }
+
+          const curatedVerses = new Map((curatedChapter?.verses || []).map(v => [v.num, v]));
+          chapterData = {
+            title: curatedChapter?.title || `${book ? book.name : bookId} ${chNum}장`,
+            verses: chapterVerses.map((text, index) => ({
+              ...(curatedVerses.get(index + 1) || {}),
+              num: index + 1,
+              krv: text
+            }))
+          };
+        } catch (error) {
+          if (loadSequence !== chapterLoadSequence) return;
+          console.error('Unable to load the KRV chapter.', error);
+          scriptureContainer.innerHTML = `
+            <div style="padding:40px; text-align:center; color:var(--text-muted);">
+              <p style="font-size:18px; font-weight:700; margin-bottom:8px;">개역한글 본문을 불러오지 못했습니다.</p>
+              <p style="font-size:14px;">연결을 확인한 뒤 다시 시도해 주세요.</p>
+              <button type="button" onclick="loadChapter(currentBookId, currentChapterNum, currentVerseNum)">다시 불러오기</button>
+            </div>
+          `;
+          commContainer.innerHTML = '<div style="padding:30px; text-align:center; color:var(--text-muted);">본문을 불러온 뒤 주석과 관주를 표시합니다.</div>';
+          return;
+        }
+      }
+
+      if (loadSequence !== chapterLoadSequence) return;
 
       if (!chapterData || !chapterData.verses || chapterData.verses.length === 0) {
         headerTitle.innerText = `${book ? book.name : bookId} ${chNum}장`;
-        document.getElementById('scriptureContainer').innerHTML = `
+        scriptureContainer.innerHTML = `
           <div style="padding:40px; text-align:center; color:var(--text-muted);">
             <p style="font-size:18px; font-weight:700; margin-bottom:8px;">${book ? book.name : bookId} ${chNum}장 준비 중</p>
             <p style="font-size:14px;">풍부한 <strong>심층 관주</strong>와 8종 주석은 <strong>창세기 2장(생령과 관주), 데살로니가전서 4·5장, 요한복음 3장, 이사야 53장</strong>에서 100% 구동됩니다.</p>
           </div>
         `;
-        document.getElementById('commContent').innerHTML = '<div style="padding:30px; text-align:center; color:var(--text-muted);">선택된 절의 데이터가 없습니다.</div>';
+        commContainer.innerHTML = '<div style="padding:30px; text-align:center; color:var(--text-muted);">선택된 절의 데이터가 없습니다.</div>';
         return;
       }
 
+      currentChapterData = chapterData;
       headerTitle.innerText = `${chapterData.title} (${book.name_en} ${chNum})`;
 
       if (forceVerseNum && chapterData.verses.some(v => v.num === forceVerseNum)) {
@@ -1062,10 +1228,10 @@
         div.className = `verse-row ${v.num === currentVerseNum ? 'selected' : ''}`;
         div.onclick = () => selectVerse(v.num);
 
-        let verseText = v.rnkv;
-        if (currentVersion === 'krv') verseText = v.krv || v.rnkv;
-        if (currentVersion === 'esv') verseText = v.esv || v.rnkv;
-        if (currentVersion === 'orig') verseText = `<span style="font-family:serif; font-size:19px;">${v.orig || v.rnkv}</span>`;
+        let verseText = escapeHtml(v.rnkv || v.krv || '');
+        if (currentVersion === 'krv') verseText = escapeHtml(v.krv || v.rnkv || '');
+        if (currentVersion === 'esv') verseText = escapeHtml(v.esv || v.rnkv || '');
+        if (currentVersion === 'orig') verseText = `<span style="font-family:serif; font-size:19px;">${escapeHtml(v.orig || v.rnkv || '')}</span>`;
 
         let strongChipsHtml = '';
         if (v.strongs && currentVersion !== 'esv') {
@@ -1131,12 +1297,20 @@
       });
     }
 
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"']/g, character => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      })[character]);
+    }
+
     function toggleInlineCrossref(vNum) {
       openedCrossrefVerse = (openedCrossrefVerse === vNum) ? null : vNum;
-      const chKey = `${currentBookId}_${currentChapterNum}`;
-      const chapterData = BIBLE_DATABASE.chapters[chKey];
-      if (chapterData && chapterData.verses) {
-        renderVerses(chapterData.verses);
+      if (currentChapterData && currentChapterData.verses) {
+        renderVerses(currentChapterData.verses);
       }
     }
 
@@ -1154,18 +1328,15 @@
     }
 
     function switchVersion(ver) {
-      currentVersion = ver;
       const chKey = `${currentBookId}_${currentChapterNum}`;
-      const chapterData = BIBLE_DATABASE.chapters[chKey];
-      if (chapterData && chapterData.verses) {
-        renderVerses(chapterData.verses);
-      }
+      if (ver !== 'krv' && !BIBLE_DATABASE.chapters[chKey]) ver = 'krv';
+      currentVersion = ver;
+      loadChapter(currentBookId, currentChapterNum, currentVerseNum);
     }
 
     function renderCurrentCommentary() {
       const commBox = document.getElementById('commContent');
-      const chKey = `${currentBookId}_${currentChapterNum}`;
-      const chapterData = BIBLE_DATABASE.chapters[chKey];
+      const chapterData = currentChapterData;
       const book = BIBLE_DATABASE.books.find(b => b.id === currentBookId);
       const srcMeta = BIBLE_DATABASE.commentary_sources.find(s => s.key === currentCommKey);
 
@@ -1223,7 +1394,7 @@
           <div class="comm-title">
             <span>${srcMeta.name}: ${book.name} ${currentChapterNum}:${currentVerseNum}</span>
           </div>
-          <p style="color:var(--text-muted); padding:20px 0;">본 구절에 대한 ${srcMeta.name}의 상세 주해가 로딩 중이거나 데이터베이스에 연결되어 있습니다.</p>
+          <p style="color:var(--text-muted); padding:20px 0;">본 구절에 등록된 ${srcMeta.name} 자료가 없습니다.</p>
         `;
         return;
       }
