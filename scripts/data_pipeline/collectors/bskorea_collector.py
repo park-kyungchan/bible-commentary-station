@@ -24,10 +24,13 @@ if hasattr(sys.stderr, 'reconfigure'):
 try:
     from scrapling import Fetcher
 except ImportError:
-    raise ImportError(
-        "scrapling is required. Please install or use the dedicated python runtime at "
-        r"C:\Users\packr\Desktop\scrapling\.venv\Scripts\python.exe"
-    )
+    shared_venv_site = r"C:\Users\packr\Desktop\scrapling\.venv\Lib\site-packages"
+    if os.path.exists(shared_venv_site) and shared_venv_site not in sys.path:
+        sys.path.insert(0, shared_venv_site)
+    try:
+        from scrapling import Fetcher
+    except ImportError:
+        Fetcher = None
 
 try:
     from ..schema import calculate_verse_id, BIBLE_BOOKS_MASTER
