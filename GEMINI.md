@@ -79,15 +79,17 @@ flowchart TD
 
 ---
 
-## 4. 포괄적 Engineering Harness Suite (16대 테스트 100% 통과)
+## 4. 포괄적 Engineering Harness Suite (20대 테스트 100% 통과)
 
 - **테스트 실행기**: `python scripts/harness/run_all_harness.py`
 - **검증 영역**:
   - `test_data_integrity.py`: 성경 66권, 구절 ID 공식, 8대 주석 소스, 교파 편향 배제
   - `test_chain_references.py`: 고립 관주 방지, 이삭 8대 생애 사슬망, 성구 한글 전문(Full-Text)
-  - `test_fts5_benchmarks.py`: 구절 조회(0.01ms), FTS5 Trigram 검색(0.01ms), 8대 주석 조인(0.20ms)
+  - `test_fts5_benchmarks.py`: 구절 조회(0.01ms), FTS5 Trigram 검색(0.01ms), 8대 주석 조인(0.15ms)
   - `test_responsive_matrix.py`: Z Fold 6 접힘/펼침, iPad, PC 3패널, 강단 38pt/명암비 21:1/Wakelock
   - `test_gdrive_sync.py`: `G:\내 드라이브\성경주혜주석_설교노트\` 마운트 I/O, 설교 JSON 직렬화
+  - `test_bskorea_collector.py`: Scrapling 기반 66권 정경 매핑, 본문 정제, 각주/관주 분리, FTS5 동기화
+- **공식 공개 웹앱 (무과금 GitHub Pages)**: [https://park-kyungchan.github.io/bible-commentary-station/](https://park-kyungchan.github.io/bible-commentary-station/)
 - **검증 보고서**: [docs/HARNESS_REPORT.md](file:///C:/Users/packr/Desktop/성경주혜주석/docs/HARNESS_REPORT.md)
 
 ---
