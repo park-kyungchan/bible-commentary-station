@@ -4,6 +4,16 @@
 
 ---
 
+## 🌐 실시간 공개 웹앱 접속 (Live URL - $0.00 무과금 배포)
+
+> **라이브 웹앱 주소**: [https://park-kyungchan.github.io/bible-commentary-station/](https://park-kyungchan.github.io/bible-commentary-station/)
+
+- **무설치 즉시 사용**: Tailscale VPN이나 별도 환경 설정 없이 외부 일반 PC, 맥북, 아이패드, 갤럭시 탭, 스마트폰 브라우저에서 즉시 실행됩니다.
+- **PWA (프로그레시브 웹앱) 지원**: Safari(iOS/iPadOS) 또는 Chrome/Edge(Android/PC)에서 **"홈 화면에 추가"** 또는 **"앱으로 설치"**를 누르면 전체화면 네이티브 앱 모드로 사용하실 수 있습니다.
+- **완전 무과금 ($0.00)**: GitHub Pages 정적 호스팅과 GitHub Actions CI/CD를 통해 비용 발생 없이 영구 운영됩니다.
+
+---
+
 ## 📌 주요 기능 요약
 
 1. **8종 대표 성경 주석 비교**:
