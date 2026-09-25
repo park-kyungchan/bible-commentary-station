@@ -30,13 +30,14 @@ from test_chain_references import ChainReferenceHarness
 from test_fts5_benchmarks import Fts5BenchmarkHarness
 from test_responsive_matrix import ResponsiveMatrixHarness
 from test_gdrive_sync import GDriveSyncHarness
+from test_bskorea_collector import BskoreaCollectorHarness
 
 
 def run_full_engineering_harness():
     print("=" * 70)
     print(" 🛡️  성경주혜주석 COMPREHENSIVE ENGINEERING HARNESS SUITE")
     print(f" Timestamp: {datetime.now(timezone.utc).isoformat()}")
-    print(" Scope: Data Integrity | Chain-Ref | FTS5 Benchmarks | Device Matrix | Zero-Cost Sync")
+    print(" Scope: Data Integrity | Chain-Ref | FTS5 Benchmarks | Device Matrix | Zero-Cost Sync | BSKorea Collector")
     print("=" * 70)
 
     loader = unittest.TestLoader()
@@ -48,6 +49,7 @@ def run_full_engineering_harness():
     suite.addTests(loader.loadTestsFromTestCase(Fts5BenchmarkHarness))
     suite.addTests(loader.loadTestsFromTestCase(ResponsiveMatrixHarness))
     suite.addTests(loader.loadTestsFromTestCase(GDriveSyncHarness))
+    suite.addTests(loader.loadTestsFromTestCase(BskoreaCollectorHarness))
 
     start_time = time.perf_counter()
     runner = unittest.TextTestRunner(verbosity=2)
@@ -92,6 +94,7 @@ def run_full_engineering_harness():
 | **초고속 FTS5 성능** | `Fts5BenchmarkHarness` | 구절 단건 조회(< 1.0ms), FTS5 trigram 검색(< 5.0ms), 8대 주석 교차 조인(< 2.0ms) | **PASS** |
 | **멀티 디바이스 반응형** | `ResponsiveMatrixHarness` | Z Fold 6 접힘(412px 1열) & 펼침(768px 2열), iPad(3열), 강단 프롬프터 38pt/좌25%우75%/Wakelock | **PASS** |
 | **제로 과금 스토리지** | `GDriveSyncHarness` | `G:\\내 드라이브\\성경주혜주석_설교노트\\` 마운트 I/O, 설교 JSON 직렬화, 종량제 과금 배제 | **PASS** |
+| **대한성서공회 수집기** | `BskoreaCollectorHarness` | Scrapling 기반 66권 매핑, 본문 정제, 각주/관주 추출, SQLite FTS5 동기화 | **PASS** |
 
 ---
 
