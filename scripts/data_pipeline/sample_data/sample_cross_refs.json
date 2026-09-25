@@ -1,0 +1,37 @@
+[
+  {
+    "from_verse_id": 1001001,
+    "to_verse_id": 43001001,
+    "score": 5.0,
+    "relationship_type": "PARALLEL",
+    "note": "요 1:1 '태초에 말씀이 계시니라' 창조의 로고스"
+  },
+  {
+    "from_verse_id": 1001001,
+    "to_verse_id": 58011003,
+    "score": 4.5,
+    "relationship_type": "EXPLANATORY",
+    "note": "히 11:3 '믿음으로 모든 세계가 하나님의 말씀으로 지어진 줄을 아나니'"
+  },
+  {
+    "from_verse_id": 43003003,
+    "to_verse_id": 47005017,
+    "score": 5.0,
+    "relationship_type": "THEMATIC",
+    "note": "고후 5:17 '새로운 피조물' 중생의 신학"
+  },
+  {
+    "from_verse_id": 52005023,
+    "to_verse_id": 3019002,
+    "score": 4.8,
+    "relationship_type": "QUOTATION",
+    "note": "레 19:2 '너희는 거룩하라 나 여호와가 거룩함이니라' 성결의 언약"
+  },
+  {
+    "from_verse_id": 52005023,
+    "to_verse_id": 58012014,
+    "score": 4.9,
+    "relationship_type": "PARALLEL",
+    "note": "히 12:14 '거룩함을 따르라 이것이 없이는 아무도 주를 보지 못하리라'"
+  }
+]

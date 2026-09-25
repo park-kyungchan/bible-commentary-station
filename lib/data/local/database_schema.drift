@@ -1,0 +1,217 @@
+-- Drift SQL Schema Definition for Biblical Exegesis & Commentary Pastoral Workstation
+-- Compatible with Drift 2.x and SQLite FTS5 for Flutter / Dart
+
+-- 1. 성경 66권 메타데이터
+CREATE TABLE bible_books (
+    book_id INT NOT NULL PRIMARY KEY,
+    osis_code TEXT NOT NULL UNIQUE,
+    name_kr TEXT NOT NULL,
+    name_kr_abbr TEXT NOT NULL,
+    name_en TEXT NOT NULL,
+    testament TEXT NOT NULL CHECK(testament IN ('OT', 'NT')),
+    category TEXT NOT NULL,
+    total_chapters INT NOT NULL,
+    total_verses INT NOT NULL
+);
+
+-- 2. 성경 역본 메타데이터
+CREATE TABLE bible_versions (
+    version_code TEXT NOT NULL PRIMARY KEY,
+    name_kr TEXT NOT NULL,
+    name_en TEXT NOT NULL,
+    language TEXT NOT NULL,
+    is_original_lang BOOLEAN NOT NULL DEFAULT FALSE,
+    is_default BOOLEAN NOT NULL DEFAULT FALSE,
+    copyright_notice TEXT
+);
+
+-- 3. 성경 구절 본문 테이블 (verse_id = book*1000000 + ch*1000 + vs)
+CREATE TABLE bible_verses (
+    verse_id INT NOT NULL,
+    book_id INT NOT NULL REFERENCES bible_books(book_id),
+    chapter INT NOT NULL,
+    verse INT NOT NULL,
+    version_code TEXT NOT NULL REFERENCES bible_versions(version_code),
+    text TEXT NOT NULL,
+    text_with_strong TEXT,
+    created_at TEXT DEFAULT (datetime('now')),
+    PRIMARY KEY (version_code, verse_id)
+);
+
+CREATE INDEX idx_bible_verses_nav ON bible_verses(version_code, book_id, chapter, verse);
+CREATE INDEX idx_bible_verses_range ON bible_verses(version_code, verse_id);
+
+-- 4. 성경 본문 FTS5 전문 검색 테이블
+CREATE VIRTUAL TABLE fts_bible_verses USING fts5(
+    verse_id UNINDEXED,
+    version_code UNINDEXED,
+    text,
+    tokenize = 'unicode61 remove_diacritics 2'
+);
+
+-- 5. 8종 주석 출처 메타데이터
+CREATE TABLE commentary_sources (
+    source_code TEXT NOT NULL PRIMARY KEY,
+    name_kr TEXT NOT NULL,
+    name_en TEXT NOT NULL,
+    author TEXT,
+    description TEXT,
+    theological_stance TEXT,
+    is_public_domain BOOLEAN NOT NULL DEFAULT FALSE,
+    access_type TEXT NOT NULL,
+    sort_order INT NOT NULL DEFAULT 99
+);
+
+-- 6. 8종 주석 본문 테이블
+CREATE TABLE commentaries (
+    commentary_id INT NOT NULL PRIMARY KEY AUTOINCREMENT,
+    source_code TEXT NOT NULL REFERENCES commentary_sources(source_code),
+    book_id INT NOT NULL REFERENCES bible_books(book_id),
+    chapter_start INT NOT NULL,
+    verse_start INT NOT NULL,
+    chapter_end INT NOT NULL,
+    verse_end INT NOT NULL,
+    verse_start_id INT NOT NULL,
+    verse_end_id INT NOT NULL,
+    passage_display TEXT NOT NULL,
+    title TEXT,
+    content_markdown TEXT NOT NULL,
+    content_html TEXT,
+    theological_tags TEXT,
+    practical_points TEXT,
+    created_at TEXT DEFAULT (datetime('now'))
+);
+
+CREATE INDEX idx_commentary_lookup ON commentaries(source_code, verse_start_id, verse_end_id);
+CREATE INDEX idx_commentary_book_chap ON commentaries(source_code, book_id, chapter_start);
+
+-- 7. 주석 FTS5 전문 검색
+CREATE VIRTUAL TABLE fts_commentaries USING fts5(
+    commentary_id UNINDEXED,
+    source_code UNINDEXED,
+    passage_display,
+    title,
+    content_markdown,
+    theological_tags,
+    tokenize = 'unicode61 remove_diacritics 2'
+);
+
+-- 8. 원어 스트롱코드 사전
+CREATE TABLE strong_lexicon (
+    strong_id TEXT NOT NULL PRIMARY KEY,
+    language TEXT NOT NULL CHECK(language IN ('HEBREW', 'GREEK', 'ARAMAIC')),
+    lemma TEXT NOT NULL,
+    transliteration TEXT,
+    pronunciation TEXT,
+    part_of_speech TEXT,
+    definition_kr TEXT NOT NULL,
+    definition_en TEXT,
+    root_id TEXT,
+    derivation TEXT,
+    occurrence_count INT DEFAULT 0
+);
+
+CREATE INDEX idx_strong_lang ON strong_lexicon(language);
+
+CREATE VIRTUAL TABLE fts_strong_lexicon USING fts5(
+    strong_id UNINDEXED,
+    lemma,
+    transliteration,
+    definition_kr,
+    definition_en,
+    tokenize = 'unicode61 remove_diacritics 2'
+);
+
+-- 9. 교차 관주 (TSK)
+CREATE TABLE cross_references (
+    ref_id INT NOT NULL PRIMARY KEY AUTOINCREMENT,
+    from_verse_id INT NOT NULL,
+    to_verse_id INT NOT NULL,
+    score REAL DEFAULT 1.0,
+    relationship_type TEXT DEFAULT 'THEMATIC' CHECK(relationship_type IN ('QUOTATION', 'PARALLEL', 'THEMATIC', 'PROPHECY_FULFILLMENT', 'EXPLANATORY')),
+    note TEXT
+);
+
+CREATE INDEX idx_cross_ref_from ON cross_references(from_verse_id, score DESC);
+CREATE INDEX idx_cross_ref_to ON cross_references(to_verse_id);
+
+-- 10. 목회자 설교문 & 아카이브 (Drift 로컬 캐시 + Google Drive 동기화)
+CREATE TABLE sermons (
+    sermon_id TEXT NOT NULL PRIMARY KEY,
+    title TEXT NOT NULL,
+    preacher TEXT NOT NULL DEFAULT '박우호 목사',
+    sermon_date TEXT NOT NULL,
+    service_type TEXT NOT NULL DEFAULT '주일대예배',
+    scripture_ref TEXT NOT NULL,
+    passage_start_id INT,
+    passage_end_id INT,
+    series_title TEXT,
+    target_duration_mins INT DEFAULT 30,
+    outline_json TEXT,
+    full_text_markdown TEXT,
+    pulpit_slides_json TEXT,
+    tags TEXT,
+    gdrive_file_id TEXT,
+    sync_status TEXT DEFAULT 'SYNCED' CHECK(sync_status IN ('SYNCED', 'PENDING_UPLOAD', 'PENDING_DOWNLOAD', 'CONFLICT')),
+    local_updated_at TEXT DEFAULT (datetime('now')),
+    gdrive_synced_at TEXT
+);
+
+CREATE INDEX idx_sermons_date ON sermons(sermon_date DESC);
+
+-- 11. 주석 스크랩 클립보드 (설교 준비 중 원클릭 스크랩)
+CREATE TABLE sermon_clips (
+    clip_id INT NOT NULL PRIMARY KEY AUTOINCREMENT,
+    sermon_id TEXT NOT NULL REFERENCES sermons(sermon_id) ON DELETE CASCADE,
+    source_type TEXT NOT NULL CHECK(source_type IN ('COMMENTARY', 'BIBLE', 'STRONG', 'CROSS_REF')),
+    source_code TEXT,
+    quote_text TEXT NOT NULL,
+    commentary_title TEXT,
+    pastor_note TEXT,
+    target_outline_section TEXT,
+    order_index INT DEFAULT 0,
+    created_at TEXT DEFAULT (datetime('now'))
+);
+
+CREATE INDEX idx_sermon_clips ON sermon_clips(sermon_id, order_index);
+
+-- Type-Safe Queries for Drift ORM
+getChapterVerses:
+SELECT * FROM bible_verses 
+WHERE version_code = :versionCode AND book_id = :bookId AND chapter = :chapter 
+ORDER BY verse ASC;
+
+getCommentaryForVerse:
+SELECT c.*, s.name_kr AS source_name, s.theological_stance 
+FROM commentaries c
+JOIN commentary_sources s ON c.source_code = s.source_code
+WHERE c.source_code = :sourceCode 
+  AND :verseId BETWEEN c.verse_start_id AND c.verse_end_id;
+
+searchCommentariesFts:
+SELECT c.*, snippet(fts_commentaries, 4, '[HL]', '[/HL]', '...', 10) AS match_snippet
+FROM fts_commentaries f
+JOIN commentaries c ON f.commentary_id = c.commentary_id
+WHERE fts_commentaries MATCH :query
+ORDER BY rank;
+
+getStrongWord:
+SELECT * FROM strong_lexicon WHERE strong_id = :strongId;
+
+getCrossReferencesForVerse:
+SELECT cr.*, v.text, b.name_kr AS to_book_name, v.chapter AS to_chapter, v.verse AS to_verse
+FROM cross_references cr
+JOIN bible_verses v ON cr.to_verse_id = v.verse_id AND v.version_code = :versionCode
+JOIN bible_books b ON v.book_id = b.book_id
+WHERE cr.from_verse_id = :verseId
+ORDER BY cr.score DESC;
+
+-- 인물/주제 연쇄 관주 조회 (Chain Reference)
+getChainReferencesForTopic:
+SELECT cr.*, v.text, b.name_kr AS to_book_name, v.chapter AS to_chapter, v.verse AS to_verse
+FROM cross_references cr
+JOIN bible_verses v ON cr.to_verse_id = v.verse_id AND v.version_code = :versionCode
+JOIN bible_books b ON v.book_id = b.book_id
+WHERE cr.relationship_type = 'THEMATIC' AND cr.note LIKE :keyword
+ORDER BY cr.score DESC;
+
