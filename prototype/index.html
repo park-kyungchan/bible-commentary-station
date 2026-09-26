@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>박우호 목사 성경 연구 & 설교 워크스테이션 (성경주혜주석)</title>
   <meta name="description" content="박우호 목사 성경 연구 & 설교 워크스테이션 (성경주혜주석)">
   <meta name="theme-color" content="#1A2B49">
@@ -236,6 +236,7 @@
       display: inline-flex;
       align-items: center;
       gap: 4px;
+      font-family: inherit;
       transition: all 0.15s;
     }
     .chain-chip:hover, .chain-chip.active {
@@ -264,12 +265,15 @@
 
     .ch-pill {
       font-size: 11px;
-      padding: 3px 9px;
+      min-height: 32px;
+      padding: 4px 9px;
       border-radius: 4px;
       background: var(--bg-surface);
       border: 1px solid var(--border-color);
       cursor: pointer;
       font-weight: 600;
+      font-family: inherit;
+      color: var(--text-main);
     }
     .ch-pill.active {
       background: var(--accent-pill);
@@ -281,16 +285,25 @@
       flex: 1;
       overflow-y: auto;
       list-style: none;
+      margin: 0;
+      padding: 0;
     }
 
     .book-item {
+      width: 100%;
+      box-sizing: border-box;
       padding: 10px 14px;
       font-size: 13px;
+      border: 0;
       border-bottom: 1px solid var(--border-color);
       display: flex;
       justify-content: space-between;
       align-items: center;
       cursor: pointer;
+      text-align: left;
+      font-family: inherit;
+      color: inherit;
+      background: transparent;
     }
     .book-item:hover {
       background-color: var(--bg-surface-subtle);
@@ -395,6 +408,12 @@
       font-family: var(--font-ui);
       display: inline-block;
       min-width: 18px;
+      min-height: 32px;
+      padding: 0 4px;
+      border: 0;
+      border-radius: 4px;
+      background: transparent;
+      cursor: pointer;
     }
 
     .strong-chip {
@@ -434,10 +453,23 @@
       font-weight: 700;
       cursor: pointer;
       transition: all 0.15s;
+      min-height: 32px;
     }
     .cross-ref-toggle-btn:hover {
       background: #D1FAE5;
       transform: translateY(-1px);
+    }
+
+    .book-item:focus-visible,
+    .ch-pill:focus-visible,
+    .verse-num:focus-visible,
+    .cross-ref-toggle-btn:focus-visible,
+    .chain-chip:focus-visible,
+    .draft-passage-apply:focus-visible {
+      outline: 3px solid #2563EB;
+      outline-offset: 2px;
+      position: relative;
+      z-index: 2;
     }
 
     /* 인라인 관주 서랍 */
@@ -527,14 +559,50 @@
       flex-shrink: 0;
     }
 
+    .source-verification-banner {
+      padding: 7px 12px;
+      border-bottom: 1px solid #FCD34D;
+      background: #FFFBEB;
+      color: #78350F;
+      font: 11px/1.45 var(--font-ui);
+    }
+
+    .source-claim-status {
+      margin: 8px 0;
+      padding: 9px 11px;
+      border: 1px solid #FCD34D;
+      border-left: 3px solid #D97706;
+      border-radius: 4px;
+      background: #FFFBEB;
+      color: #78350F;
+      font: 12px/1.5 var(--font-ui);
+    }
+
+    .source-claim-status strong { display: block; margin-bottom: 2px; }
+    .source-claim-status details { margin-top: 7px; }
+    .source-claim-status summary { min-height: 28px; display: flex; align-items: center; cursor: pointer; font-weight: 700; }
+    .source-claim-status dl { display: grid; grid-template-columns: minmax(95px, auto) minmax(0, 1fr); gap: 3px 8px; margin: 7px 0 0; overflow-wrap: anywhere; }
+    .source-claim-status dt { font-weight: 700; }
+    .source-claim-status dd { margin: 0; }
+    .claim-content-kind { padding: 7px 9px; border-left: 3px solid #64748B; background: var(--bg-surface-subtle); color: var(--text-muted); font: 11px/1.5 var(--font-ui); }
+    .source-claim-blocked { margin: 10px 0; color: var(--text-muted); font: 13px/1.6 var(--font-ui); }
+    .version-unavailable { display: block; color: var(--text-muted); font: 14px/1.6 var(--font-ui); }
+    .original-language-sample { font-family: serif; font-size: 19px; }
+    .original-korean-context { margin-top: 10px; padding: 9px 11px; border-left: 3px solid var(--brand-gold); background: var(--bg-surface-subtle); font: 13px/1.7 var(--font-body); }
+    .strong-sample-list { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-top: 8px; }
+    .strong-sample-list .source-claim-status { flex-basis: 100%; margin: 0 0 3px; }
+
     .comm-tab {
       padding: 11px 12px;
       font-size: 12px;
       font-weight: 600;
       white-space: nowrap;
       cursor: pointer;
+      border: 0;
       border-bottom: 2px solid transparent;
+      background: transparent;
       color: var(--text-muted);
+      font-family: inherit;
       user-select: none;
     }
     .comm-tab.active {
@@ -599,11 +667,84 @@
       border-bottom: 1px solid var(--border-color);
       font-size: 13px;
       font-weight: 700;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: end;
+      gap: 8px;
       flex-shrink: 0;
     }
+
+    .draft-fields {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(110px, 0.7fr);
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .draft-field {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      min-width: 0;
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    .draft-field input,
+    .outline-field,
+    .outline-body {
+      width: 100%;
+      box-sizing: border-box;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      background: var(--bg-surface);
+      color: var(--text-main);
+      font: inherit;
+      padding: 7px 8px;
+    }
+
+    .draft-field input { font-size: 12px; font-weight: 600; }
+    .outline-field { font-size: 12px; font-weight: 700; }
+    .outline-body { min-height: 100px; resize: vertical; font-size: 13px; line-height: 1.65; }
+    .draft-fields input:focus,
+    .outline-field:focus,
+    .outline-body:focus,
+    .comm-tab:focus-visible,
+    .mobile-view-switch button:focus-visible { outline: 3px solid #2563EB; outline-offset: 2px; }
+
+    .draft-passage-bridge {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      min-width: 0;
+      font-size: 10px;
+      line-height: 1.4;
+      color: var(--text-muted);
+    }
+    .draft-passage-bridge span { min-width: 0; }
+    .draft-passage-apply {
+      flex: 0 0 auto;
+      min-height: 32px;
+      padding: 5px 8px;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      color: var(--text-main);
+      background: var(--bg-surface-subtle);
+      font: 600 10px var(--font-ui);
+      cursor: pointer;
+    }
+
+    .draft-save-status {
+      grid-column: 1 / -1;
+      min-height: 14px;
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+
+    .draft-storage-note { grid-column: 1 / -1; font-size: 10px; font-weight: 400; color: var(--text-muted); }
 
     .sermon-outline-list {
       flex: 1;
@@ -634,6 +775,10 @@
       align-items: center;
     }
 
+    .outline-card-fields { display: grid; grid-template-columns: minmax(0, 1fr) minmax(90px, 0.55fr); gap: 6px; margin-bottom: 7px; }
+    .unverified-note { padding: 7px 9px; border-left: 3px solid #B45309; background: #FFFBEB; color: #78350F; font-size: 11px; line-height: 1.45; margin-bottom: 7px; }
+    .unverified-source-label { font-size: 11px; color: var(--text-muted); margin: 0 0 5px; }
+
     .outline-card-content {
       font-size: 12px;
       color: var(--text-main);
@@ -659,6 +804,8 @@
       padding: 2px 4px;
     }
     .card-del-btn:hover { color: #EF4444; }
+
+    .mobile-view-switch { display: none; }
 
     /* Toast */
     .toast-popup {
@@ -718,6 +865,7 @@
     }
     .pulpit-slide-box {
       flex: 1;
+      min-height: 0;
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -748,12 +896,21 @@
     }
     .pulpit-note-box {
       margin-top: 20px;
-      font-size: 20px;
+      font-size: var(--sermon-editor-font-size, 20px);
       color: #E2E8F0;
       max-width: 800px;
-      line-height: 1.5;
+      max-height: 35vh;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      position: relative;
+      z-index: 20;
+      line-height: var(--sermon-editor-line-height, 1.5);
+      letter-spacing: var(--sermon-editor-letter-spacing, 0);
       font-family: var(--font-ui);
+      pointer-events: auto;
+      touch-action: pan-y;
     }
+    .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
     .pulpit-touch-zone {
       position: absolute;
       top: 0; bottom: 0;
@@ -791,6 +948,25 @@
       .theme-selector, .pulpit-toggle-btn { padding: 6px 8px; font-size: 11px; }
 
       main { flex-direction: column; overflow-x: hidden; overflow-y: auto; }
+      .mobile-view-switch {
+        position: sticky; top: 0; z-index: 30; display: grid;
+        grid-template-columns: 1fr 1fr; flex: 0 0 auto; gap: 6px;
+        padding: 7px 10px; background: var(--bg-surface);
+        border-bottom: 1px solid var(--border-color);
+      }
+      .mobile-view-switch button {
+        min-height: 40px; border: 1px solid var(--border-color); border-radius: 6px;
+        background: var(--bg-surface-subtle); color: var(--text-main); font: 600 13px var(--font-ui);
+      }
+      .mobile-view-switch button[aria-pressed="true"] { background: var(--brand-navy); color: #FFF; }
+      main.mobile-view-sermon .panel-nav,
+      main.mobile-view-sermon .panel-scripture,
+      main.mobile-view-sermon .source-verification-banner,
+      main.mobile-view-sermon #commTabsContainer,
+      main.mobile-view-sermon .comm-body { display: none; }
+      main.mobile-view-sermon .panel-commentary { width: 100%; min-width: 0; min-height: calc(100dvh - 150px); flex: 1 0 auto; }
+      main.mobile-view-sermon .sermon-studio { min-height: calc(100dvh - 150px); flex: 1 0 auto; }
+      main.mobile-view-research .sermon-studio { display: none; }
       .panel-nav {
         width: 100%;
         min-width: 0;
@@ -827,6 +1003,280 @@
       .comm-tab { padding: 10px 9px; font-size: 11px; }
       .comm-body { flex: 0 0 36vh; padding: 12px; }
       .sermon-studio { flex: 0 0 36vh; min-height: 260px; }
+      .studio-header { padding: 10px; grid-template-columns: minmax(0, 1fr) auto; }
+      .draft-fields { grid-template-columns: minmax(0, 1fr); }
+      .draft-passage-bridge { grid-column: 1; }
+      .draft-storage-note { display: none; }
+      .outline-body { min-height: 140px; font-size: 16px; }
+    }
+
+    /* Sermon-first workspace and on-demand research navigator */
+    main#workspaceMain { min-width: 0; min-height: 0; }
+    .sermon-studio {
+      flex: 1 1 auto;
+      min-width: 0;
+      min-height: 0;
+      background: var(--bg-base);
+    }
+    .studio-header {
+      min-height: 100px;
+      padding: 12px clamp(16px, 3vw, 40px);
+      align-items: center;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 20px;
+    }
+    .studio-header-copy { min-width: 0; }
+    .studio-eyebrow {
+      margin: 0 0 4px;
+      color: var(--text-muted);
+      font: 600 11px/1.4 var(--font-ui);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .studio-heading { margin: 0; color: var(--text-main); font: 700 22px/1.25 var(--font-ui); }
+    .studio-description { margin: 5px 0 0; color: var(--text-muted); font: 12px/1.45 var(--font-ui); }
+    .studio-header-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; }
+    .studio-action {
+      min-height: 42px;
+      padding: 8px 13px;
+      border: 1px solid var(--border-color);
+      border-radius: 7px;
+      background: var(--bg-surface);
+      color: var(--text-main);
+      font: 650 13px/1.2 var(--font-ui);
+      cursor: pointer;
+    }
+    .studio-action-primary { border-color: var(--brand-navy); background: var(--brand-navy); color: #fff; }
+    .studio-action:hover { filter: brightness(.97); }
+    .studio-action:focus-visible,
+    .editor-toolbar select:focus-visible,
+    .research-navigator button:focus-visible,
+    .research-navigator select:focus-visible,
+    .research-navigator input:focus-visible,
+    .panel-splitter:focus-visible,
+    .draft-field input:focus-visible,
+    .outline-field:focus-visible,
+    .outline-body:focus-visible {
+      outline: 3px solid #2563EB;
+      outline-offset: 2px;
+    }
+    .studio-document-scroll { flex: 1; min-height: 0; overflow: auto; padding: 24px clamp(16px, 3vw, 40px) 48px; }
+    .draft-fields {
+      width: min(100%, 790px);
+      margin: 0 auto;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 14px 16px;
+    }
+    .draft-field { gap: 6px; font: 600 12px/1.4 var(--font-ui); color: var(--text-muted); }
+    .draft-field-topic { grid-column: 1 / -1; }
+    .draft-field input { min-height: 43px; padding: 10px 12px; border-radius: 6px; font: 500 15px/1.35 var(--font-ui); }
+    .draft-field-topic input { font-size: 17px; font-weight: 650; }
+    .draft-passage-bridge { grid-column: 1 / -1; align-items: center; padding: 4px 0; font: 12px/1.45 var(--font-ui); }
+    .draft-passage-apply { min-height: 38px; padding: 7px 11px; font-size: 12px; }
+    .draft-save-status { grid-column: 1 / -1; min-height: 18px; font: 11px/1.45 var(--font-ui); }
+    .draft-storage-note { grid-column: 1 / -1; font: 11px/1.45 var(--font-ui); }
+    .editor-toolbar {
+      width: min(100%, 790px);
+      min-height: 52px;
+      margin: 24px auto 0;
+      padding: 8px 0;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px 14px;
+      border-top: 1px solid var(--border-color);
+      border-bottom: 1px solid var(--border-color);
+      font: 600 12px/1.4 var(--font-ui);
+      color: var(--text-muted);
+    }
+    .editor-setting { display: inline-flex; align-items: center; gap: 7px; }
+    .editor-toolbar select {
+      min-height: 36px;
+      max-width: 145px;
+      padding: 6px 9px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      background: var(--bg-surface);
+      color: var(--text-main);
+      font: 600 12px var(--font-ui);
+    }
+    .editor-toolbar-note { flex: 1 1 100%; margin: 0; font: 11px/1.4 var(--font-ui); }
+    .sermon-outline-list {
+      width: min(100%, 790px);
+      margin: 0 auto;
+      padding: 10px 0 28px;
+      overflow: visible;
+      gap: 0;
+    }
+    .outline-card {
+      padding: 22px 0 26px;
+      border: 0;
+      border-bottom: 1px solid var(--border-color);
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
+      animation: none;
+    }
+    .outline-card-fields { grid-template-columns: minmax(0, 1fr) minmax(130px, .42fr); gap: 10px; margin-bottom: 12px; }
+    .outline-field { min-height: 42px; padding: 9px 10px; border-radius: 5px; font: 650 15px/1.35 var(--font-ui); }
+    .outline-body {
+      min-height: 180px;
+      padding: 14px 15px;
+      border-radius: 5px;
+      font: 400 var(--editor-font-size, 18px)/var(--editor-line-height, 1.75) var(--font-body);
+      letter-spacing: var(--editor-letter-spacing, 0);
+      resize: vertical;
+    }
+    .card-del-btn { min-height: 38px; margin: 0 0 10px 6px; }
+
+    .research-navigator {
+      width: min(1440px, calc(100vw - 32px));
+      height: min(900px, calc(100dvh - 32px));
+      max-width: none;
+      max-height: none;
+      margin: auto;
+      padding: 0;
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      background: var(--bg-surface);
+      color: var(--text-main);
+      box-shadow: 0 24px 80px rgba(15, 23, 42, .28);
+    }
+    .research-navigator::backdrop { background: rgba(15, 23, 42, .48); backdrop-filter: blur(2px); }
+    .research-navigator[open] { display: flex; flex-direction: column; }
+    .research-navigator-header {
+      flex: 0 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--border-color);
+      font-family: var(--font-ui);
+    }
+    .research-pane-controls {
+      flex: 0 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 7px;
+      padding: 8px 14px;
+      border-bottom: 1px solid var(--border-color);
+      background: var(--bg-surface-subtle);
+      font-family: var(--font-ui);
+    }
+    .research-pane-controls-label { margin-right: 4px; color: var(--text-muted); font: 600 11px/1.3 var(--font-ui); }
+    .research-pane-toggle {
+      min-height: 40px;
+      padding: 7px 10px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      background: var(--bg-surface);
+      color: var(--text-main);
+      font: 600 12px/1.2 var(--font-ui);
+      cursor: pointer;
+    }
+    .research-pane-toggle[aria-expanded="false"] { border-style: dashed; color: var(--text-muted); }
+    .research-navigator-title { margin: 0; font-size: 15px; line-height: 1.3; }
+    .research-navigator-caption { margin: 3px 0 0; color: var(--text-muted); font-size: 11px; line-height: 1.4; }
+    .research-navigator-actions { display: flex; flex: 0 1 auto; align-items: center; justify-content: flex-end; gap: 8px; }
+    .research-dialog-selection { max-width: 270px; color: var(--text-muted); font: 11px/1.4 var(--font-ui); }
+    .research-apply {
+      min-height: 42px;
+      padding: 8px 12px;
+      border: 1px solid var(--brand-navy);
+      border-radius: 7px;
+      background: var(--brand-navy);
+      color: #fff;
+      font: 650 12px/1.2 var(--font-ui);
+      cursor: pointer;
+    }
+    .research-close {
+      flex: 0 0 auto;
+      min-width: 42px;
+      min-height: 42px;
+      border: 1px solid var(--border-color);
+      border-radius: 7px;
+      background: var(--bg-surface);
+      color: var(--text-main);
+      font: 600 13px var(--font-ui);
+      cursor: pointer;
+    }
+    .research-workspace {
+      --nav-width: 260px;
+      --commentary-width: 360px;
+      flex: 1;
+      min-width: 0;
+      min-height: 0;
+      display: grid;
+      grid-template-columns: minmax(210px, var(--nav-width)) 24px minmax(320px, 1fr) 24px minmax(280px, var(--commentary-width));
+      overflow: hidden;
+    }
+    .research-workspace .panel-nav,
+    .research-workspace .panel-scripture,
+    .research-workspace .panel-commentary { width: auto; min-width: 0; max-width: none; min-height: 0; height: auto; flex: initial; border: 0; }
+    .research-workspace .panel-nav { border-right: 1px solid var(--border-color); }
+    .research-workspace .panel-scripture { border-right: 1px solid var(--border-color); }
+    .research-workspace .panel-commentary { min-width: 0; }
+    .research-workspace .sermon-studio { display: none; }
+    .research-workspace > [hidden] { display: none !important; }
+    .panel-splitter {
+      position: relative;
+      z-index: 3;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: col-resize;
+      touch-action: none;
+      background: var(--bg-surface-subtle);
+      border-left: 1px solid var(--border-color);
+      border-right: 1px solid var(--border-color);
+    }
+    .panel-splitter::before { content: ""; width: 3px; height: 38px; border-radius: 3px; background: #94A3B8; }
+    .panel-splitter:hover, .panel-splitter:focus-visible { background: #DBEAFE; }
+    .research-workspace .source-verification-banner { flex: 0 0 auto; }
+    .research-workspace .comm-body { min-height: 0; }
+
+    @media (max-width: 1024px) {
+      .research-workspace { display: flex; flex-direction: column; overflow: auto; }
+      .research-workspace .panel-nav { flex: 0 0 auto; min-height: 280px; border-bottom: 1px solid var(--border-color); }
+      .research-workspace .panel-scripture { flex: 0 0 auto; min-height: 48vh; border-bottom: 1px solid var(--border-color); }
+      .research-workspace .panel-commentary { flex: 0 0 auto; min-height: 52vh; }
+      .research-workspace .panel-splitter { display: none; }
+      .research-workspace .book-list { min-height: 0; }
+    }
+    @media (max-width: 700px) {
+      .studio-header { grid-template-columns: minmax(0, 1fr); gap: 12px; padding: 14px 16px; }
+      .studio-header-actions { justify-content: flex-start; }
+      .studio-action { min-height: 44px; }
+      .studio-heading { font-size: 20px; }
+      .studio-description { max-width: 42ch; }
+      .studio-document-scroll { padding: 18px 16px 36px; }
+      .draft-fields { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+      .draft-field-topic, .draft-passage-bridge, .draft-save-status, .draft-storage-note { grid-column: 1; }
+      .draft-passage-bridge { align-items: flex-start; flex-direction: column; }
+      .draft-passage-apply { min-height: 44px; }
+      .draft-storage-note { display: block; }
+      .editor-toolbar { gap: 8px 10px; }
+      .editor-setting { flex: 1 1 135px; justify-content: space-between; }
+      .editor-toolbar select { min-height: 40px; }
+      .outline-card-fields { grid-template-columns: minmax(0, 1fr); }
+      .outline-field { font-size: 15px; }
+      .outline-body { min-height: 210px; }
+      .research-navigator { width: 100vw; height: 100dvh; border: 0; border-radius: 0; }
+      .research-navigator-header { flex-wrap: wrap; padding: 8px 12px; }
+      .research-navigator-actions { width: 100%; justify-content: space-between; }
+      .research-dialog-selection { flex: 1 1 120px; max-width: none; }
+      .research-apply { flex: 0 1 auto; min-height: 44px; }
+      .research-pane-controls { padding: 7px 10px; gap: 6px; }
+      .research-pane-controls-label { flex-basis: 100%; }
+      .research-pane-toggle { min-height: 44px; flex: 1 1 auto; }
+      .research-workspace { padding-bottom: env(safe-area-inset-bottom); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .outline-card { animation: none; }
+      *, *::before, *::after { scroll-behavior: auto !important; }
     }
 
     @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
@@ -841,7 +1291,7 @@
       <span class="app-badge">성경주혜주석</span>
       <span class="pastor-name">
         박우호 목사 성경 연구 & 설교 워크스테이션
-        <span class="live-data-badge">● 실데이터 & 심층 관주 가동</span>
+        <span class="live-data-badge">● 참고 자료 · 출처 검증 필요</span>
       </span>
     </div>
 
@@ -860,112 +1310,150 @@
     </div>
   </header>
 
-  <!-- 3-Panel Main Layout -->
-  <main>
-    <!-- Panel 1: Navigation & Chain Reference (23%) -->
-    <section class="panel-nav">
-      <div class="nav-header">
-        <span>성경 66권 탐색</span>
-        <span style="font-size:11px; color:var(--text-muted);" id="bookCountStatus">OT:39 NT:27</span>
-      </div>
-
-      <!-- [목사님 요청 핵심 기능] 인물·주제 연쇄 관주 (Chain Reference) -->
-      <div class="chain-ref-box">
-        <div class="chain-ref-title">
-          <span>🔗 인물·주제 연쇄 관주 (Chain-Ref)</span>
-          <span style="font-size:10px; color:#4F46E5; font-weight:600;">성경 전체 추적</span>
+  <main id="workspaceMain">
+    <section class="sermon-studio" aria-labelledby="studioHeading">
+      <header class="studio-header">
+        <div class="studio-header-copy">
+          <p class="studio-eyebrow">주제에서 본문으로, 본문에서 원고로</p>
+          <h1 class="studio-heading" id="studioHeading">설교 작업대</h1>
+          <p class="studio-description">주제를 먼저 적고 본문과 자료를 살펴본 뒤, 가운데 원고에서 설교를 준비하세요.</p>
         </div>
-        <div class="chain-ref-chips">
-          <span class="chain-chip active" id="chip_isaac" onclick="openChainReference('이삭')">👑 이삭 (Isaac)</span>
-          <span class="chain-chip" id="chip_abraham" onclick="openChainReference('아브라함')">⛰️ 아브라함</span>
-          <span class="chain-chip" id="chip_moses" onclick="openChainReference('모세')">🌊 모세</span>
+        <div class="studio-header-actions">
+          <button class="studio-action studio-action-primary" id="openResearchNavigatorButton" type="button" aria-haspopup="dialog" aria-controls="researchNavigator" onclick="openResearchNavigator()">본문 및 자료 찾기</button>
+          <button class="studio-action" id="addNewPointButton" type="button" onclick="addNewPoint()">+ 대지 추가</button>
         </div>
-      </div>
-
-      <!-- Chapter Pills Box -->
-      <div class="chapter-pills-container">
-        <div class="chapter-pills-label" id="chapterPillLabel">창세기 장 선택:</div>
-        <div class="chapter-pills" id="chapterPills"></div>
-      </div>
-
-      <!-- Bible Book List -->
-      <ul class="book-list" id="bookListContainer"></ul>
-    </section>
-
-    <!-- Panel 2: Scripture Text Reader (42%) -->
-    <section class="panel-scripture">
-      <div class="scripture-header">
-        <div class="current-chapter-title" id="chapterHeader">창세기 2장</div>
-        <select class="version-select" id="versionSelect" onchange="switchVersion(this.value)">
-          <option value="rnkv">개역개정판 (RNKV)</option>
-          <option value="krv" selected>개역한글판 (KRV, 1961)</option>
-          <option value="esv">ESV (English Standard)</option>
-          <option value="orig">원어 본문 (히브리어/헬라어)</option>
-        </select>
-      </div>
-
-      <div class="scripture-attribution" id="scriptureAttribution" role="note">
-        성경전서 개역한글판 (1961) © 대한성서공회 ·
-        <a href="https://bible.bskorea.or.kr/copyright_notice" target="_blank" rel="noopener noreferrer">저작권 안내</a>
-      </div>
-
-      <div class="scripture-content" id="scriptureContainer">
-        <!-- Dynamically rendered verses with inline cross-reference accordions -->
+      </header>
+      <div class="studio-document-scroll">
+        <div class="draft-fields">
+          <label class="draft-field draft-field-topic">먼저 설교 주제<input id="sermonTopic" type="text" autocomplete="off" placeholder="예: 기다림, 회복, 공동체" aria-label="설교 주제"></label>
+          <label class="draft-field">설교 본문 위치<input id="sermonPassage" type="text" autocomplete="off" placeholder="주제를 정한 뒤 본문 탐색에서 선택" aria-label="설교 본문 위치"></label>
+          <label class="draft-field">설교 제목<input id="sermonTitle" type="text" autocomplete="off" placeholder="설교 제목" aria-label="설교 제목"></label>
+          <div class="draft-passage-bridge">
+            <span id="researchSelectionSummary" role="status" aria-live="polite">현재 연구 선택을 불러오는 중</span>
+            <button class="draft-passage-apply" id="applyResearchPassageButton" type="button" onclick="applyResearchSelectionToDraftPassage()">선택한 위치를 본문에 적용</button>
+          </div>
+          <span class="draft-save-status" id="sermonSaveStatus" role="status" aria-live="polite">이 브라우저에 저장됩니다.</span>
+          <span class="draft-storage-note">초안은 이 브라우저의 로컬 저장소에만 보관됩니다. 다른 기기와 동기화되지 않습니다.</span>
+        </div>
+        <div class="editor-toolbar" role="group" aria-label="원고 표시 설정">
+          <label class="editor-setting">글자 크기
+            <select id="editorFontSize" aria-label="원고 글자 크기">
+              <option value="16">작게</option><option value="18">보통</option><option value="20">크게</option><option value="22">더 크게</option><option value="24">가장 크게</option>
+            </select>
+          </label>
+          <label class="editor-setting">줄간격
+            <select id="editorLineHeight" aria-label="원고 줄간격">
+              <option value="1.5">좁게</option><option value="1.7">보통</option><option value="1.9">넓게</option><option value="2.1">더 넓게</option>
+            </select>
+          </label>
+          <label class="editor-setting">자간
+            <select id="editorLetterSpacing" aria-label="원고 자간">
+              <option value="0">기본</option><option value="0.02">넓게</option><option value="0.04">더 넓게</option>
+            </select>
+          </label>
+          <p class="editor-toolbar-note">보기 설정은 원고와 강단 글에 적용됩니다. 굵게·기울임 등 문단 서식은 안전한 문서 저장 형식을 정한 뒤 추가합니다.</p>
+        </div>
+        <div class="sermon-outline-list" id="sermonCards" aria-label="설교 원고"></div>
       </div>
     </section>
 
-    <!-- Panel 3: 8 Commentaries & Chain References & Sermon Studio (35%) -->
-    <section class="panel-commentary">
-      <!-- 8 Commentary Tabs + 관주 탭 -->
-      <div class="comm-tabs-bar" id="commTabsContainer"></div>
-
-      <!-- Commentary / Cross-Reference Body -->
-      <div class="comm-body" id="commContent">
-        <!-- Dynamically rendered -->
-      </div>
-
-      <!-- Lower Split: Sermon Studio -->
-      <div class="sermon-studio">
-        <div class="studio-header">
-          <span>📝 설교 스튜디오 (원고 & 대지)</span>
-          <button style="font-size:11px; font-weight:700; padding:4px 8px; cursor:pointer; background:var(--bg-surface-subtle); border:1px solid var(--border-color); border-radius:4px;" onclick="addNewPoint()">+ 대지 추가</button>
+    <dialog class="research-navigator" id="researchNavigator" aria-labelledby="researchNavigatorTitle">
+      <div class="research-navigator-header">
+        <div>
+          <h2 class="research-navigator-title" id="researchNavigatorTitle">성경 본문 및 자료 찾기</h2>
+          <p class="research-navigator-caption">본문·연구 선택은 설교 본문과 분리해 보관하며, 적용 버튼을 눌러야 원고에 반영됩니다.</p>
         </div>
-        <div class="sermon-outline-list" id="sermonCards"></div>
+        <div class="research-navigator-actions">
+          <span class="research-dialog-selection" id="researchDialogSelectionSummary" role="status" aria-live="polite"></span>
+          <button class="research-apply" id="applyResearchFromNavigatorButton" type="button" onclick="applyResearchSelectionToDraftPassage()">선택 위치를 설교 본문에 적용</button>
+          <button class="research-close" id="researchNavigatorCloseButton" type="button" aria-label="본문 및 자료 창 닫기" onclick="closeResearchNavigator()">닫기</button>
+        </div>
       </div>
-    </section>
+      <div class="research-pane-controls" role="group" aria-label="탐색 패널 표시 설정">
+        <span class="research-pane-controls-label">필요한 패널만 표시</span>
+        <button class="research-pane-toggle" type="button" data-pane-toggle="nav" aria-controls="researchNavPanel" aria-expanded="true">성경 목록 숨기기</button>
+        <button class="research-pane-toggle" type="button" data-pane-toggle="scripture" aria-controls="researchScripturePanel" aria-expanded="true">본문 숨기기</button>
+        <button class="research-pane-toggle" type="button" data-pane-toggle="commentary" aria-controls="researchCommentaryPanel" aria-expanded="true">자료 숨기기</button>
+      </div>
+      <div class="research-workspace" id="researchWorkspace">
+        <section class="panel-nav" id="researchNavPanel" aria-label="성경 책과 장 탐색">
+          <div class="nav-header">
+            <span>성경 66권 탐색</span>
+            <span style="font-size:11px; color:var(--text-muted);" id="bookCountStatus">OT:39 NT:27</span>
+          </div>
+          <div class="chain-ref-box">
+            <div class="chain-ref-title">
+              <span>🔗 인물·주제 연쇄 관주 (Chain-Ref)</span>
+              <span style="font-size:10px; color:#4F46E5; font-weight:600;">성경 전체 추적</span>
+            </div>
+            <div class="chain-ref-chips">
+              <button type="button" class="chain-chip active" id="chip_isaac" aria-pressed="true" onclick="openChainReference('이삭')">👑 이삭 (Isaac)</button>
+              <button type="button" class="chain-chip" id="chip_abraham" aria-pressed="false" onclick="openChainReference('아브라함')">⛰️ 아브라함</button>
+              <button type="button" class="chain-chip" id="chip_moses" aria-pressed="false" onclick="openChainReference('모세')">🌊 모세</button>
+            </div>
+          </div>
+          <div class="chapter-pills-container">
+            <div class="chapter-pills-label" id="chapterPillLabel">창세기 장 선택:</div>
+            <div class="chapter-pills" id="chapterPills"></div>
+          </div>
+          <ul class="book-list" id="bookListContainer"></ul>
+        </section>
+        <div class="panel-splitter" id="navPanelSplitter" role="separator" aria-orientation="vertical" aria-label="성경 책 목록 너비 조절" aria-valuemin="210" aria-valuemax="360" aria-valuenow="260" tabindex="0" data-splitter="nav"></div>
+        <section class="panel-scripture" id="researchScripturePanel" aria-label="선택한 성경 본문">
+          <div class="scripture-header">
+            <div class="current-chapter-title" id="chapterHeader">창세기 2장</div>
+            <select class="version-select" id="versionSelect" onchange="switchVersion(this.value)" aria-label="성경 자료">
+              <option value="rnkv">개역개정판 예시 (판본 미확인)</option>
+              <option value="krv" selected>KRV 예시 (판본·권리 검증 전)</option>
+              <option value="esv">ESV 예시 (판본 미확인)</option>
+              <option value="orig">원어 자료 예시 (판본 미확인)</option>
+            </select>
+          </div>
+          <div class="scripture-attribution" id="scriptureAttribution" role="note">본문 자료의 판본·정확한 출처·권리 근거를 확인할 수 없어 시범 본문은 표시하지 않습니다. KRV는 탐색 좌표 가정입니다.</div>
+          <div class="scripture-content" id="scriptureContainer"></div>
+        </section>
+        <div class="panel-splitter" id="commentaryPanelSplitter" role="separator" aria-orientation="vertical" aria-label="자료 패널 너비 조절" aria-valuemin="280" aria-valuemax="480" aria-valuenow="360" tabindex="0" data-splitter="commentary"></div>
+        <section class="panel-commentary" id="researchCommentaryPanel" aria-label="주석 및 관주 자료">
+          <div class="source-verification-banner" role="note">주석·관주·원어 자료는 참고 후보입니다. 이 프로토타입은 브라우저 안의 자기기재 승인 필드나 검증 서명을 확인할 수 없으므로 승인된 자료로 간주하지 마세요.</div>
+          <div class="comm-tabs-bar" id="commTabsContainer" role="tablist" aria-label="주석 및 관주 자료"></div>
+          <div class="comm-body" id="commContent" role="tabpanel"></div>
+        </section>
+      </div>
+    </dialog>
   </main>
 
   <!-- Pulpit Prompter Modal View -->
-  <div class="pulpit-prompter-view" id="pulpitView">
+  <div class="pulpit-prompter-view" id="pulpitView" role="dialog" aria-modal="true" aria-labelledby="pulpitHeaderTitle" tabindex="-1">
     <div class="pulpit-bar">
       <div class="pulpit-timer">⏱️ <span id="countdown">25:00</span></div>
       <div class="pulpit-title" id="pulpitHeaderTitle">주일 대예배 설교 프롬프터</div>
       <div style="display:flex; gap:10px;">
         <button style="background:#374151; color:#FFF; border:none; padding:6px 12px; border-radius:6px; font-weight:600; cursor:pointer;" onclick="toggleTimer()">타이머 일시정지</button>
-        <button style="background:#EF4444; color:#FFF; border:none; padding:6px 14px; border-radius:6px; font-weight:700; cursor:pointer;" onclick="closePulpitMode()">강단 모드 종료</button>
+        <button id="pulpitCloseButton" style="background:#EF4444; color:#FFF; border:none; padding:6px 14px; border-radius:6px; font-weight:700; cursor:pointer;" onclick="closePulpitMode()">강단 모드 종료</button>
       </div>
     </div>
 
     <div class="pulpit-content-area">
-      <div class="pulpit-touch-zone pulpit-touch-left" title="이전 대지 (25% 터치 영역)" onclick="prevPulpitSlide()"></div>
-      <div class="pulpit-touch-zone pulpit-touch-right" title="다음 대지 (75% 터치 영역)" onclick="nextPulpitSlide()"></div>
+      <div class="pulpit-touch-zone pulpit-touch-left" title="이전 대지 (25% 터치 영역)" aria-hidden="true" onclick="prevPulpitSlide()"></div>
+      <div class="pulpit-touch-zone pulpit-touch-right" title="다음 대지 (75% 터치 영역)" aria-hidden="true" onclick="nextPulpitSlide()"></div>
 
       <div class="pulpit-slide-box">
         <div class="pulpit-main-point" id="pulpitSlideTitle">대지 제목</div>
         <div class="pulpit-scripture-box" id="pulpitSlideText">본문 구절</div>
-        <div class="pulpit-note-box" id="pulpitSlideNote">설교 적용 메모</div>
+        <div class="visually-hidden" id="pulpitSlideAnnouncement" role="status" aria-live="polite" aria-atomic="true"></div>
+        <div class="pulpit-note-box" id="pulpitSlideNote" role="region" aria-label="현재 대지 원고 메모" tabindex="0">설교 적용 메모</div>
       </div>
     </div>
 
     <div class="pulpit-footer">
       <span>터치 조작: [우측 75% 탭: 다음 대지] | [좌측 25% 탭: 이전 대지] (키보드 좌우 방향키 지원)</span>
       <span id="slideIndicator" style="font-weight:700; color:#F59E0B;">대지 1 / 3</span>
-      <span>🔒 화면 꺼짐 방지(Wakelock) 활성화됨</span>
+      <span>화면 꺼짐 방지 기능은 제공하지 않습니다.</span>
     </div>
   </div>
 
   <!-- Toast -->
-  <div class="toast-popup" id="toastBox">설교 대지에 인용되었습니다!</div>
+  <div class="toast-popup" id="toastBox">출처 검토 메모가 추가되었습니다.</div>
 
   <!-- Real Bible & Commentary & Chain-Reference Database -->
   <script src="bible_data.js"></script>
@@ -979,45 +1467,370 @@
     let currentVersion = "krv";
     let openedCrossrefVerse = 7;
     let currentChapterData = null;
-    let fullKrvCorpus = null;
-    let fullKrvLoadPromise = null;
+    let krvVerseCountIndex = null;
+    let krvVerseCountLoadPromise = null;
     let chapterLoadSequence = 0;
 
-    // Default Sermon Outline State
-    let sermonOutline = [
-      {
-        title: "서론: 흙으로 빚어진 존귀한 존재",
-        ref: "창 2:7",
-        tag: "성경 주해",
-        content: "우리는 보잘것없는 티끌(흙)에 불과하지만, 하나님의 생기가 주입되어 호흡하는 영적 존재가 되었습니다.",
-        quote: "창세기 2:7 여호와 하나님이 땅의 흙으로 사람을 지으시고 생기를 그 코에 불어넣으시니 사람이 생령이 되니라."
-      },
-      {
-        title: "대지 1: 성경으로 성경을 해석하는 아담과 그리스도",
-        ref: "고전 15:45 (창 2:7 관주)",
-        tag: "교차 관주",
-        content: "창세기 2장 7절의 첫 아담은 흙에 속하여 생령이 되었으나, 고린도전서 15장의 마지막 아담 예수 그리스도는 우리를 살려 주는 영이 되셨습니다.",
-        quote: "고린도전서 15:45 '기록된 바 첫 사람 아담은 생령이 되었다 함과 같이 마지막 아담은 살려 주는 영이 되었나니'"
-      },
-      {
-        title: "대지 2: 생령으로 살아가는 거룩한 삶",
-        ref: "살전 5:23",
-        tag: "영적 적용",
-        content: "육신의 정욕을 따르지 않고 평강의 하나님 안에서 온 영과 혼과 몸을 흠 없이 보존하는 은혜의 삶.",
-        quote: "웨슬리 주석: 온전한 성화 - 영과 혼과 몸의 전인적 거룩"
+    // Draft content is loaded from the browser-local draft below.
+    let sermonOutline = [];
+
+    const SERMON_DRAFT_STORAGE_KEY = 'bibleWorkstation.sermonDraft.v1';
+
+    function createBlankSermonDraft() {
+      return {
+        topic: '',
+        title: '',
+        passage: '',
+        researchSelection: null,
+        editorPreferences: { fontSize: 18, lineHeight: 1.7, letterSpacing: 0 },
+        sections: [{ title: '서론', ref: '', content: '', quote: '', verificationStatus: '', contentOrigin: 'pastor_authored' }]
+      };
+    }
+
+    function loadSermonDraft() {
+      try {
+        const rawDraft = localStorage.getItem(SERMON_DRAFT_STORAGE_KEY);
+        if (!rawDraft) return createBlankSermonDraft();
+        const savedDraft = JSON.parse(rawDraft);
+        if (!savedDraft || typeof savedDraft !== 'object' || !Array.isArray(savedDraft.sections)) return createBlankSermonDraft();
+        const savedPreferences = savedDraft.editorPreferences && typeof savedDraft.editorPreferences === 'object'
+          ? savedDraft.editorPreferences
+          : {};
+        const fontSize = Number(savedPreferences.fontSize);
+        const lineHeight = Number(savedPreferences.lineHeight);
+        const letterSpacing = Number(savedPreferences.letterSpacing);
+        return {
+          topic: typeof savedDraft.topic === 'string' ? savedDraft.topic : '',
+          title: typeof savedDraft.title === 'string' ? savedDraft.title : '',
+          passage: typeof savedDraft.passage === 'string' ? savedDraft.passage : '',
+          researchSelection: savedDraft.researchSelection && typeof savedDraft.researchSelection === 'object'
+            ? savedDraft.researchSelection
+            : null,
+          editorPreferences: {
+            fontSize: [16, 18, 20, 22, 24].includes(fontSize) ? fontSize : 18,
+            lineHeight: [1.5, 1.7, 1.9, 2.1].includes(lineHeight) ? lineHeight : 1.7,
+            letterSpacing: [0, 0.02, 0.04].includes(letterSpacing) ? letterSpacing : 0
+          },
+          sections: savedDraft.sections.map(section => {
+            if (!section || typeof section !== 'object') section = {};
+            return {
+              title: typeof section.title === 'string' ? section.title : '',
+              ref: typeof section.ref === 'string' ? section.ref : '',
+              content: typeof section.content === 'string' ? section.content : '',
+              quote: typeof section.quote === 'string' ? section.quote : '',
+              sourceLabel: typeof section.sourceLabel === 'string' ? section.sourceLabel : '',
+              contentOrigin: ['pastor_authored', 'source_note', 'legacy_review'].includes(section.contentOrigin)
+                ? section.contentOrigin
+                : (typeof section.sourceLabel === 'string' && section.sourceLabel.trim() ? 'source_note' : 'legacy_review'),
+              verificationStatus: typeof section.verificationStatus === 'string' && ['', 'candidate', 'unverified', 'verified', 'rejected'].includes(section.verificationStatus)
+                ? section.verificationStatus
+                : 'unverified'
+            };
+          })
+        };
+      } catch (error) {
+        console.warn('Local sermon draft could not be loaded:', error);
+        return createBlankSermonDraft();
       }
-    ];
+    }
+
+    let sermonDraft = loadSermonDraft();
+    sermonOutline = sermonDraft.sections;
+
+    function normalizeResearchSelection(value) {
+      const fallback = { versionCode: 'KRV', bookId: 'GEN', chapter: 2, verse: 7 };
+      if (!value || typeof value !== 'object' || value.versionCode !== 'KRV') return fallback;
+      const book = BIBLE_DATABASE.books.find(item => item.id === value.bookId);
+      if (!book || !Number.isInteger(value.chapter) || !book.chapters.includes(value.chapter)
+        || !Number.isInteger(value.verse) || value.verse < 1) return fallback;
+      return {
+        versionCode: 'KRV',
+        bookId: book.id,
+        chapter: value.chapter,
+        verse: value.verse
+      };
+    }
+
+    sermonDraft.researchSelection = normalizeResearchSelection(sermonDraft.researchSelection);
+    currentBookId = sermonDraft.researchSelection.bookId;
+    currentChapterNum = sermonDraft.researchSelection.chapter;
+    currentVerseNum = sermonDraft.researchSelection.verse;
+
+    function formatResearchReference() {
+      const book = BIBLE_DATABASE.books.find(item => item.id === currentBookId);
+      return `${book ? book.name : currentBookId} ${currentChapterNum}:${currentVerseNum}`;
+    }
+
+    function renderResearchSelectionSummary() {
+      const summary = document.getElementById('researchSelectionSummary');
+      const dialogSummary = document.getElementById('researchDialogSelectionSummary');
+      const text = `연구 선택: ${formatResearchReference()} · KRV 탐색 좌표 가정 · 설교 본문과 별도`;
+      if (summary) {
+        summary.textContent = text;
+      }
+      if (dialogSummary) dialogSummary.textContent = text;
+    }
+
+    function persistResearchSelection() {
+      sermonDraft.researchSelection = {
+        versionCode: 'KRV',
+        bookId: currentBookId,
+        chapter: currentChapterNum,
+        verse: currentVerseNum
+      };
+      renderResearchSelectionSummary();
+      saveSermonDraft();
+    }
+
+    function applyResearchSelectionToDraftPassage() {
+      const reference = formatResearchReference();
+      const passageInput = document.getElementById('sermonPassage');
+      const dialog = document.getElementById('researchNavigator');
+      passageInput.value = reference;
+      saveSermonDraft();
+      showToast('선택한 연구 절을 설교 본문 위치에 적용했습니다.');
+      if (dialog && dialog.open) {
+        dialog.close();
+        window.setTimeout(() => {
+          passageInput.focus();
+          passageInput.setSelectionRange(reference.length, reference.length);
+        }, 0);
+      } else {
+        passageInput.focus();
+        passageInput.setSelectionRange(reference.length, reference.length);
+      }
+    }
+
+    let researchNavigatorReturnFocus = null;
+
+    function openResearchNavigator() {
+      const dialog = document.getElementById('researchNavigator');
+      if (!dialog || dialog.open) return;
+      const topicInput = document.getElementById('sermonTopic');
+      if (!topicInput.value.trim()) {
+        topicInput.focus();
+        showToast('먼저 설교 주제를 적으면 연결할 본문을 찾아볼 수 있습니다.');
+        return;
+      }
+      researchNavigatorReturnFocus = document.activeElement;
+      dialog.showModal();
+      renderResearchWorkspaceLayout();
+      document.getElementById('researchNavigatorCloseButton').focus();
+    }
+
+    function closeResearchNavigator() {
+      const dialog = document.getElementById('researchNavigator');
+      if (dialog && dialog.open) dialog.close();
+    }
+
+    function renderResearchWorkspaceLayout() {
+      const workspace = document.getElementById('researchWorkspace');
+      const panels = [
+        { key: 'nav', element: document.getElementById('researchNavPanel') },
+        { key: 'scripture', element: document.getElementById('researchScripturePanel') },
+        { key: 'commentary', element: document.getElementById('researchCommentaryPanel') }
+      ];
+      const visible = panels.filter(panel => !panel.element.hidden);
+      const navVisible = !document.getElementById('researchNavPanel').hidden;
+      const scriptureVisible = !document.getElementById('researchScripturePanel').hidden;
+      const commentaryVisible = !document.getElementById('researchCommentaryPanel').hidden;
+      const navSplitter = document.getElementById('navPanelSplitter');
+      const commentarySplitter = document.getElementById('commentaryPanelSplitter');
+      navSplitter.hidden = !(navVisible && visible.length > 1);
+      commentarySplitter.hidden = !(scriptureVisible && commentaryVisible);
+
+      const columns = [];
+      visible.forEach((panel, index) => {
+        if (index > 0) columns.push('24px');
+        let track = 'minmax(0, 1fr)';
+        if (visible.length > 1 && panel.key === 'nav') track = 'minmax(210px, var(--nav-width))';
+        else if (visible.length > 1 && panel.key === 'commentary' && scriptureVisible) track = 'minmax(280px, var(--commentary-width))';
+        columns.push(track);
+      });
+      workspace.style.gridTemplateColumns = columns.length ? columns.join(' ') : 'minmax(0, 1fr)';
+      window.refreshResearchPanelAriaRanges?.();
+    }
+
+    function setupResearchPaneControls() {
+      const labels = { nav: '성경 목록', scripture: '본문', commentary: '자료' };
+      document.querySelectorAll('[data-pane-toggle]').forEach(button => {
+        button.addEventListener('click', () => {
+          const key = button.dataset.paneToggle;
+          const panel = document.getElementById(button.getAttribute('aria-controls'));
+          panel.hidden = !panel.hidden;
+          button.setAttribute('aria-expanded', String(!panel.hidden));
+          button.textContent = `${labels[key]} ${panel.hidden ? '표시' : '숨기기'}`;
+          renderResearchWorkspaceLayout();
+        });
+      });
+      renderResearchWorkspaceLayout();
+    }
+
+    function setupResearchPanelResizers() {
+      const workspace = document.getElementById('researchWorkspace');
+      if (!workspace) return;
+      const readWidth = (property, fallback, selector) => {
+        const configured = Number.parseFloat(workspace.style.getPropertyValue(property));
+        if (Number.isFinite(configured)) return configured;
+        return Math.round(workspace.querySelector(selector).getBoundingClientRect().width) || fallback;
+      };
+      const applyWidth = (splitter, requestedWidth) => {
+        const bounds = readWidthBounds(splitter);
+        const width = Math.round(Math.max(bounds.minWidth, Math.min(bounds.maxWidth, requestedWidth)));
+        workspace.style.setProperty(bounds.kind === 'nav' ? '--nav-width' : '--commentary-width', `${width}px`);
+        refreshAriaRanges();
+      };
+      const readWidthBounds = splitter => {
+        const kind = splitter.dataset.splitter;
+        const navWidth = readWidth('--nav-width', 260, '.panel-nav');
+        const commentaryWidth = readWidth('--commentary-width', 360, '.panel-commentary');
+        const navVisible = !document.getElementById('researchNavPanel').hidden;
+        const scriptureVisible = !document.getElementById('researchScripturePanel').hidden;
+        const commentaryVisible = !document.getElementById('researchCommentaryPanel').hidden;
+        const otherWidth = kind === 'nav'
+          ? (scriptureVisible && commentaryVisible ? commentaryWidth : 0)
+          : (navVisible ? navWidth : 0);
+        const flexibleMinWidth = scriptureVisible ? 320 : 0;
+        const minWidth = kind === 'nav' ? 210 : 280;
+        const maxPreference = kind === 'nav' ? 360 : 480;
+        const visibleCount = [navVisible, scriptureVisible, commentaryVisible].filter(Boolean).length;
+        const availableMax = workspace.clientWidth - otherWidth - flexibleMinWidth - Math.max(0, visibleCount - 1) * 24;
+        const maxWidth = Math.max(minWidth, Math.min(maxPreference, availableMax));
+        return { kind, minWidth, maxWidth, currentWidth: kind === 'nav' ? navWidth : commentaryWidth };
+      };
+      const refreshAriaRanges = () => {
+        if (!workspace.clientWidth || !workspace.getClientRects().length || window.matchMedia('(max-width: 1024px)').matches) return;
+        workspace.querySelectorAll('.panel-splitter').forEach(splitter => {
+          const bounds = readWidthBounds(splitter);
+          const width = Math.round(Math.max(bounds.minWidth, Math.min(bounds.maxWidth, bounds.currentWidth)));
+          workspace.style.setProperty(bounds.kind === 'nav' ? '--nav-width' : '--commentary-width', `${width}px`);
+          splitter.setAttribute('aria-valuemin', String(bounds.minWidth));
+          splitter.setAttribute('aria-valuemax', String(bounds.maxWidth));
+          splitter.setAttribute('aria-valuenow', String(width));
+        });
+      };
+      window.refreshResearchPanelAriaRanges = refreshAriaRanges;
+      window.addEventListener('resize', refreshAriaRanges);
+      refreshAriaRanges();
+
+      workspace.querySelectorAll('.panel-splitter').forEach(splitter => {
+        let drag = null;
+        splitter.addEventListener('pointerdown', event => {
+          if (window.matchMedia('(max-width: 1024px)').matches) return;
+          const selector = splitter.dataset.splitter === 'nav' ? '.panel-nav' : '.panel-commentary';
+          drag = { x: event.clientX, width: workspace.querySelector(selector).getBoundingClientRect().width };
+          splitter.focus();
+          splitter.setPointerCapture(event.pointerId);
+          event.preventDefault();
+        });
+        splitter.addEventListener('pointermove', event => {
+          if (!drag) return;
+          const delta = event.clientX - drag.x;
+          applyWidth(splitter, drag.width + (splitter.dataset.splitter === 'nav' ? delta : -delta));
+        });
+        const endDrag = () => { drag = null; };
+        splitter.addEventListener('pointerup', endDrag);
+        splitter.addEventListener('pointercancel', endDrag);
+        splitter.addEventListener('keydown', event => {
+          if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+          event.preventDefault();
+          const kind = splitter.dataset.splitter;
+          const minWidth = kind === 'nav' ? 210 : 280;
+          const maxWidth = Number(splitter.getAttribute('aria-valuemax')) || (kind === 'nav' ? 360 : 480);
+          const current = Number(splitter.getAttribute('aria-valuenow')) || (kind === 'nav' ? 260 : 360);
+          let next = current;
+          if (event.key === 'Home') next = minWidth;
+          else if (event.key === 'End') next = maxWidth;
+          else if (kind === 'nav') next += event.key === 'ArrowRight' ? 16 : -16;
+          else next += event.key === 'ArrowLeft' ? 16 : -16;
+          applyWidth(splitter, next);
+        });
+      });
+    }
+
+    function applyEditorPreferences() {
+      const preferences = sermonDraft.editorPreferences;
+      const fontSizeControl = document.getElementById('editorFontSize');
+      const lineHeightControl = document.getElementById('editorLineHeight');
+      const letterSpacingControl = document.getElementById('editorLetterSpacing');
+      if (fontSizeControl) fontSizeControl.value = String(preferences.fontSize);
+      if (lineHeightControl) lineHeightControl.value = String(preferences.lineHeight);
+      if (letterSpacingControl) letterSpacingControl.value = String(preferences.letterSpacing);
+      document.documentElement.style.setProperty('--sermon-editor-font-size', `${preferences.fontSize}px`);
+      document.documentElement.style.setProperty('--sermon-editor-line-height', String(preferences.lineHeight));
+      document.documentElement.style.setProperty('--sermon-editor-letter-spacing', `${preferences.letterSpacing}em`);
+      const outlineList = document.getElementById('sermonCards');
+      if (outlineList) {
+        outlineList.style.setProperty('--editor-font-size', `${preferences.fontSize}px`);
+        outlineList.style.setProperty('--editor-line-height', String(preferences.lineHeight));
+        outlineList.style.setProperty('--editor-letter-spacing', `${preferences.letterSpacing}em`);
+      }
+    }
 
     window.addEventListener('DOMContentLoaded', () => {
       renderBookList();
       renderCommTabs();
       loadChapter(currentBookId, currentChapterNum, currentVerseNum);
+      document.getElementById('sermonTopic').value = sermonDraft.topic;
+      document.getElementById('sermonTitle').value = sermonDraft.title;
+      document.getElementById('sermonPassage').value = sermonDraft.passage;
+      ['editorFontSize', 'editorLineHeight', 'editorLetterSpacing'].forEach(id => {
+        document.getElementById(id).addEventListener('change', () => {
+          sermonDraft.editorPreferences = {
+            fontSize: Number(document.getElementById('editorFontSize').value),
+            lineHeight: Number(document.getElementById('editorLineHeight').value),
+            letterSpacing: Number(document.getElementById('editorLetterSpacing').value)
+          };
+          applyEditorPreferences();
+          saveSermonDraft();
+        });
+      });
+      applyEditorPreferences();
+      document.getElementById('sermonTopic').addEventListener('input', saveSermonDraft);
+      document.getElementById('sermonTitle').addEventListener('input', saveSermonDraft);
+      document.getElementById('sermonPassage').addEventListener('input', saveSermonDraft);
+      document.getElementById('researchNavigator').addEventListener('close', () => {
+        if (researchNavigatorReturnFocus && researchNavigatorReturnFocus.isConnected) researchNavigatorReturnFocus.focus();
+        researchNavigatorReturnFocus = null;
+      });
+      setupResearchPaneControls();
+      setupResearchPanelResizers();
+      renderResearchSelectionSummary();
       renderSermonStudio();
+      saveSermonDraft();
 
       window.addEventListener('keydown', (e) => {
-        if (document.getElementById('pulpitView').classList.contains('open')) {
-          if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') nextPulpitSlide();
-          if (e.key === 'ArrowLeft' || e.key === 'PageUp') prevPulpitSlide();
+        const pulpitView = document.getElementById('pulpitView');
+        if (pulpitView.classList.contains('open')) {
+          if (e.key === 'Tab') {
+            const controls = Array.from(pulpitView.querySelectorAll('button:not([disabled]), [tabindex="0"]'))
+              .filter(control => !control.hidden && control.getClientRects().length > 0 && !control.closest('[aria-hidden="true"]'));
+            const firstControl = controls[0];
+            const lastControl = controls[controls.length - 1];
+            if (e.shiftKey && (document.activeElement === firstControl || !pulpitView.contains(document.activeElement))) {
+              e.preventDefault();
+              lastControl.focus();
+            } else if (!e.shiftKey && (document.activeElement === lastControl || !pulpitView.contains(document.activeElement))) {
+              e.preventDefault();
+              firstControl.focus();
+            }
+            return;
+          }
+          const activeElement = e.target instanceof Element ? e.target : null;
+          if (activeElement?.id === 'pulpitSlideNote' && ['PageDown', 'PageUp', 'ArrowDown', 'ArrowUp', ' '].includes(e.key)) {
+            e.preventDefault();
+            const note = activeElement;
+            const pageStep = Math.max(120, note.clientHeight * 0.8);
+            const lineStep = 48;
+            const direction = e.key === 'PageUp' || e.key === 'ArrowUp' || (e.key === ' ' && e.shiftKey) ? -1 : 1;
+            const distance = e.key === 'ArrowUp' || e.key === 'ArrowDown' ? lineStep : pageStep;
+            note.scrollTop = Math.max(0, Math.min(note.scrollTop + (distance * direction), note.scrollHeight - note.clientHeight));
+            return;
+          }
+          const nativeControlHasFocus = activeElement && activeElement.closest('button, a, input, textarea, select, [contenteditable="true"]');
+          if (e.key === ' ' && nativeControlHasFocus) return;
+          if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); nextPulpitSlide(); }
+          if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); prevPulpitSlide(); }
           if (e.key === 'Escape') closePulpitMode();
         }
       });
@@ -1034,21 +1847,76 @@
       const container = document.getElementById('commTabsContainer');
       container.innerHTML = '';
       BIBLE_DATABASE.commentary_sources.forEach(src => {
-        const tab = document.createElement('div');
+        const tab = document.createElement('button');
+        tab.type = 'button';
+        tab.id = `comm-tab-${src.key}`;
+        tab.setAttribute('role', 'tab');
+        tab.setAttribute('aria-controls', 'commContent');
+        tab.setAttribute('aria-selected', String(src.key === currentCommKey));
+        tab.tabIndex = src.key === currentCommKey ? 0 : -1;
         tab.className = `comm-tab ${src.key === currentCommKey ? 'active' : ''} ${src.key === 'crossref' ? 'tab-crossref' : ''}`;
         tab.innerText = src.name.replace('종합주석', '').replace('성경대전', '');
         tab.title = src.desc;
         tab.onclick = () => switchComm(src.key);
+        tab.addEventListener('keydown', (event) => {
+          if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return;
+          event.preventDefault();
+          const tabs = Array.from(container.querySelectorAll('[role="tab"]'));
+          const currentIndex = tabs.indexOf(tab);
+          const direction = event.key === 'ArrowRight' ? 1 : -1;
+          const nextTab = tabs[(currentIndex + direction + tabs.length) % tabs.length];
+          nextTab.focus();
+          nextTab.click();
+        });
         container.appendChild(tab);
       });
+      document.getElementById('commContent').setAttribute('aria-labelledby', `comm-tab-${currentCommKey}`);
     }
 
     function switchComm(commKey) {
       currentCommKey = commKey;
       document.querySelectorAll('.comm-tab').forEach((t, idx) => {
-        t.classList.toggle('active', BIBLE_DATABASE.commentary_sources[idx].key === commKey);
+        const isActive = BIBLE_DATABASE.commentary_sources[idx].key === commKey;
+        t.classList.toggle('active', isActive);
+        t.setAttribute('aria-selected', String(isActive));
+        t.tabIndex = isActive ? 0 : -1;
       });
+      document.getElementById('commContent').setAttribute('aria-labelledby', `comm-tab-${commKey}`);
       renderCurrentCommentary();
+    }
+
+    function saveSermonDraft() {
+      const topicInput = document.getElementById('sermonTopic');
+      const titleInput = document.getElementById('sermonTitle');
+      const passageInput = document.getElementById('sermonPassage');
+      if (topicInput) sermonDraft.topic = topicInput.value;
+      if (titleInput) sermonDraft.title = titleInput.value;
+      if (passageInput) sermonDraft.passage = passageInput.value;
+      const fontSizeControl = document.getElementById('editorFontSize');
+      const lineHeightControl = document.getElementById('editorLineHeight');
+      const letterSpacingControl = document.getElementById('editorLetterSpacing');
+      if (fontSizeControl && lineHeightControl && letterSpacingControl) {
+        sermonDraft.editorPreferences = {
+          fontSize: Number(fontSizeControl.value),
+          lineHeight: Number(lineHeightControl.value),
+          letterSpacing: Number(letterSpacingControl.value)
+        };
+      }
+      sermonDraft.researchSelection = {
+        versionCode: 'KRV',
+        bookId: currentBookId,
+        chapter: currentChapterNum,
+        verse: currentVerseNum
+      };
+      sermonDraft.sections = sermonOutline;
+      const status = document.getElementById('sermonSaveStatus');
+      try {
+        localStorage.setItem(SERMON_DRAFT_STORAGE_KEY, JSON.stringify(sermonDraft));
+        if (status) status.textContent = `이 브라우저에 저장됨 · ${new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}`;
+      } catch (error) {
+        console.warn('Local sermon draft could not be saved:', error);
+        if (status) status.textContent = '저장하지 못했습니다. 브라우저 저장 공간을 확인하세요.';
+      }
     }
 
     function renderBookList() {
@@ -1057,9 +1925,12 @@
 
       BIBLE_DATABASE.books.forEach(b => {
         const li = document.createElement('li');
-        li.className = `book-item ${b.id === currentBookId ? 'active' : ''}`;
-        li.onclick = () => selectBook(b.id);
-        li.innerHTML = `
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.id = `book-button-${b.id}`;
+        button.className = `book-item ${b.id === currentBookId ? 'active' : ''}`;
+        button.setAttribute('aria-pressed', String(b.id === currentBookId));
+        button.innerHTML = `
           <div>
             <span>${b.name}</span>
             <span style="font-size:11px; color:var(--text-muted); margin-left:4px;">(${b.name_en})</span>
@@ -1068,6 +1939,8 @@
             <span style="font-size:11px; color:var(--brand-gold); font-weight:700;">${b.chapters.length}장</span>
           </div>
         `;
+        button.addEventListener('click', () => selectBook(b.id));
+        li.appendChild(button);
         container.appendChild(li);
       });
 
@@ -1078,7 +1951,10 @@
       currentBookId = bookId;
       const book = BIBLE_DATABASE.books.find(b => b.id === bookId);
       currentChapterNum = book.chapters[0] || 1;
+      currentVerseNum = 1;
+      persistResearchSelection();
       renderBookList();
+      requestAnimationFrame(() => document.getElementById(`book-button-${bookId}`)?.focus());
       loadChapter(currentBookId, currentChapterNum);
     }
 
@@ -1092,9 +1968,12 @@
       label.innerText = `${book.name} 장 선택:`;
 
       book.chapters.forEach(ch => {
-        const pill = document.createElement('span');
+        const pill = document.createElement('button');
+        pill.type = 'button';
+        pill.id = `chapter-button-${ch}`;
         pill.className = `ch-pill ${ch === currentChapterNum ? 'active' : ''}`;
         pill.innerText = `${ch}장`;
+        pill.setAttribute('aria-pressed', String(ch === currentChapterNum));
         pill.onclick = () => selectChapter(ch);
         container.appendChild(pill);
       });
@@ -1102,45 +1981,44 @@
 
     function selectChapter(chNum) {
       currentChapterNum = chNum;
+      currentVerseNum = 1;
+      persistResearchSelection();
       renderChapterPills();
+      requestAnimationFrame(() => document.getElementById(`chapter-button-${chNum}`)?.focus());
       loadChapter(currentBookId, currentChapterNum);
     }
 
     function syncVersionOptions(bookId, chNum) {
-      const key = `${bookId}_${chNum}`;
-      const hasCuratedVersions = Boolean(BIBLE_DATABASE.chapters[key]);
       const selector = document.getElementById('versionSelect');
 
-      Array.from(selector.options).forEach(option => {
-        option.disabled = option.value !== 'krv' && !hasCuratedVersions;
-      });
-
-      if (!hasCuratedVersions) currentVersion = 'krv';
+      Array.from(selector.options).forEach(option => { option.disabled = false; });
       selector.value = currentVersion;
-      document.getElementById('scriptureAttribution').hidden = currentVersion !== 'krv';
+      document.getElementById('scriptureAttribution').hidden = currentVersion !== 'krv' && currentVersion !== 'orig';
     }
 
-    function loadFullKrvCorpus() {
-      if (fullKrvCorpus) return Promise.resolve(fullKrvCorpus);
-      if (!fullKrvLoadPromise) {
-        fullKrvLoadPromise = fetch('./bible_krv.json')
+    function loadKrvVerseCountIndex() {
+      if (krvVerseCountIndex) return Promise.resolve(krvVerseCountIndex);
+      if (!krvVerseCountLoadPromise) {
+        krvVerseCountLoadPromise = fetch('./bible_krv_verse_counts.json')
           .then(response => {
-            if (!response.ok) throw new Error(`KRV data request failed: HTTP ${response.status}`);
+            if (!response.ok) throw new Error(`KRV coordinate index request failed: HTTP ${response.status}`);
             return response.json();
           })
           .then(data => {
-            if (!data || typeof data !== 'object' || !data.GEN || !data.REV) {
-              throw new Error('KRV data file has an unexpected structure.');
+            if (!data || data.schemaVersion !== 1 || data.coordinateVersionCode !== 'KRV'
+              || !data.derivedFrom || !/^[0-9a-f]{64}$/.test(data.derivedFrom.sha256)
+              || !data.verseCounts || !data.verseCounts.GEN || !data.verseCounts.REV) {
+              throw new Error('KRV coordinate index has an unexpected structure.');
             }
-            fullKrvCorpus = data;
+            krvVerseCountIndex = data;
             return data;
           })
           .catch(error => {
-            fullKrvLoadPromise = null;
+            krvVerseCountLoadPromise = null;
             throw error;
           });
       }
-      return fullKrvLoadPromise;
+      return krvVerseCountLoadPromise;
     }
 
     async function loadChapter(bookId, chNum, forceVerseNum = null) {
@@ -1151,60 +2029,46 @@
       const scriptureContainer = document.getElementById('scriptureContainer');
       const commContainer = document.getElementById('commContent');
       const curatedChapter = BIBLE_DATABASE.chapters[chKey];
-      let chapterData = curatedChapter;
+      let chapterData = null;
 
       currentChapterData = null;
       syncVersionOptions(bookId, chNum);
 
-      if (currentVersion === 'krv') {
-        headerTitle.innerText = `${book ? book.name : bookId} ${chNum}장`;
-        scriptureContainer.innerHTML = '<div style="padding:40px; text-align:center; color:var(--text-muted);">개역한글 본문을 불러오는 중…</div>';
-        try {
-          const corpus = await loadFullKrvCorpus();
-          if (loadSequence !== chapterLoadSequence) return;
+      headerTitle.innerText = `${book ? book.name : bookId} ${chNum}장`;
+      scriptureContainer.innerHTML = '<div style="padding:40px; text-align:center; color:var(--text-muted);">본문과 연구 자료를 불러오는 중…</div>';
+      try {
+        const coordinateIndex = await loadKrvVerseCountIndex();
+        if (loadSequence !== chapterLoadSequence) return;
 
-          const chapterVerses = corpus[bookId] && corpus[bookId][String(chNum)];
-          if (!Array.isArray(chapterVerses) || chapterVerses.length === 0) {
-            throw new Error(`KRV chapter data is missing: ${chKey}`);
-          }
-
-          const curatedVerses = new Map((curatedChapter?.verses || []).map(v => [v.num, v]));
-          chapterData = {
-            title: curatedChapter?.title || `${book ? book.name : bookId} ${chNum}장`,
-            verses: chapterVerses.map((text, index) => ({
-              ...(curatedVerses.get(index + 1) || {}),
-              num: index + 1,
-              krv: text
-            }))
-          };
-        } catch (error) {
-          if (loadSequence !== chapterLoadSequence) return;
-          console.error('Unable to load the KRV chapter.', error);
-          scriptureContainer.innerHTML = `
-            <div style="padding:40px; text-align:center; color:var(--text-muted);">
-              <p style="font-size:18px; font-weight:700; margin-bottom:8px;">개역한글 본문을 불러오지 못했습니다.</p>
-              <p style="font-size:14px;">연결을 확인한 뒤 다시 시도해 주세요.</p>
-              <button type="button" onclick="loadChapter(currentBookId, currentChapterNum, currentVerseNum)">다시 불러오기</button>
-            </div>
-          `;
-          commContainer.innerHTML = '<div style="padding:30px; text-align:center; color:var(--text-muted);">본문을 불러온 뒤 주석과 관주를 표시합니다.</div>';
-          return;
+        const verseCount = coordinateIndex.verseCounts[bookId]?.[String(chNum)];
+        if (!Number.isInteger(verseCount) || verseCount < 1 || verseCount > 250) {
+          throw new Error(`KRV verse-count metadata is missing or invalid: ${chKey}`);
         }
+
+        const curatedVerses = new Map((curatedChapter?.verses || []).map(v => [v.num, v]));
+        chapterData = {
+          title: curatedChapter?.title || `${book ? book.name : bookId} ${chNum}장`,
+          verses: Array.from({ length: verseCount }, (_, index) => ({
+            ...(curatedVerses.get(index + 1) || {}),
+            num: index + 1,
+            krv: ''
+          }))
+        };
+      } catch (error) {
+        if (loadSequence !== chapterLoadSequence) return;
+        console.error('Unable to load KRV coordinate metadata.', error);
+        scriptureContainer.innerHTML = `
+          <div style="padding:40px; text-align:center; color:var(--text-muted);">
+            <p style="font-size:18px; font-weight:700; margin-bottom:8px;">절 좌표 정보를 불러오지 못했습니다.</p>
+            <p style="font-size:14px;">본문은 연결되지 않았습니다. 선택 좌표 정보를 확인한 뒤 다시 시도해 주세요.</p>
+            <button type="button" onclick="loadChapter(currentBookId, currentChapterNum, currentVerseNum)">다시 불러오기</button>
+          </div>
+        `;
+        commContainer.innerHTML = '<div style="padding:30px; text-align:center; color:var(--text-muted);">좌표 정보를 불러온 뒤 연구 자료 위치를 표시합니다.</div>';
+        return;
       }
 
       if (loadSequence !== chapterLoadSequence) return;
-
-      if (!chapterData || !chapterData.verses || chapterData.verses.length === 0) {
-        headerTitle.innerText = `${book ? book.name : bookId} ${chNum}장`;
-        scriptureContainer.innerHTML = `
-          <div style="padding:40px; text-align:center; color:var(--text-muted);">
-            <p style="font-size:18px; font-weight:700; margin-bottom:8px;">${book ? book.name : bookId} ${chNum}장 준비 중</p>
-            <p style="font-size:14px;">풍부한 <strong>심층 관주</strong>와 8종 주석은 <strong>창세기 2장(생령과 관주), 데살로니가전서 4·5장, 요한복음 3장, 이사야 53장</strong>에서 100% 구동됩니다.</p>
-          </div>
-        `;
-        commContainer.innerHTML = '<div style="padding:30px; text-align:center; color:var(--text-muted);">선택된 절의 데이터가 없습니다.</div>';
-        return;
-      }
 
       currentChapterData = chapterData;
       headerTitle.innerText = `${chapterData.title} (${book.name_en} ${chNum})`;
@@ -1217,6 +2081,7 @@
 
       renderVerses(chapterData.verses);
       renderCurrentCommentary();
+      persistResearchSelection();
     }
 
     function renderVerses(verses) {
@@ -1228,16 +2093,59 @@
         div.className = `verse-row ${v.num === currentVerseNum ? 'selected' : ''}`;
         div.onclick = () => selectVerse(v.num);
 
-        let verseText = escapeHtml(v.rnkv || v.krv || '');
-        if (currentVersion === 'krv') verseText = escapeHtml(v.krv || v.rnkv || '');
-        if (currentVersion === 'esv') verseText = escapeHtml(v.esv || v.rnkv || '');
-        if (currentVersion === 'orig') verseText = `<span style="font-family:serif; font-size:19px;">${escapeHtml(v.orig || v.rnkv || '')}</span>`;
+        const versionText = typeof v[currentVersion] === 'string' ? v[currentVersion].trim() : '';
+        let verseText = '';
+        if (currentVersion === 'krv') {
+          const versionClaim = v.versionClaims && v.versionClaims.krv;
+          verseText = `<span class="version-unavailable" role="status">KRV 시범 문자열은 판본, 정확한 절 위치, 권리 근거와 검증 기록이 없어 숨겼습니다. 본문 출처를 연결하기 전까지 좌표만 탐색할 수 있습니다.</span>${versionClaim ? renderSourceClaimStatus(versionClaim, 'KRV 번역 주장') : ''}`;
+        } else if (currentVersion === 'orig') {
+          const originalClaim = v.originalLanguageClaim;
+          const exactVerse = { bookId: currentBookId, chapter: currentChapterNum, verse: v.num, versionCode: 'KRV' };
+          const hasVerifiedOriginal = isVerifiedOriginalLanguageClaim(originalClaim, exactVerse);
+          if (hasVerifiedOriginal && versionText) {
+            verseText = `
+              <div class="original-language-sample" dir="auto">${escapeHtml(versionText)}</div>
+              <div class="original-korean-context">KRV 좌표를 가정한 문맥입니다. 본문 판본과 원문은 연결되지 않았습니다.</div>
+              ${renderSourceClaimStatus(originalClaim, '원어 본문')}
+            `;
+          } else {
+            const reason = versionText
+              ? '시범 원어 문자열은 있으나 판본, 정확한 위치, 권리와 선택한 KRV 절에 대한 대조 검증이 없어 표시하지 않습니다.'
+              : '이 절에 연결된 원어 본문 자료가 없습니다.';
+            verseText = `
+              <div class="source-claim-blocked">${reason}</div>
+              ${originalClaim ? renderSourceClaimStatus(originalClaim, '원어 자료 주장') : ''}
+              <div class="original-korean-context">KRV 좌표를 가정한 문맥입니다. 본문 판본과 원문은 연결되지 않았습니다.</div>
+            `;
+          }
+        } else {
+          const versionClaim = v.versionClaims && v.versionClaims[currentVersion];
+          const hasVerifiedVersion = isVerifiedBibleVersionClaim(versionClaim, currentVersion);
+          if (hasVerifiedVersion && versionText) {
+            verseText = `${renderSourceClaimStatus(versionClaim, `${currentVersion.toUpperCase()} 본문`)}${escapeHtml(versionText)}`;
+          } else {
+            const reason = versionText
+              ? `시범 ${currentVersion.toUpperCase()} 문자열은 있으나 판본, 절 위치, 권리와 검증 기록이 없어 표시하지 않습니다.`
+              : `선택한 절의 ${currentVersion.toUpperCase()} 본문 자료가 없습니다.`;
+            verseText = `<span class="version-unavailable" role="status">${reason}</span>${versionClaim ? renderSourceClaimStatus(versionClaim, `${currentVersion.toUpperCase()} 번역 주장`) : ''}`;
+          }
+        }
 
         let strongChipsHtml = '';
         if (v.strongs && currentVersion !== 'esv') {
-          v.strongs.forEach(s => {
-            strongChipsHtml += `<span class="strong-chip" title="${s.word}">${s.code} (${s.word})</span>`;
-          });
+          const exactVerse = { bookId: currentBookId, chapter: currentChapterNum, verse: v.num, versionCode: 'KRV' };
+          const terms = v.strongs.map(s => {
+            const isVerified = isVerifiedOriginalLanguageClaim(s.originalLanguageClaim, exactVerse);
+            const label = isVerified ? `${s.code} (${s.word || s.lemma})` : `${s.code} · 용례 연결 미검증`;
+            return `<span class="strong-chip" title="선택 절의 원어 형태·판본·사전 위치 검증 전">${escapeHtml(label)}</span>`;
+          }).join('');
+          strongChipsHtml = `
+            <div class="strong-sample-list" role="note">
+              ${renderSourceClaimStatus(null, 'Strong’s 원어 연결')}
+              <span class="source-claim-blocked">선택한 절의 어휘 형태, 원어 판본, 형태론, 사전 위치가 연결되기 전까지 뜻은 표시하지 않습니다.</span>
+              ${terms}
+            </div>
+          `;
         }
 
         const crossRefs = v.detailed_cross_refs || [];
@@ -1247,24 +2155,24 @@
         if (crossRefs.length > 0) {
           const isDrawerOpen = (openedCrossrefVerse === v.num);
           crossRefBtnHtml = `
-            <div class="cross-ref-toggle-btn" onclick="event.stopPropagation(); toggleInlineCrossref(${v.num})">
-              🔗 관주 (${crossRefs.length}개 구절 본문 보기) ${isDrawerOpen ? '▲' : '▼'}
-            </div>
+            <button type="button" id="crossref-toggle-v${v.num}" class="cross-ref-toggle-btn" aria-expanded="${isDrawerOpen}" aria-controls="drawer_v${v.num}" onclick="event.stopPropagation(); toggleInlineCrossref(${v.num})">
+              🔗 관주 참고 항목 (${crossRefs.length}개) ${isDrawerOpen ? '▲' : '▼'}
+            </button>
           `;
 
           let cardsHtml = '';
           crossRefs.forEach(cr => {
+            const verifiedRelationship = isVerifiedCrossReferenceClaim(cr, currentBookId, currentChapterNum, v.num);
             cardsHtml += `
               <div class="crossref-item-card">
                 <div class="crossref-item-header">
-                  <span class="crossref-item-ref">${cr.ref}</span>
-                  <span class="crossref-item-type">${cr.type}</span>
+                  <span class="crossref-item-ref">${escapeHtml(cr.ref || '')}</span>
+                  <span class="crossref-item-type">${verifiedRelationship ? escapeHtml(cr.type || '') : '관계 미검증'}</span>
                 </div>
-                <div class="crossref-item-text">"${cr.text}"</div>
-                ${cr.note ? `<div style="font-size:11px; color:var(--text-muted); margin-top:3px;">💡 ${cr.note}</div>` : ''}
+                ${verifiedRelationship ? `<div class="crossref-item-text">${escapeHtml(cr.text || '')}</div>` : `<div class="source-claim-blocked">이 연결과 인용 본문은 판본·출처·권리·검증 기록이 없어 표시하지 않습니다. 선택한 역본에서 참조를 직접 확인하세요.</div>`}
                 <div class="crossref-actions">
-                  <button class="crossref-quote-btn" onclick="event.stopPropagation(); clipCrossrefToSermon('${cr.ref}', '${cr.text.replace(/'/g, "\\'")}', '${cr.type}')">
-                    + 이 관주 성구를 설교에 인용
+                  <button class="crossref-quote-btn" data-ref="${escapeHtml(cr.ref || '')}" onclick="event.stopPropagation(); clipCrossrefToSermon(this.dataset.ref)">
+                    + 관주 검토 메모 추가
                   </button>
                 </div>
               </div>
@@ -1284,8 +2192,8 @@
 
         div.innerHTML = `
           <div>
-            <span class="verse-num">${v.num}</span>
-            <span>${verseText}</span>
+            <button type="button" class="verse-num" aria-label="${BIBLE_DATABASE.books.find(book => book.id === currentBookId).name} ${currentChapterNum}장 ${v.num}절 선택" aria-pressed="${v.num === currentVerseNum}">${v.num}</button>
+            <div class="verse-text">${verseText}</div>
             ${strongChipsHtml}
           </div>
           <div class="verse-footer-tags">
@@ -1293,6 +2201,10 @@
           </div>
           ${drawerHtml}
         `;
+        div.querySelector('.verse-num').addEventListener('click', event => {
+          event.stopPropagation();
+          selectVerse(v.num);
+        });
         container.appendChild(div);
       });
     }
@@ -1307,10 +2219,124 @@
       })[character]);
     }
 
+    const REVIEW_METADATA_FIELDS = [
+      ['sourceRecordId', '출처 ID'],
+      ['workTitle', '저작명'],
+      ['publisher', '출판사'],
+      ['edition', '판본'],
+      ['sourceVersion', '출처 버전'],
+      ['locator', '정확한 위치'],
+      ['rightsBasis', '권리 근거'],
+      ['evidenceRef', '검증 증거 참조'],
+      ['verifiedBy', '기재된 검증자'],
+      ['verifiedAt', '기재된 검증 일시']
+    ];
+
+    function hasCompleteReviewMetadata(claim) {
+      if (!claim || !claim.provenance) return false;
+      const provenance = claim.provenance;
+      return REVIEW_METADATA_FIELDS.every(([field]) => typeof provenance[field] === 'string' && provenance[field].trim())
+        && Array.isArray(provenance.allowedUses)
+        && provenance.allowedUses.includes('display')
+        && provenance.approvalDecision === 'approved';
+    }
+
+    function isVerifiedSourceClaim(claim) {
+      // This static client has no trusted manifest/signature resolver. Fields in local JSON are self-asserted.
+      return false;
+    }
+
+    function isVerifiedBibleVersionClaim(claim, versionCode) {
+      return isVerifiedSourceClaim(claim)
+        && claim.claimKind === 'bible_translation'
+        && claim.versionCode === versionCode
+        && typeof claim.passageLocator === 'string'
+        && claim.passageLocator.trim().length > 0;
+    }
+
+    function isVerifiedCommentaryClaim(claim) {
+      return isVerifiedSourceClaim(claim)
+        && claim.claimKind === 'commentary'
+        && ['source_quote', 'source_interpretation'].includes(claim.contentKind);
+    }
+
+    function isVerifiedOriginalLanguageClaim(claim, selectedVerse) {
+      if (!isVerifiedSourceClaim(claim) || claim.claimKind !== 'original_language') return false;
+      const linkedVerse = claim.selectedVerse;
+      return linkedVerse
+        && linkedVerse.versionCode === selectedVerse.versionCode
+        && linkedVerse.bookId === selectedVerse.bookId
+        && linkedVerse.chapter === selectedVerse.chapter
+        && linkedVerse.verse === selectedVerse.verse
+        && typeof claim.originalLanguageVersionCode === 'string'
+        && claim.originalLanguageVersionCode.trim().length > 0
+        && typeof claim.observedForm === 'string'
+        && claim.observedForm.trim().length > 0
+        && typeof claim.lemma === 'string'
+        && claim.lemma.trim().length > 0
+        && typeof claim.morphology === 'string'
+        && claim.morphology.trim().length > 0
+        && typeof claim.lexiconSourceRecordId === 'string'
+        && claim.lexiconSourceRecordId.trim().length > 0
+        && typeof claim.lexiconLocator === 'string'
+        && claim.lexiconLocator.trim().length > 0;
+    }
+
+    function isVerifiedCrossReferenceClaim(claim, bookId, chapter, verse) {
+      if (!isVerifiedSourceClaim(claim) || claim.claimKind !== 'cross_reference') return false;
+      const fromVerse = claim.fromVerse;
+      const toVerse = claim.toVerse;
+      return fromVerse && fromVerse.versionCode === 'KRV'
+        && fromVerse.bookId === bookId && fromVerse.chapter === chapter && fromVerse.verse === verse
+        && toVerse && typeof toVerse.versionCode === 'string' && toVerse.versionCode.trim().length > 0
+        && Number.isInteger(toVerse.bookId) && Number.isInteger(toVerse.chapter) && Number.isInteger(toVerse.verse)
+        && typeof claim.relationshipType === 'string' && claim.relationshipType.trim().length > 0;
+    }
+
+    function renderSourceClaimStatus(claim, label) {
+      const explicitState = claim && (claim.reviewState || claim.verificationStatus);
+      const stateLabel = {
+        candidate: '검토 후보',
+        unverified: '검증 전',
+        verified: '검증 완료 표기',
+        rejected: '사용 제외 표기'
+      }[explicitState] || '상태 필드 없음';
+      const state = hasCompleteReviewMetadata(claim)
+        ? '검토 메타데이터 기재됨 · 승인 진위 미확인'
+        : '출처 검증 전';
+      const rows = [];
+      if (claim && typeof claim.claimKind === 'string') rows.push(['주장 유형', claim.claimKind]);
+      if (claim && typeof claim.contentKind === 'string') {
+        const contentLabels = {
+          source_quote: '출처 인용',
+          source_interpretation: '출처 해석'
+        };
+        rows.push(['본문 유형', contentLabels[claim.contentKind] || claim.contentKind]);
+      }
+      if (explicitState) rows.push(['데이터에 기재된 상태', `${stateLabel} · 미인증`]);
+      REVIEW_METADATA_FIELDS.forEach(([field, fieldLabel]) => {
+        const value = claim && claim.provenance && claim.provenance[field];
+        if (typeof value === 'string' && value.trim()) rows.push([fieldLabel, value]);
+      });
+      const provenance = claim && claim.provenance;
+      if (provenance && Array.isArray(provenance.allowedUses) && provenance.allowedUses.length) {
+        rows.push(['기재된 허용 범위', provenance.allowedUses.join(', ')]);
+      }
+      if (provenance && typeof provenance.approvalDecision === 'string') {
+        rows.push(['기재된 승인 결정', provenance.approvalDecision]);
+      }
+      const metadata = rows.length
+        ? `<details><summary>제공된 검토 메타데이터 보기 · 미인증</summary><dl>${rows.map(([key, value]) => `<dt>${escapeHtml(key)}</dt><dd>${escapeHtml(value)}</dd>`).join('')}</dl></details>`
+        : '';
+      const detail = '브라우저 안의 자기기재 데이터이며, 이 앱에는 승인 서명이나 신뢰 가능한 검토 기록 저장소가 연결되지 않았습니다. 출처 주장은 검증된 자료로 표시하지 않습니다.';
+      return `<div class="source-claim-status" role="note"><strong>${escapeHtml(label)} · ${state}</strong><span>${escapeHtml(detail)} 기재된 상태: ${escapeHtml(stateLabel)} · 미인증.</span>${metadata}</div>`;
+    }
+
     function toggleInlineCrossref(vNum) {
       openedCrossrefVerse = (openedCrossrefVerse === vNum) ? null : vNum;
       if (currentChapterData && currentChapterData.verses) {
         renderVerses(currentChapterData.verses);
+        requestAnimationFrame(() => document.getElementById(`crossref-toggle-v${vNum}`)?.focus());
       }
     }
 
@@ -1320,17 +2346,19 @@
         const numSpan = row.querySelector('.verse-num');
         if (numSpan && parseInt(numSpan.innerText) === vNum) {
           row.classList.add('selected');
+          numSpan.setAttribute('aria-pressed', 'true');
         } else {
           row.classList.remove('selected');
+          if (numSpan) numSpan.setAttribute('aria-pressed', 'false');
         }
       });
+      persistResearchSelection();
       renderCurrentCommentary();
     }
 
     function switchVersion(ver) {
-      const chKey = `${currentBookId}_${currentChapterNum}`;
-      if (ver !== 'krv' && !BIBLE_DATABASE.chapters[chKey]) ver = 'krv';
-      currentVersion = ver;
+      const availableVersionCodes = ['rnkv', 'krv', 'esv', 'orig'];
+      currentVersion = availableVersionCodes.includes(ver) ? ver : 'krv';
       loadChapter(currentBookId, currentChapterNum, currentVerseNum);
     }
 
@@ -1357,18 +2385,17 @@
           listHtml = '<div style="padding:20px; color:var(--text-muted);">본 구절에 등록된 연결 관주가 없습니다.</div>';
         } else {
           crossRefs.forEach(cr => {
+            const verifiedRelationship = isVerifiedCrossReferenceClaim(cr, currentBookId, currentChapterNum, currentVerseNum);
             listHtml += `
               <div style="margin-bottom:12px; padding:12px; background:var(--bg-surface-subtle); border-radius:6px; border-left:4px solid #10B981;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                  <span style="font-weight:700; color:var(--brand-navy); font-size:13px;">${cr.ref}</span>
-                  <span style="font-size:10px; background:#E0E7FF; color:#3730A3; padding:2px 6px; border-radius:4px; font-weight:600;">${cr.type}</span>
+                  <span style="font-weight:700; color:var(--brand-navy); font-size:13px;">${escapeHtml(cr.ref || '')}</span>
+                  <span style="font-size:10px; background:#E0E7FF; color:#3730A3; padding:2px 6px; border-radius:4px; font-weight:600;">${verifiedRelationship ? escapeHtml(cr.type || '') : '관계 미검증'}</span>
                 </div>
-                <div style="font-family:var(--font-body); font-size:14px; color:var(--text-main); line-height:1.7; margin-bottom:6px;">
-                  "${cr.text}"
-                </div>
-                ${cr.note ? `<div style="font-size:12px; color:var(--text-muted); margin-bottom:8px;">💡 ${cr.note}</div>` : ''}
-                <button class="quote-action-btn" onclick="clipCrossrefToSermon('${cr.ref}', '${cr.text.replace(/'/g, "\\'")}', '${cr.type}')">
-                  + 이 관주 구절을 설교 대지로 스크랩
+                ${verifiedRelationship ? `<div style="font-family:var(--font-body); font-size:14px; color:var(--text-main); line-height:1.7; margin-bottom:6px;">${escapeHtml(cr.text || '')}</div>` : `<div class="source-claim-blocked">이 관주 관계와 본문 인용은 출처·역본·정확한 위치·권리·검증 기록이 없어 표시하지 않습니다. 선택한 역본에서 참조를 직접 확인하세요.</div>`}
+                ${renderSourceClaimStatus(cr, '관주 관계와 본문')}
+                <button class="quote-action-btn" data-ref="${escapeHtml(cr.ref || '')}" onclick="clipCrossrefToSermon(this.dataset.ref)">
+                  + 관주 검토 메모 추가
                 </button>
               </div>
             `;
@@ -1378,7 +2405,7 @@
         commBox.innerHTML = `
           <div class="comm-title">
             <span>🔗 [성경 관주] ${book.name} ${currentChapterNum}:${currentVerseNum}</span>
-            <span style="font-size:11px; color:#059669; font-weight:700;">총 ${crossRefs.length}개 연결 성구</span>
+            <span style="font-size:11px; color:#92400E; font-weight:700;">${crossRefs.length}개 미검증 참고 항목</span>
           </div>
           <div style="font-size:13px; color:var(--text-muted); margin-bottom:14px; padding:8px 12px; background:#ECFDF5; border-radius:4px; border:1px solid #A7F3D0;">
             <strong>관주(串珠)란?</strong> '성경으로 성경을 해석하는(Scriptura Scripturae interpres)' 원리에 따라, 구약과 신약 전체에서 본문의 단어, 교리, 인물과 짝을 이루는 성구들을 구슬처럼 엮어준 성경적 해석망입니다.
@@ -1400,29 +2427,49 @@
       }
 
       const comm = verse.commentaries[currentCommKey];
-      const clipText = `${srcMeta.name} (${book.name} ${currentChapterNum}:${currentVerseNum}): ${comm.title.replace(/<[^>]*>?/gm, '')}`;
+      const verifiedCommentary = isVerifiedCommentaryClaim(comm);
+        const contentKindLabels = {
+          source_quote: '출처 인용으로 기재됨',
+          source_interpretation: '출처 해석으로 기재됨',
+          model_synthesis: '모델 종합으로 기재됨'
+      };
+      const contentKindNotice = contentKindLabels[comm.contentKind]
+        ? `<div class="claim-content-kind">데이터 분류: ${escapeHtml(contentKindLabels[comm.contentKind])} · 원문 대조 전</div>`
+        : '';
+      const claimContent = verifiedCommentary
+        ? `
+          <div style="font-size:15px; font-weight:700; color:var(--text-main); margin-bottom:10px;">${escapeHtml(comm.title || '')}</div>
+          <div style="color:var(--text-main); font-size:14px; line-height:1.8;">${escapeHtml(comm.body || '')}</div>
+        `
+        : '<div class="source-claim-blocked">이 시범 문구가 표시된 주석 저작에 실제로 포함되는지 확인되지 않았습니다. 출처 판본·정확한 위치·권리와 승인 근거가 없어 내용을 숨겼습니다.</div>';
 
       commBox.innerHTML = `
         <div class="comm-title">
-          <span>${srcMeta.name}: ${book.name} ${currentChapterNum}:${currentVerseNum}</span>
-          <button class="quote-action-btn" onclick="clipToSermon('${clipText.replace(/'/g, "\\'")}', '${comm.body.replace(/'/g, "\\'").replace(/"/g, '&quot;')}')">
-            + 설교 대지에 인용
+          <span>${escapeHtml(srcMeta.name)}: ${escapeHtml(book.name)} ${currentChapterNum}:${currentVerseNum}</span>
+          <button class="quote-action-btn" id="addCommentaryReviewNoteButton" type="button">
+            + 검토 메모 추가
           </button>
         </div>
-        <div style="font-size:15px; font-weight:700; color:var(--text-main); margin-bottom:10px;">
-          ${comm.title}
-        </div>
-        <div style="color:var(--text-main); font-size:14px; line-height:1.8;">
-          ${comm.body}
-        </div>
+        ${renderSourceClaimStatus(comm, '주석 항목')}
+        ${contentKindNotice}
+        ${claimContent}
       `;
+      document.getElementById('addCommentaryReviewNoteButton')?.addEventListener('click', () => {
+        clipToSermon(`${srcMeta.name} · ${book.name} ${currentChapterNum}:${currentVerseNum}`);
+      });
     }
 
     // [인물 및 주제별 연쇄 관주 (Chain-Reference) 열기 - '이삭' 등]
     function openChainReference(keyword) {
-      document.querySelectorAll('.chain-chip').forEach(c => c.classList.remove('active'));
+      document.querySelectorAll('.chain-chip').forEach(c => {
+        c.classList.remove('active');
+        c.setAttribute('aria-pressed', 'false');
+      });
       const activeChip = document.getElementById(keyword === '이삭' ? 'chip_isaac' : keyword === '아브라함' ? 'chip_abraham' : 'chip_moses');
-      if (activeChip) activeChip.classList.add('active');
+      if (activeChip) {
+        activeChip.classList.add('active');
+        activeChip.setAttribute('aria-pressed', 'true');
+      }
 
       const chainData = BIBLE_DATABASE.chain_references[keyword];
       if (!chainData) return;
@@ -1436,15 +2483,12 @@
         chainListHtml += `
           <div style="margin-bottom:12px; padding:12px; background:var(--bg-surface-subtle); border-radius:6px; border-left:4px solid #4F46E5;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
-              <span style="font-weight:700; color:#312E81; font-size:13px;">${idx + 1}. ${item.ref}</span>
-              <span style="font-size:10px; background:#EEF2FF; color:#4338CA; padding:2px 6px; border-radius:4px; font-weight:700;">${item.type}</span>
+              <span style="font-weight:700; color:#312E81; font-size:13px;">${idx + 1}. ${escapeHtml(item.ref || '')}</span>
+              <span style="font-size:10px; background:#EEF2FF; color:#4338CA; padding:2px 6px; border-radius:4px; font-weight:700;">관계 미검증</span>
             </div>
-            <div style="font-family:var(--font-body); font-size:13px; color:var(--text-main); line-height:1.6; margin-bottom:6px;">
-              "${item.text}"
-            </div>
-            ${item.point ? `<div style="font-size:11px; color:#4F46E5; font-weight:600; margin-bottom:6px;">🎯 설교 포인트: ${item.point}</div>` : ''}
-            <button class="quote-action-btn" style="background:#4F46E5; color:#FFF;" onclick="clipChainToSermon('${keyword}', '${item.ref}', '${item.text.replace(/'/g, "\\'")}', '${item.point || ''}')">
-              + 이 ${keyword} 연쇄 관주를 설교 대지에 추가
+            <div class="source-claim-blocked">성구 관계와 설교 포인트는 출처·역본·정확한 위치·권리·검증 기록이 없어 표시하지 않습니다.</div>
+            <button class="quote-action-btn" style="background:#4F46E5; color:#FFF;" data-keyword="${escapeHtml(keyword)}" data-ref="${escapeHtml(item.ref || '')}" onclick="clipChainToSermon(this.dataset.keyword, this.dataset.ref)">
+              + 연쇄 관주 검토 메모 추가
             </button>
           </div>
         `;
@@ -1452,63 +2496,69 @@
 
       commBox.innerHTML = `
         <div class="comm-title">
-          <span>${chainData.title}</span>
-          <span style="font-size:11px; background:#4F46E5; color:#FFF; padding:2px 8px; border-radius:10px;">총 ${chainData.chains.length}개 성구 사슬</span>
+          <span>연쇄 관주 · ${escapeHtml(keyword)}</span>
+          <span style="font-size:11px; background:#92400E; color:#FFF; padding:2px 8px; border-radius:10px;">${chainData.chains.length}개 미검증 참고 항목</span>
         </div>
-        <div style="font-size:13px; color:var(--text-main); margin-bottom:12px; padding:10px 14px; background:#EEF2FF; border-radius:6px; border:1px solid #C7D2FE;">
-          <div style="font-weight:700; color:#3730A3; margin-bottom:4px;">🔑 인물적 정의: ${chainData.meaning}</div>
-          <div style="font-size:12px; color:#4B5563;">${chainData.summary}</div>
-        </div>
+        ${renderSourceClaimStatus(chainData, '연쇄 관주와 요약')}
         ${chainListHtml}
       `;
 
       showToast(`[${keyword}] 인물 연쇄 관주 망이 우측 패널에 펼쳐졌습니다.`);
     }
 
-    function clipCrossrefToSermon(ref, text, type) {
+    function clipCrossrefToSermon(ref) {
       sermonOutline.push({
-        title: `대지 ${sermonOutline.length}: ${ref} (${type})`,
+        title: `검토 전 관주 메모 · ${ref}`,
         ref: ref,
-        tag: "성경 관주",
-        content: `관주 해설: 성경으로 성경을 해석할 때, 본 구절은 본문과 유기적으로 연결되어 하나님의 구속사를 온전히 증거합니다.`,
-        quote: `${ref} "${text}"`
+        tag: "출처 확인 전",
+        content: "이 관주 관계와 본문 연결을 확인한 뒤 설교 원고에 직접 작성하세요.",
+        quote: "",
+        sourceLabel: "시범 관주 자료",
+        contentOrigin: "source_note",
+        verificationStatus: "unverified"
       });
+      saveSermonDraft();
       renderSermonStudio();
       const studioList = document.getElementById('sermonCards');
       studioList.scrollTop = studioList.scrollHeight;
-      showToast(`관주 성구 [${ref}]가 설교 대지로 스크랩되었습니다!`);
+      showToast(`관주 검토 메모가 추가되었습니다. 원문은 복사하지 않았습니다.`);
     }
 
-    function clipChainToSermon(keyword, ref, text, point) {
+    function clipChainToSermon(keyword, ref) {
       sermonOutline.push({
-        title: `대지 ${sermonOutline.length}: ${keyword} 연쇄 - ${ref}`,
+        title: `검토 전 연쇄 관주 메모 · ${ref}`,
         ref: ref,
-        tag: `인물 관주: ${keyword}`,
-        content: point ? `설교 대지: ${point}` : `인물 ${keyword}의 생애와 구속사적 의미를 조명함.`,
-        quote: `${ref} "${text}"`
+        tag: "출처 확인 전",
+        content: "성구 간 관계와 해석을 확인한 뒤 설교 원고에 직접 작성하세요.",
+        quote: "",
+        sourceLabel: `시범 연쇄 관주 · ${keyword}`,
+        contentOrigin: "source_note",
+        verificationStatus: "unverified"
       });
+      saveSermonDraft();
       renderSermonStudio();
       const studioList = document.getElementById('sermonCards');
       studioList.scrollTop = studioList.scrollHeight;
-      showToast(`[${keyword}] 관주 성구(${ref})가 설교 대지로 스크랩되었습니다!`);
+      showToast(`연쇄 관주 검토 메모가 추가되었습니다. 원문은 복사하지 않았습니다.`);
     }
 
-    function clipToSermon(titleText, snippetBody) {
+    function clipToSermon(titleText) {
       const book = BIBLE_DATABASE.books.find(b => b.id === currentBookId);
-      const cleanSnippet = snippetBody.replace(/<[^>]*>?/gm, '').substring(0, 140) + '...';
-
       sermonOutline.push({
-        title: `대지 ${sermonOutline.length}: ${titleText.split(':')[1] || titleText}`,
+        title: "검토 전 주석 메모",
         ref: `${book.name} ${currentChapterNum}:${currentVerseNum}`,
-        tag: "주석 스크랩",
-        content: `묵상 및 설교 적용: 본문에서 밝히 드러난 하나님의 섭리와 은혜를 성도들의 삶에 선포할 것.`,
-        quote: cleanSnippet
+        tag: "출처 확인 전",
+        content: "원문, 판본, 정확한 위치, 인용 가능 범위를 확인한 뒤 설교 원고에 직접 작성하세요.",
+        quote: "",
+        sourceLabel: titleText,
+        contentOrigin: "source_note",
+        verificationStatus: "unverified"
       });
-
+      saveSermonDraft();
       renderSermonStudio();
       const studioList = document.getElementById('sermonCards');
       studioList.scrollTop = studioList.scrollHeight;
-      showToast(`[${book.name} ${currentChapterNum}:${currentVerseNum}] 주석이 설교 대지로 스크랩되었습니다!`);
+      showToast(`주석 검토 메모가 추가되었습니다. 원문은 복사하지 않았습니다.`);
     }
 
     function renderSermonStudio() {
@@ -1518,43 +2568,115 @@
       sermonOutline.forEach((card, idx) => {
         const div = document.createElement('div');
         div.className = 'outline-card';
-        div.innerHTML = `
-          <div class="outline-card-title">
-            <span>${card.title}</span>
-            <div style="display:flex; align-items:center; gap:6px;">
-              <span style="font-size:10px; color:var(--brand-gold); font-weight:700;">${card.ref || ''}</span>
-              <button class="card-del-btn" onclick="deleteCard(${idx})" title="삭제">✕</button>
-            </div>
-          </div>
-          <div class="outline-card-content">
-            ${card.content}
-          </div>
-          ${card.quote ? `<div class="card-quote-snippet">💬 ${card.quote}</div>` : ''}
-        `;
+        const fields = document.createElement('div');
+        fields.className = 'outline-card-fields';
+
+        const titleInput = document.createElement('input');
+        titleInput.className = 'outline-field';
+        titleInput.type = 'text';
+        titleInput.value = card.title || '';
+        titleInput.setAttribute('aria-label', `대지 ${idx + 1} 제목`);
+        titleInput.addEventListener('input', () => { card.title = titleInput.value; saveSermonDraft(); });
+
+        const refInput = document.createElement('input');
+        refInput.className = 'outline-field';
+        refInput.type = 'text';
+        refInput.value = card.ref || '';
+        refInput.setAttribute('aria-label', `대지 ${idx + 1} 성경 본문`);
+        refInput.addEventListener('input', () => { card.ref = refInput.value; saveSermonDraft(); });
+        fields.append(titleInput, refInput);
+
+        const deleteButton = document.createElement('button');
+        deleteButton.type = 'button';
+        deleteButton.className = 'card-del-btn';
+        deleteButton.textContent = '대지 삭제';
+        deleteButton.setAttribute('aria-label', `대지 ${idx + 1} 삭제`);
+        deleteButton.addEventListener('click', () => deleteCard(idx));
+
+        const bodyInput = document.createElement('textarea');
+        bodyInput.className = 'outline-body';
+        bodyInput.value = card.content || '';
+        bodyInput.placeholder = '설교 원고를 작성하세요.';
+        bodyInput.setAttribute('aria-label', `대지 ${idx + 1} 원고`);
+        bodyInput.addEventListener('input', () => { card.content = bodyInput.value; saveSermonDraft(); });
+
+        const contentOrigin = card.contentOrigin || 'legacy_review';
+        const verificationStatus = card.verificationStatus || '';
+        if (contentOrigin !== 'pastor_authored' || card.sourceLabel) {
+          const warning = document.createElement('div');
+          warning.className = 'unverified-note';
+          warning.textContent = contentOrigin === 'source_note'
+            ? '출처 검토 메모입니다. 강단에 포함되지 않습니다. 원문·판본·권리를 확인하고 설교자 자신의 문장으로 새 원고 구획을 작성하세요.'
+            : '기존 저장 구획의 작성자와 출처를 확인할 수 없습니다. 로컬의 verified 표시는 출처 승인 증거가 아닙니다. 강단에 넣으려면 내용을 확인하고 직접 작성한 새 구획으로 옮기세요.';
+          div.appendChild(warning);
+          if (card.sourceLabel) {
+            const sourceLabel = document.createElement('p');
+            sourceLabel.className = 'unverified-source-label';
+            sourceLabel.textContent = `참고 자료: ${card.sourceLabel}`;
+            div.appendChild(sourceLabel);
+          }
+          const rewriteButton = document.createElement('button');
+          rewriteButton.type = 'button';
+          rewriteButton.className = 'draft-passage-apply';
+          rewriteButton.textContent = '빈 내 원고 구획을 만들어 다시 작성';
+          rewriteButton.addEventListener('click', () => createPastorAuthoredSection(idx));
+          div.appendChild(rewriteButton);
+        } else if (verificationStatus === 'verified') {
+          const statusNote = document.createElement('div');
+          statusNote.className = 'unverified-note';
+          statusNote.textContent = '강단에는 설교자 작성 원고로 표시됩니다. 브라우저에 저장된 verified 값은 출처 승인으로 인증되지 않습니다.';
+          div.appendChild(statusNote);
+        }
+
+        div.append(fields, deleteButton, bodyInput);
+        if (card.quote) {
+          const quoteInput = document.createElement('textarea');
+          quoteInput.className = 'outline-body';
+          quoteInput.value = card.quote;
+          quoteInput.placeholder = '검토할 인용 메모';
+          quoteInput.setAttribute('aria-label', `대지 ${idx + 1} 검토할 인용 메모`);
+          quoteInput.addEventListener('input', () => { card.quote = quoteInput.value; saveSermonDraft(); });
+          div.appendChild(quoteInput);
+        }
         container.appendChild(div);
       });
     }
 
     function addNewPoint() {
-      const title = prompt("새로운 설교 대지 제목을 입력하세요:", `대지 ${sermonOutline.length}: 은혜의 완성과 성도의 순종`);
-      if (title) {
-        const book = BIBLE_DATABASE.books.find(b => b.id === currentBookId);
-        sermonOutline.push({
-          title: title,
-          ref: `${book.name} ${currentChapterNum}:${currentVerseNum}`,
-          tag: "목회자 메모",
-          content: "본문 말씀을 묵상하며 성도들을 위해 준비한 적용 및 권면의 메시지를 기록하세요.",
-          quote: null
-        });
-        renderSermonStudio();
-        const studioList = document.getElementById('sermonCards');
-        studioList.scrollTop = studioList.scrollHeight;
-        showToast("새로운 설교 대지가 추가되었습니다.");
-      }
+      sermonOutline.push({ title: '새 대지', ref: sermonDraft.passage, content: '', quote: '', verificationStatus: '', contentOrigin: 'pastor_authored' });
+      saveSermonDraft();
+      renderSermonStudio();
+      const studioList = document.getElementById('sermonCards');
+      studioList.scrollTop = studioList.scrollHeight;
+      const inputs = studioList.querySelectorAll('.outline-field');
+      if (inputs.length) inputs[inputs.length - 2].focus();
+      showToast("새 원고 구획이 추가되었습니다.");
+    }
+
+    function createPastorAuthoredSection(sourceIndex) {
+      const source = sermonOutline[sourceIndex];
+      sermonOutline.splice(sourceIndex + 1, 0, {
+        title: source && source.title ? source.title : '새 대지',
+        ref: source && source.ref ? source.ref : sermonDraft.passage,
+        content: '',
+        quote: '',
+        sourceLabel: '',
+        verificationStatus: '',
+        contentOrigin: 'pastor_authored'
+      });
+      saveSermonDraft();
+      renderSermonStudio();
+      const studioList = document.getElementById('sermonCards');
+      studioList.scrollTop = studioList.scrollHeight;
+      const inputs = studioList.querySelectorAll('.outline-field');
+      const newSectionInputIndex = Math.min((sourceIndex + 1) * 2, inputs.length - 2);
+      if (newSectionInputIndex >= 0) inputs[newSectionInputIndex].focus();
+      showToast('기존 자료는 보존했고, 빈 설교자 작성 구획을 만들었습니다.');
     }
 
     function deleteCard(idx) {
       sermonOutline.splice(idx, 1);
+      saveSermonDraft();
       renderSermonStudio();
     }
 
@@ -1570,31 +2692,61 @@
     let timerInterval = null;
     let secondsLeft = 25 * 60;
     let isTimerRunning = false;
+    let pulpitReturnFocus = null;
+
+    function getPulpitSlides() {
+      return sermonOutline.filter(section => {
+        return section.contentOrigin === 'pastor_authored'
+          && !section.sourceLabel
+          && typeof section.content === 'string'
+          && section.content.trim();
+      });
+    }
 
     function openPulpitMode() {
-      document.getElementById('pulpitView').classList.add('open');
+      if (getPulpitSlides().length === 0) {
+        showToast('강단 모드로 읽을 원고가 없습니다. 설교 내용을 먼저 작성하세요.');
+        return;
+      }
+      const pulpitView = document.getElementById('pulpitView');
+      pulpitReturnFocus = document.activeElement;
+      document.querySelector('header').setAttribute('inert', '');
+      document.getElementById('workspaceMain').setAttribute('inert', '');
+      pulpitView.classList.add('open');
       pulpitSlideIdx = 0;
+      document.getElementById('pulpitHeaderTitle').textContent = sermonDraft.title || '설교 원고';
       updatePulpitSlide();
       startTimer();
+      document.getElementById('pulpitCloseButton').focus();
     }
 
     function closePulpitMode() {
       document.getElementById('pulpitView').classList.remove('open');
+      document.querySelector('header').removeAttribute('inert');
+      document.getElementById('workspaceMain').removeAttribute('inert');
       clearInterval(timerInterval);
       isTimerRunning = false;
+      if (pulpitReturnFocus && pulpitReturnFocus.isConnected) pulpitReturnFocus.focus();
+      pulpitReturnFocus = null;
     }
 
     function updatePulpitSlide() {
-      if (sermonOutline.length === 0) return;
-      const slide = sermonOutline[pulpitSlideIdx];
-      document.getElementById('pulpitSlideTitle').innerText = slide.title;
-      document.getElementById('pulpitSlideText').innerText = slide.quote ? `"${slide.quote}"` : `[본문 참조: ${slide.ref}]`;
-      document.getElementById('pulpitSlideNote').innerText = slide.content;
-      document.getElementById('slideIndicator').innerText = `대지 ${pulpitSlideIdx + 1} / ${sermonOutline.length} (터치로 다음 전환)`;
+      const slides = getPulpitSlides();
+      if (slides.length === 0) return;
+      pulpitSlideIdx = Math.min(pulpitSlideIdx, slides.length - 1);
+      const slide = slides[pulpitSlideIdx];
+      document.getElementById('pulpitSlideTitle').textContent = slide.title || '설교 원고';
+      document.getElementById('pulpitSlideText').textContent = slide.ref ? `본문 참조: ${slide.ref}` : '';
+      const note = document.getElementById('pulpitSlideNote');
+      note.textContent = slide.content;
+      note.scrollTop = 0;
+      document.getElementById('slideIndicator').textContent = `대지 ${pulpitSlideIdx + 1} / ${slides.length}`;
+      document.getElementById('pulpitSlideAnnouncement').textContent = `대지 ${pulpitSlideIdx + 1} / ${slides.length}: ${slide.title || '설교 원고'}`;
     }
 
     function nextPulpitSlide() {
-      if (pulpitSlideIdx < sermonOutline.length - 1) {
+      const slides = getPulpitSlides();
+      if (pulpitSlideIdx < slides.length - 1) {
         pulpitSlideIdx++;
         updatePulpitSlide();
       }
