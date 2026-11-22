@@ -1,18 +1,30 @@
 {
-  "name": "성경주혜주석 — Biblical Exegesis & Sermon Workstation",
-  "short_name": "성경주혜주석",
-  "description": "성경 66권(개역한글 31,102절), 8대 주석 비교, 심층·연쇄 관주, 원어 스트롱코드, 다중 설교 스튜디오 및 강단 프롬프터 오프라인 PWA",
+  "name": "말씀 서재 — 성경 묵상·예배·설교 준비",
+  "short_name": "말씀 서재",
+  "description": "성경 66권(개역한글 31,102절), 핵심 말씀 참고 요약, 연결 말씀, 원어 풀이, 예배 예전·찬송가·교독문, 설교 준비 및 강단 화면 오프라인 서재",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#0F172A",
-  "theme_color": "#1E293B",
+  "background_color": "#FAF6EE",
+  "theme_color": "#1B365D",
   "icons": [
     {
       "src": "./icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
       "purpose": "any maskable"
     }
   ]
