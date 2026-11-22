@@ -7,15 +7,23 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
   group: "pages"
   cancel-in-progress: false
 
 jobs:
+  verify:
+    uses: ./.github/workflows/ci.yml
+    permissions:
+      contents: read
+
   deploy:
+    needs: verify
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -27,10 +35,28 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
-      - name: Upload web directory artifact
+      - name: Enforce web/data/ License Allowlist & Stage Clean Pages Artifact
+        run: |
+          set -o pipefail
+          python3 -c "
+          import json
+          from pathlib import Path
+          mf = json.loads(Path('web/data/manifest.json').read_text(encoding='utf-8'))
+          allowed_dirs = {v['id'] for v in mf['versions']} | {'search'}
+          actual_dirs = {p.name for p in Path('web/data').iterdir() if p.is_dir()}
+          extra = actual_dirs - allowed_dirs
+          assert not extra, f'Blocked deploy: unlisted web/data/ directories found: {sorted(extra)}'
+          "
+          rm -rf _site
+          mkdir -p _site
+          cp -R web/. _site/
+          rm -f _site/package.json
+          touch _site/.nojekyll
+
+      - name: Upload staged Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: "./web"
+          path: "./_site"
 
       - name: Deploy to GitHub Pages
         id: deployment

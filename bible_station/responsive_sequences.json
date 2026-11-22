@@ -1,0 +1,4122 @@
+{
+  "2": [
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 2,
+      "start_vs": 1,
+      "end_vs": 1
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 2,
+      "start_vs": 2,
+      "end_vs": 2
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 2,
+      "start_vs": 3,
+      "end_vs": 3
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 2,
+      "start_vs": 4,
+      "end_vs": 4
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 2,
+      "start_vs": 5,
+      "end_vs": 5
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 2,
+      "start_vs": 6,
+      "end_vs": 6
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 2,
+      "start_vs": 7,
+      "end_vs": 7
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 2,
+      "start_vs": 8,
+      "end_vs": 8
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 2,
+      "start_vs": 9,
+      "end_vs": 9
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 2,
+      "start_vs": 10,
+      "end_vs": 10
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 2,
+      "start_vs": 11,
+      "end_vs": 11
+    },
+    {
+      "role": "unison",
+      "osis": "PSA",
+      "ch": 2,
+      "start_vs": 12,
+      "end_vs": 12
+    }
+  ],
+  "88": [
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 123,
+      "start_vs": 1,
+      "end_vs": 1
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 123,
+      "start_vs": 2,
+      "end_vs": 2
+    },
+    {
+      "role": "leader",
+      "osis": "ROM",
+      "ch": 5,
+      "start_vs": 8,
+      "end_vs": 8
+    },
+    {
+      "role": "congregation",
+      "osis": "ROM",
+      "ch": 5,
+      "start_vs": 8,
+      "end_vs": 8
+    },
+    {
+      "role": "leader",
+      "osis": "ROM",
+      "ch": 5,
+      "start_vs": 9,
+      "end_vs": 9
+    },
+    {
+      "role": "congregation",
+      "osis": "ROM",
+      "ch": 5,
+      "start_vs": 9,
+      "end_vs": 9
+    },
+    {
+      "role": "leader",
+      "osis": "ROM",
+      "ch": 6,
+      "start_vs": 4,
+      "end_vs": 4
+    },
+    {
+      "role": "congregation",
+      "osis": "ROM",
+      "ch": 6,
+      "start_vs": 4,
+      "end_vs": 4
+    },
+    {
+      "role": "leader",
+      "osis": "COL",
+      "ch": 2,
+      "start_vs": 6,
+      "end_vs": 6
+    },
+    {
+      "role": "congregation",
+      "osis": "COL",
+      "ch": 2,
+      "start_vs": 6,
+      "end_vs": 7
+    },
+    {
+      "role": "unison",
+      "osis": "COL",
+      "ch": 2,
+      "start_vs": 7,
+      "end_vs": 7
+    }
+  ],
+  "89": [
+    {
+      "role": "leader",
+      "osis": "ROM",
+      "ch": 6,
+      "start_vs": 3,
+      "end_vs": 3
+    },
+    {
+      "role": "congregation",
+      "osis": "ROM",
+      "ch": 6,
+      "start_vs": 3,
+      "end_vs": 3
+    },
+    {
+      "role": "leader",
+      "osis": "ROM",
+      "ch": 6,
+      "start_vs": 4,
+      "end_vs": 4
+    },
+    {
+      "role": "congregation",
+      "osis": "ROM",
+      "ch": 6,
+      "start_vs": 4,
+      "end_vs": 4
+    },
+    {
+      "role": "leader",
+      "osis": "ROM",
+      "ch": 6,
+      "start_vs": 4,
+      "end_vs": 4
+    },
+    {
+      "role": "congregation",
+      "osis": "ROM",
+      "ch": 6,
+      "start_vs": 5,
+      "end_vs": 5
+    },
+    {
+      "role": "leader",
+      "osis": "ROM",
+      "ch": 6,
+      "start_vs": 6,
+      "end_vs": 6
+    },
+    {
+      "role": "congregation",
+      "osis": "ROM",
+      "ch": 6,
+      "start_vs": 7,
+      "end_vs": 7
+    },
+    {
+      "role": "leader",
+      "osis": "ROM",
+      "ch": 6,
+      "start_vs": 8,
+      "end_vs": 8
+    },
+    {
+      "role": "congregation",
+      "osis": "ROM",
+      "ch": 6,
+      "start_vs": 9,
+      "end_vs": 9
+    },
+    {
+      "role": "unison",
+      "osis": "ROM",
+      "ch": 6,
+      "start_vs": 9,
+      "end_vs": 9
+    }
+  ],
+  "90": [
+    {
+      "role": "leader",
+      "osis": "JHN",
+      "ch": 3,
+      "start_vs": 3,
+      "end_vs": 3
+    },
+    {
+      "role": "congregation",
+      "osis": "JHN",
+      "ch": 3,
+      "start_vs": 3,
+      "end_vs": 3
+    },
+    {
+      "role": "leader",
+      "osis": "JHN",
+      "ch": 3,
+      "start_vs": 4,
+      "end_vs": 4
+    },
+    {
+      "role": "congregation",
+      "osis": "JHN",
+      "ch": 3,
+      "start_vs": 4,
+      "end_vs": 4
+    },
+    {
+      "role": "leader",
+      "osis": "JHN",
+      "ch": 3,
+      "start_vs": 5,
+      "end_vs": 5
+    },
+    {
+      "role": "congregation",
+      "osis": "JHN",
+      "ch": 3,
+      "start_vs": 5,
+      "end_vs": 5
+    },
+    {
+      "role": "leader",
+      "osis": "JHN",
+      "ch": 3,
+      "start_vs": 6,
+      "end_vs": 6
+    },
+    {
+      "role": "congregation",
+      "osis": "JHN",
+      "ch": 3,
+      "start_vs": 7,
+      "end_vs": 7
+    },
+    {
+      "role": "leader",
+      "osis": "ROM",
+      "ch": 6,
+      "start_vs": 3,
+      "end_vs": 3
+    },
+    {
+      "role": "congregation",
+      "osis": "ROM",
+      "ch": 6,
+      "start_vs": 3,
+      "end_vs": 3
+    },
+    {
+      "role": "leader",
+      "osis": "ROM",
+      "ch": 6,
+      "start_vs": 4,
+      "end_vs": 4
+    },
+    {
+      "role": "congregation",
+      "osis": "ROM",
+      "ch": 6,
+      "start_vs": 4,
+      "end_vs": 4
+    },
+    {
+      "role": "unison",
+      "osis": "ROM",
+      "ch": 6,
+      "start_vs": 4,
+      "end_vs": 4
+    }
+  ],
+  "91": [
+    {
+      "role": "leader",
+      "osis": "JHN",
+      "ch": 6,
+      "start_vs": 35,
+      "end_vs": 35
+    },
+    {
+      "role": "congregation",
+      "osis": "JHN",
+      "ch": 6,
+      "start_vs": 35,
+      "end_vs": 35
+    },
+    {
+      "role": "leader",
+      "osis": "JHN",
+      "ch": 6,
+      "start_vs": 51,
+      "end_vs": 51
+    },
+    {
+      "role": "congregation",
+      "osis": "JHN",
+      "ch": 6,
+      "start_vs": 51,
+      "end_vs": 51
+    },
+    {
+      "role": "leader",
+      "osis": "JHN",
+      "ch": 6,
+      "start_vs": 54,
+      "end_vs": 54
+    },
+    {
+      "role": "congregation",
+      "osis": "JHN",
+      "ch": 6,
+      "start_vs": 55,
+      "end_vs": 55
+    },
+    {
+      "role": "leader",
+      "osis": "JHN",
+      "ch": 6,
+      "start_vs": 56,
+      "end_vs": 56
+    },
+    {
+      "role": "congregation",
+      "osis": "JHN",
+      "ch": 6,
+      "start_vs": 57,
+      "end_vs": 57
+    },
+    {
+      "role": "leader",
+      "osis": "JHN",
+      "ch": 13,
+      "start_vs": 34,
+      "end_vs": 34
+    },
+    {
+      "role": "congregation",
+      "osis": "JHN",
+      "ch": 13,
+      "start_vs": 35,
+      "end_vs": 35
+    }
+  ],
+  "92": [
+    {
+      "role": "leader",
+      "osis": "LUK",
+      "ch": 22,
+      "start_vs": 14,
+      "end_vs": 14
+    },
+    {
+      "role": "congregation",
+      "osis": "LUK",
+      "ch": 22,
+      "start_vs": 15,
+      "end_vs": 15
+    },
+    {
+      "role": "leader",
+      "osis": "LUK",
+      "ch": 22,
+      "start_vs": 18,
+      "end_vs": 18
+    },
+    {
+      "role": "congregation",
+      "osis": "LUK",
+      "ch": 22,
+      "start_vs": 18,
+      "end_vs": 18
+    },
+    {
+      "role": "leader",
+      "osis": "LUK",
+      "ch": 22,
+      "start_vs": 19,
+      "end_vs": 19
+    },
+    {
+      "role": "congregation",
+      "osis": "LUK",
+      "ch": 22,
+      "start_vs": 19,
+      "end_vs": 19
+    },
+    {
+      "role": "leader",
+      "osis": "LUK",
+      "ch": 22,
+      "start_vs": 20,
+      "end_vs": 20
+    },
+    {
+      "role": "congregation",
+      "osis": "LUK",
+      "ch": 22,
+      "start_vs": 20,
+      "end_vs": 20
+    }
+  ],
+  "93": [
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 102,
+      "start_vs": 25,
+      "end_vs": 25
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 102,
+      "start_vs": 26,
+      "end_vs": 26
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 102,
+      "start_vs": 26,
+      "end_vs": 26
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 102,
+      "start_vs": 27,
+      "end_vs": 27
+    },
+    {
+      "role": "leader",
+      "osis": "ISA",
+      "ch": 43,
+      "start_vs": 18,
+      "end_vs": 18
+    },
+    {
+      "role": "congregation",
+      "osis": "ISA",
+      "ch": 43,
+      "start_vs": 19,
+      "end_vs": 19
+    },
+    {
+      "role": "leader",
+      "osis": "EPH",
+      "ch": 4,
+      "start_vs": 22,
+      "end_vs": 22
+    },
+    {
+      "role": "congregation",
+      "osis": "EPH",
+      "ch": 4,
+      "start_vs": 23,
+      "end_vs": 24
+    },
+    {
+      "role": "leader",
+      "osis": "2CO",
+      "ch": 5,
+      "start_vs": 17,
+      "end_vs": 17
+    },
+    {
+      "role": "congregation",
+      "osis": "2CO",
+      "ch": 5,
+      "start_vs": 17,
+      "end_vs": 17
+    },
+    {
+      "role": "leader",
+      "osis": "JHN",
+      "ch": 13,
+      "start_vs": 34,
+      "end_vs": 34
+    },
+    {
+      "role": "congregation",
+      "osis": "JHN",
+      "ch": 13,
+      "start_vs": 34,
+      "end_vs": 34
+    }
+  ],
+  "94": [
+    {
+      "role": "leader",
+      "osis": "EPH",
+      "ch": 1,
+      "start_vs": 3,
+      "end_vs": 3
+    },
+    {
+      "role": "congregation",
+      "osis": "EPH",
+      "ch": 1,
+      "start_vs": 3,
+      "end_vs": 3
+    },
+    {
+      "role": "leader",
+      "osis": "EPH",
+      "ch": 1,
+      "start_vs": 4,
+      "end_vs": 4
+    },
+    {
+      "role": "congregation",
+      "osis": "EPH",
+      "ch": 1,
+      "start_vs": 5,
+      "end_vs": 5
+    },
+    {
+      "role": "leader",
+      "osis": "EPH",
+      "ch": 1,
+      "start_vs": 6,
+      "end_vs": 6
+    },
+    {
+      "role": "congregation",
+      "osis": "EPH",
+      "ch": 1,
+      "start_vs": 7,
+      "end_vs": 7
+    },
+    {
+      "role": "leader",
+      "osis": "EPH",
+      "ch": 1,
+      "start_vs": 8,
+      "end_vs": 9
+    },
+    {
+      "role": "congregation",
+      "osis": "EPH",
+      "ch": 1,
+      "start_vs": 10,
+      "end_vs": 10
+    },
+    {
+      "role": "leader",
+      "osis": "EPH",
+      "ch": 1,
+      "start_vs": 11,
+      "end_vs": 11
+    },
+    {
+      "role": "congregation",
+      "osis": "EPH",
+      "ch": 1,
+      "start_vs": 12,
+      "end_vs": 12
+    }
+  ],
+  "95": [
+    {
+      "role": "leader",
+      "osis": "1CO",
+      "ch": 13,
+      "start_vs": 1,
+      "end_vs": 1
+    },
+    {
+      "role": "congregation",
+      "osis": "1CO",
+      "ch": 13,
+      "start_vs": 1,
+      "end_vs": 1
+    },
+    {
+      "role": "leader",
+      "osis": "1CO",
+      "ch": 13,
+      "start_vs": 2,
+      "end_vs": 2
+    },
+    {
+      "role": "congregation",
+      "osis": "1CO",
+      "ch": 13,
+      "start_vs": 2,
+      "end_vs": 2
+    },
+    {
+      "role": "leader",
+      "osis": "1CO",
+      "ch": 13,
+      "start_vs": 3,
+      "end_vs": 3
+    },
+    {
+      "role": "congregation",
+      "osis": "1CO",
+      "ch": 13,
+      "start_vs": 3,
+      "end_vs": 3
+    },
+    {
+      "role": "leader",
+      "osis": "1CO",
+      "ch": 13,
+      "start_vs": 4,
+      "end_vs": 4
+    },
+    {
+      "role": "congregation",
+      "osis": "1CO",
+      "ch": 13,
+      "start_vs": 4,
+      "end_vs": 4
+    },
+    {
+      "role": "leader",
+      "osis": "1CO",
+      "ch": 13,
+      "start_vs": 5,
+      "end_vs": 5
+    },
+    {
+      "role": "congregation",
+      "osis": "1CO",
+      "ch": 13,
+      "start_vs": 5,
+      "end_vs": 6
+    },
+    {
+      "role": "leader",
+      "osis": "1CO",
+      "ch": 13,
+      "start_vs": 6,
+      "end_vs": 7
+    },
+    {
+      "role": "congregation",
+      "osis": "1CO",
+      "ch": 13,
+      "start_vs": 7,
+      "end_vs": 7
+    },
+    {
+      "role": "leader",
+      "osis": "1CO",
+      "ch": 13,
+      "start_vs": 8,
+      "end_vs": 8
+    },
+    {
+      "role": "congregation",
+      "osis": "1CO",
+      "ch": 13,
+      "start_vs": 8,
+      "end_vs": 8
+    },
+    {
+      "role": "unison",
+      "osis": "1CO",
+      "ch": 13,
+      "start_vs": 13,
+      "end_vs": 13
+    }
+  ],
+  "96": [
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 127,
+      "start_vs": 3,
+      "end_vs": 3
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 127,
+      "start_vs": 3,
+      "end_vs": 3
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 127,
+      "start_vs": 4,
+      "end_vs": 4
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 127,
+      "start_vs": 5,
+      "end_vs": 5
+    },
+    {
+      "role": "leader",
+      "osis": "MAT",
+      "ch": 18,
+      "start_vs": 3,
+      "end_vs": 3
+    },
+    {
+      "role": "congregation",
+      "osis": "MAT",
+      "ch": 18,
+      "start_vs": 3,
+      "end_vs": 3
+    },
+    {
+      "role": "leader",
+      "osis": "MAT",
+      "ch": 18,
+      "start_vs": 4,
+      "end_vs": 4
+    },
+    {
+      "role": "congregation",
+      "osis": "MAT",
+      "ch": 18,
+      "start_vs": 4,
+      "end_vs": 4
+    },
+    {
+      "role": "leader",
+      "osis": "MAT",
+      "ch": 18,
+      "start_vs": 5,
+      "end_vs": 5
+    },
+    {
+      "role": "congregation",
+      "osis": "MAT",
+      "ch": 18,
+      "start_vs": 5,
+      "end_vs": 5
+    },
+    {
+      "role": "leader",
+      "osis": "EPH",
+      "ch": 6,
+      "start_vs": 4,
+      "end_vs": 4
+    },
+    {
+      "role": "congregation",
+      "osis": "PRO",
+      "ch": 22,
+      "start_vs": 6,
+      "end_vs": 6
+    },
+    {
+      "role": "unison",
+      "osis": "PRO",
+      "ch": 22,
+      "start_vs": 6,
+      "end_vs": 6
+    }
+  ],
+  "97": [
+    {
+      "role": "leader",
+      "osis": "ECC",
+      "ch": 12,
+      "start_vs": 1,
+      "end_vs": 1
+    },
+    {
+      "role": "congregation",
+      "osis": "ECC",
+      "ch": 12,
+      "start_vs": 1,
+      "end_vs": 1
+    },
+    {
+      "role": "leader",
+      "osis": "ECC",
+      "ch": 12,
+      "start_vs": 2,
+      "end_vs": 2
+    },
+    {
+      "role": "congregation",
+      "osis": "ECC",
+      "ch": 12,
+      "start_vs": 2,
+      "end_vs": 2
+    },
+    {
+      "role": "leader",
+      "osis": "ECC",
+      "ch": 11,
+      "start_vs": 9,
+      "end_vs": 9
+    },
+    {
+      "role": "congregation",
+      "osis": "ECC",
+      "ch": 11,
+      "start_vs": 9,
+      "end_vs": 9
+    },
+    {
+      "role": "leader",
+      "osis": "PRO",
+      "ch": 1,
+      "start_vs": 7,
+      "end_vs": 7
+    },
+    {
+      "role": "congregation",
+      "osis": "PRO",
+      "ch": 1,
+      "start_vs": 7,
+      "end_vs": 7
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 119,
+      "start_vs": 9,
+      "end_vs": 9
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 119,
+      "start_vs": 9,
+      "end_vs": 9
+    },
+    {
+      "role": "leader",
+      "osis": "2TI",
+      "ch": 2,
+      "start_vs": 22,
+      "end_vs": 22
+    },
+    {
+      "role": "congregation",
+      "osis": "2TI",
+      "ch": 2,
+      "start_vs": 22,
+      "end_vs": 22
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 110,
+      "start_vs": 3,
+      "end_vs": 3
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 110,
+      "start_vs": 3,
+      "end_vs": 3
+    }
+  ],
+  "98": [
+    {
+      "role": "leader",
+      "osis": "EXO",
+      "ch": 20,
+      "start_vs": 12,
+      "end_vs": 12
+    },
+    {
+      "role": "congregation",
+      "osis": "EXO",
+      "ch": 20,
+      "start_vs": 12,
+      "end_vs": 12
+    },
+    {
+      "role": "leader",
+      "osis": "PRO",
+      "ch": 1,
+      "start_vs": 8,
+      "end_vs": 8
+    },
+    {
+      "role": "congregation",
+      "osis": "PRO",
+      "ch": 1,
+      "start_vs": 9,
+      "end_vs": 9
+    },
+    {
+      "role": "leader",
+      "osis": "PRO",
+      "ch": 23,
+      "start_vs": 22,
+      "end_vs": 22
+    },
+    {
+      "role": "congregation",
+      "osis": "PRO",
+      "ch": 23,
+      "start_vs": 25,
+      "end_vs": 25
+    },
+    {
+      "role": "leader",
+      "osis": "EPH",
+      "ch": 6,
+      "start_vs": 1,
+      "end_vs": 1
+    },
+    {
+      "role": "congregation",
+      "osis": "EPH",
+      "ch": 6,
+      "start_vs": 2,
+      "end_vs": 3
+    }
+  ],
+  "99": [
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 33,
+      "start_vs": 8,
+      "end_vs": 8
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 33,
+      "start_vs": 10,
+      "end_vs": 10
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 33,
+      "start_vs": 11,
+      "end_vs": 11
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 33,
+      "start_vs": 12,
+      "end_vs": 12
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 33,
+      "start_vs": 13,
+      "end_vs": 13
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 33,
+      "start_vs": 14,
+      "end_vs": 14
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 33,
+      "start_vs": 16,
+      "end_vs": 16
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 33,
+      "start_vs": 16,
+      "end_vs": 16
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 33,
+      "start_vs": 18,
+      "end_vs": 18
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 33,
+      "start_vs": 19,
+      "end_vs": 19
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 33,
+      "start_vs": 20,
+      "end_vs": 20
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 33,
+      "start_vs": 22,
+      "end_vs": 22
+    }
+  ],
+  "100": [
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 146,
+      "start_vs": 1,
+      "end_vs": 1
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 146,
+      "start_vs": 2,
+      "end_vs": 2
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 146,
+      "start_vs": 3,
+      "end_vs": 3
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 146,
+      "start_vs": 4,
+      "end_vs": 4
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 146,
+      "start_vs": 5,
+      "end_vs": 5
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 146,
+      "start_vs": 5,
+      "end_vs": 5
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 146,
+      "start_vs": 6,
+      "end_vs": 6
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 146,
+      "start_vs": 7,
+      "end_vs": 7
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 146,
+      "start_vs": 7,
+      "end_vs": 8
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 146,
+      "start_vs": 8,
+      "end_vs": 9
+    }
+  ],
+  "101": [
+    {
+      "role": "leader",
+      "osis": "EXO",
+      "ch": 15,
+      "start_vs": 1,
+      "end_vs": 1
+    },
+    {
+      "role": "congregation",
+      "osis": "EXO",
+      "ch": 15,
+      "start_vs": 1,
+      "end_vs": 1
+    },
+    {
+      "role": "leader",
+      "osis": "EXO",
+      "ch": 15,
+      "start_vs": 2,
+      "end_vs": 2
+    },
+    {
+      "role": "congregation",
+      "osis": "EXO",
+      "ch": 15,
+      "start_vs": 2,
+      "end_vs": 2
+    },
+    {
+      "role": "leader",
+      "osis": "EXO",
+      "ch": 15,
+      "start_vs": 6,
+      "end_vs": 6
+    },
+    {
+      "role": "congregation",
+      "osis": "EXO",
+      "ch": 15,
+      "start_vs": 6,
+      "end_vs": 6
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 126,
+      "start_vs": 1,
+      "end_vs": 1
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 126,
+      "start_vs": 2,
+      "end_vs": 2
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 126,
+      "start_vs": 2,
+      "end_vs": 2
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 126,
+      "start_vs": 3,
+      "end_vs": 3
+    },
+    {
+      "role": "leader",
+      "osis": "ISA",
+      "ch": 9,
+      "start_vs": 2,
+      "end_vs": 2
+    },
+    {
+      "role": "congregation",
+      "osis": "ISA",
+      "ch": 9,
+      "start_vs": 2,
+      "end_vs": 2
+    },
+    {
+      "role": "unison",
+      "osis": "ISA",
+      "ch": 9,
+      "start_vs": 3,
+      "end_vs": 3
+    },
+    {
+      "role": "unison",
+      "osis": "ISA",
+      "ch": 19,
+      "start_vs": 25,
+      "end_vs": 25
+    }
+  ],
+  "102": [
+    {
+      "role": "leader",
+      "osis": "EZK",
+      "ch": 37,
+      "start_vs": 22,
+      "end_vs": 22
+    },
+    {
+      "role": "congregation",
+      "osis": "EZK",
+      "ch": 37,
+      "start_vs": 22,
+      "end_vs": 22
+    },
+    {
+      "role": "leader",
+      "osis": "EZK",
+      "ch": 37,
+      "start_vs": 23,
+      "end_vs": 23
+    },
+    {
+      "role": "congregation",
+      "osis": "EZK",
+      "ch": 37,
+      "start_vs": 23,
+      "end_vs": 23
+    },
+    {
+      "role": "leader",
+      "osis": "EZK",
+      "ch": 37,
+      "start_vs": 23,
+      "end_vs": 23
+    },
+    {
+      "role": "congregation",
+      "osis": "ISA",
+      "ch": 2,
+      "start_vs": 4,
+      "end_vs": 4
+    },
+    {
+      "role": "leader",
+      "osis": "ISA",
+      "ch": 2,
+      "start_vs": 4,
+      "end_vs": 4
+    },
+    {
+      "role": "congregation",
+      "osis": "ISA",
+      "ch": 2,
+      "start_vs": 4,
+      "end_vs": 4
+    },
+    {
+      "role": "leader",
+      "osis": "ZEC",
+      "ch": 9,
+      "start_vs": 10,
+      "end_vs": 10
+    },
+    {
+      "role": "congregation",
+      "osis": "ZEC",
+      "ch": 9,
+      "start_vs": 10,
+      "end_vs": 10
+    },
+    {
+      "role": "leader",
+      "osis": "ZEC",
+      "ch": 9,
+      "start_vs": 10,
+      "end_vs": 10
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 133,
+      "start_vs": 1,
+      "end_vs": 1
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 133,
+      "start_vs": 2,
+      "end_vs": 2
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 133,
+      "start_vs": 3,
+      "end_vs": 3
+    }
+  ],
+  "103": [
+    {
+      "role": "leader",
+      "osis": "JHN",
+      "ch": 17,
+      "start_vs": 15,
+      "end_vs": 15
+    },
+    {
+      "role": "congregation",
+      "osis": "JHN",
+      "ch": 17,
+      "start_vs": 15,
+      "end_vs": 15
+    },
+    {
+      "role": "leader",
+      "osis": "JHN",
+      "ch": 17,
+      "start_vs": 16,
+      "end_vs": 16
+    },
+    {
+      "role": "congregation",
+      "osis": "JHN",
+      "ch": 17,
+      "start_vs": 17,
+      "end_vs": 17
+    },
+    {
+      "role": "leader",
+      "osis": "JHN",
+      "ch": 17,
+      "start_vs": 18,
+      "end_vs": 18
+    },
+    {
+      "role": "congregation",
+      "osis": "JHN",
+      "ch": 17,
+      "start_vs": 18,
+      "end_vs": 18
+    },
+    {
+      "role": "leader",
+      "osis": "JHN",
+      "ch": 17,
+      "start_vs": 19,
+      "end_vs": 19
+    },
+    {
+      "role": "congregation",
+      "osis": "JHN",
+      "ch": 17,
+      "start_vs": 19,
+      "end_vs": 19
+    },
+    {
+      "role": "leader",
+      "osis": "JHN",
+      "ch": 17,
+      "start_vs": 21,
+      "end_vs": 21
+    },
+    {
+      "role": "congregation",
+      "osis": "JHN",
+      "ch": 17,
+      "start_vs": 21,
+      "end_vs": 21
+    },
+    {
+      "role": "leader",
+      "osis": "JHN",
+      "ch": 17,
+      "start_vs": 21,
+      "end_vs": 21
+    },
+    {
+      "role": "congregation",
+      "osis": "JHN",
+      "ch": 17,
+      "start_vs": 22,
+      "end_vs": 22
+    },
+    {
+      "role": "unison",
+      "osis": "JHN",
+      "ch": 17,
+      "start_vs": 22,
+      "end_vs": 22
+    }
+  ],
+  "104": [
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 18,
+      "start_vs": 1,
+      "end_vs": 1
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 18,
+      "start_vs": 2,
+      "end_vs": 2
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 18,
+      "start_vs": 2,
+      "end_vs": 2
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 18,
+      "start_vs": 2,
+      "end_vs": 2
+    },
+    {
+      "role": "leader",
+      "osis": "LUK",
+      "ch": 11,
+      "start_vs": 28,
+      "end_vs": 28
+    },
+    {
+      "role": "congregation",
+      "osis": "ROM",
+      "ch": 1,
+      "start_vs": 16,
+      "end_vs": 16
+    },
+    {
+      "role": "leader",
+      "osis": "ROM",
+      "ch": 1,
+      "start_vs": 16,
+      "end_vs": 16
+    },
+    {
+      "role": "congregation",
+      "osis": "ROM",
+      "ch": 1,
+      "start_vs": 16,
+      "end_vs": 16
+    },
+    {
+      "role": "leader",
+      "osis": "ROM",
+      "ch": 1,
+      "start_vs": 17,
+      "end_vs": 17
+    },
+    {
+      "role": "congregation",
+      "osis": "ROM",
+      "ch": 1,
+      "start_vs": 17,
+      "end_vs": 17
+    },
+    {
+      "role": "leader",
+      "osis": "JHN",
+      "ch": 8,
+      "start_vs": 31,
+      "end_vs": 31
+    },
+    {
+      "role": "congregation",
+      "osis": "JHN",
+      "ch": 8,
+      "start_vs": 32,
+      "end_vs": 32
+    },
+    {
+      "role": "leader",
+      "osis": "1CO",
+      "ch": 15,
+      "start_vs": 57,
+      "end_vs": 57
+    },
+    {
+      "role": "congregation",
+      "osis": "1CO",
+      "ch": 15,
+      "start_vs": 58,
+      "end_vs": 58
+    },
+    {
+      "role": "unison",
+      "osis": "1CO",
+      "ch": 15,
+      "start_vs": 58,
+      "end_vs": 58
+    }
+  ],
+  "105": [
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 107,
+      "start_vs": 1,
+      "end_vs": 1
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 107,
+      "start_vs": 1,
+      "end_vs": 1
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 105,
+      "start_vs": 1,
+      "end_vs": 1
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 105,
+      "start_vs": 1,
+      "end_vs": 1
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 107,
+      "start_vs": 4,
+      "end_vs": 4
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 107,
+      "start_vs": 5,
+      "end_vs": 5
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 107,
+      "start_vs": 6,
+      "end_vs": 6
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 107,
+      "start_vs": 6,
+      "end_vs": 7
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 107,
+      "start_vs": 8,
+      "end_vs": 8
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 107,
+      "start_vs": 9,
+      "end_vs": 9
+    }
+  ],
+  "106": [
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 147,
+      "start_vs": 1,
+      "end_vs": 1
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 147,
+      "start_vs": 2,
+      "end_vs": 2
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 147,
+      "start_vs": 3,
+      "end_vs": 3
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 147,
+      "start_vs": 4,
+      "end_vs": 4
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 147,
+      "start_vs": 5,
+      "end_vs": 5
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 147,
+      "start_vs": 6,
+      "end_vs": 6
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 147,
+      "start_vs": 7,
+      "end_vs": 7
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 147,
+      "start_vs": 8,
+      "end_vs": 8
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 147,
+      "start_vs": 9,
+      "end_vs": 9
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 147,
+      "start_vs": 10,
+      "end_vs": 10
+    },
+    {
+      "role": "unison",
+      "osis": "PSA",
+      "ch": 147,
+      "start_vs": 11,
+      "end_vs": 11
+    }
+  ],
+  "107": [
+    {
+      "role": "leader",
+      "osis": "MAT",
+      "ch": 9,
+      "start_vs": 37,
+      "end_vs": 37
+    },
+    {
+      "role": "congregation",
+      "osis": "MAT",
+      "ch": 9,
+      "start_vs": 38,
+      "end_vs": 38
+    },
+    {
+      "role": "leader",
+      "osis": "2CO",
+      "ch": 3,
+      "start_vs": 6,
+      "end_vs": 6
+    },
+    {
+      "role": "congregation",
+      "osis": "2CO",
+      "ch": 3,
+      "start_vs": 6,
+      "end_vs": 6
+    },
+    {
+      "role": "leader",
+      "osis": "1TI",
+      "ch": 1,
+      "start_vs": 12,
+      "end_vs": 12
+    },
+    {
+      "role": "congregation",
+      "osis": "1TI",
+      "ch": 1,
+      "start_vs": 14,
+      "end_vs": 14
+    },
+    {
+      "role": "leader",
+      "osis": "MAT",
+      "ch": 25,
+      "start_vs": 23,
+      "end_vs": 23
+    },
+    {
+      "role": "congregation",
+      "osis": "MAT",
+      "ch": 25,
+      "start_vs": 23,
+      "end_vs": 23
+    },
+    {
+      "role": "unison",
+      "osis": "1CO",
+      "ch": 4,
+      "start_vs": 2,
+      "end_vs": 2
+    }
+  ],
+  "108": [
+    {
+      "role": "leader",
+      "osis": "EPH",
+      "ch": 4,
+      "start_vs": 7,
+      "end_vs": 7
+    },
+    {
+      "role": "congregation",
+      "osis": "EPH",
+      "ch": 4,
+      "start_vs": 11,
+      "end_vs": 11
+    },
+    {
+      "role": "leader",
+      "osis": "EPH",
+      "ch": 4,
+      "start_vs": 12,
+      "end_vs": 12
+    },
+    {
+      "role": "congregation",
+      "osis": "EPH",
+      "ch": 4,
+      "start_vs": 13,
+      "end_vs": 13
+    },
+    {
+      "role": "leader",
+      "osis": "EPH",
+      "ch": 4,
+      "start_vs": 13,
+      "end_vs": 13
+    },
+    {
+      "role": "congregation",
+      "osis": "EPH",
+      "ch": 4,
+      "start_vs": 15,
+      "end_vs": 15
+    },
+    {
+      "role": "leader",
+      "osis": "EPH",
+      "ch": 4,
+      "start_vs": 16,
+      "end_vs": 16
+    },
+    {
+      "role": "congregation",
+      "osis": "EPH",
+      "ch": 4,
+      "start_vs": 16,
+      "end_vs": 16
+    }
+  ],
+  "109": [
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 135,
+      "start_vs": 2,
+      "end_vs": 3
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 135,
+      "start_vs": 3,
+      "end_vs": 3
+    },
+    {
+      "role": "leader",
+      "osis": "2CH",
+      "ch": 6,
+      "start_vs": 2,
+      "end_vs": 2
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 132,
+      "start_vs": 7,
+      "end_vs": 7
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 24,
+      "start_vs": 7,
+      "end_vs": 7
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 24,
+      "start_vs": 7,
+      "end_vs": 7
+    },
+    {
+      "role": "leader",
+      "osis": "2CH",
+      "ch": 6,
+      "start_vs": 19,
+      "end_vs": 19
+    },
+    {
+      "role": "congregation",
+      "osis": "2CH",
+      "ch": 6,
+      "start_vs": 19,
+      "end_vs": 19
+    },
+    {
+      "role": "leader",
+      "osis": "ISA",
+      "ch": 56,
+      "start_vs": 7,
+      "end_vs": 7
+    },
+    {
+      "role": "congregation",
+      "osis": "ISA",
+      "ch": 56,
+      "start_vs": 7,
+      "end_vs": 7
+    },
+    {
+      "role": "leader",
+      "osis": "ISA",
+      "ch": 56,
+      "start_vs": 7,
+      "end_vs": 7
+    },
+    {
+      "role": "congregation",
+      "osis": "ISA",
+      "ch": 56,
+      "start_vs": 7,
+      "end_vs": 7
+    },
+    {
+      "role": "unison",
+      "osis": "HAB",
+      "ch": 2,
+      "start_vs": 20,
+      "end_vs": 20
+    }
+  ],
+  "110": [
+    {
+      "role": "leader",
+      "osis": "1CH",
+      "ch": 16,
+      "start_vs": 23,
+      "end_vs": 23
+    },
+    {
+      "role": "congregation",
+      "osis": "1CH",
+      "ch": 16,
+      "start_vs": 24,
+      "end_vs": 24
+    },
+    {
+      "role": "leader",
+      "osis": "1CH",
+      "ch": 16,
+      "start_vs": 25,
+      "end_vs": 25
+    },
+    {
+      "role": "congregation",
+      "osis": "JHN",
+      "ch": 20,
+      "start_vs": 21,
+      "end_vs": 21
+    },
+    {
+      "role": "leader",
+      "osis": "MAT",
+      "ch": 28,
+      "start_vs": 19,
+      "end_vs": 19
+    },
+    {
+      "role": "congregation",
+      "osis": "MAT",
+      "ch": 28,
+      "start_vs": 20,
+      "end_vs": 20
+    },
+    {
+      "role": "leader",
+      "osis": "MAT",
+      "ch": 28,
+      "start_vs": 20,
+      "end_vs": 20
+    },
+    {
+      "role": "congregation",
+      "osis": "ACT",
+      "ch": 1,
+      "start_vs": 8,
+      "end_vs": 8
+    },
+    {
+      "role": "unison",
+      "osis": "ACT",
+      "ch": 1,
+      "start_vs": 8,
+      "end_vs": 8
+    }
+  ],
+  "111": [
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 119,
+      "start_vs": 33,
+      "end_vs": 33
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 119,
+      "start_vs": 34,
+      "end_vs": 34
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 119,
+      "start_vs": 103,
+      "end_vs": 103
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 119,
+      "start_vs": 103,
+      "end_vs": 103
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 119,
+      "start_vs": 104,
+      "end_vs": 104
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 119,
+      "start_vs": 104,
+      "end_vs": 104
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 119,
+      "start_vs": 105,
+      "end_vs": 105
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 119,
+      "start_vs": 106,
+      "end_vs": 106
+    },
+    {
+      "role": "leader",
+      "osis": "JHN",
+      "ch": 5,
+      "start_vs": 39,
+      "end_vs": 39
+    },
+    {
+      "role": "congregation",
+      "osis": "JHN",
+      "ch": 5,
+      "start_vs": 39,
+      "end_vs": 39
+    },
+    {
+      "role": "leader",
+      "osis": "2TI",
+      "ch": 3,
+      "start_vs": 16,
+      "end_vs": 16
+    },
+    {
+      "role": "congregation",
+      "osis": "2TI",
+      "ch": 3,
+      "start_vs": 17,
+      "end_vs": 17
+    }
+  ],
+  "112": [
+    {
+      "role": "leader",
+      "osis": "DEU",
+      "ch": 6,
+      "start_vs": 1,
+      "end_vs": 1
+    },
+    {
+      "role": "congregation",
+      "osis": "DEU",
+      "ch": 6,
+      "start_vs": 1,
+      "end_vs": 2
+    },
+    {
+      "role": "leader",
+      "osis": "DEU",
+      "ch": 6,
+      "start_vs": 2,
+      "end_vs": 2
+    },
+    {
+      "role": "congregation",
+      "osis": "DEU",
+      "ch": 6,
+      "start_vs": 2,
+      "end_vs": 3
+    },
+    {
+      "role": "leader",
+      "osis": "DEU",
+      "ch": 6,
+      "start_vs": 3,
+      "end_vs": 3
+    },
+    {
+      "role": "congregation",
+      "osis": "DEU",
+      "ch": 6,
+      "start_vs": 3,
+      "end_vs": 3
+    },
+    {
+      "role": "leader",
+      "osis": "DEU",
+      "ch": 6,
+      "start_vs": 4,
+      "end_vs": 4
+    },
+    {
+      "role": "congregation",
+      "osis": "DEU",
+      "ch": 6,
+      "start_vs": 5,
+      "end_vs": 5
+    }
+  ],
+  "113": [
+    {
+      "role": "leader",
+      "osis": "GEN",
+      "ch": 1,
+      "start_vs": 1,
+      "end_vs": 1
+    },
+    {
+      "role": "congregation",
+      "osis": "GEN",
+      "ch": 1,
+      "start_vs": 31,
+      "end_vs": 31
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 19,
+      "start_vs": 1,
+      "end_vs": 1
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 19,
+      "start_vs": 1,
+      "end_vs": 1
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 24,
+      "start_vs": 1,
+      "end_vs": 1
+    },
+    {
+      "role": "congregation",
+      "osis": "ROM",
+      "ch": 8,
+      "start_vs": 19,
+      "end_vs": 19
+    },
+    {
+      "role": "leader",
+      "osis": "ROM",
+      "ch": 8,
+      "start_vs": 21,
+      "end_vs": 21
+    },
+    {
+      "role": "congregation",
+      "osis": "ROM",
+      "ch": 8,
+      "start_vs": 21,
+      "end_vs": 21
+    },
+    {
+      "role": "leader",
+      "osis": "ROM",
+      "ch": 8,
+      "start_vs": 22,
+      "end_vs": 22
+    },
+    {
+      "role": "congregation",
+      "osis": "ROM",
+      "ch": 8,
+      "start_vs": 23,
+      "end_vs": 23
+    },
+    {
+      "role": "leader",
+      "osis": "ROM",
+      "ch": 8,
+      "start_vs": 23,
+      "end_vs": 23
+    },
+    {
+      "role": "congregation",
+      "osis": "ISA",
+      "ch": 11,
+      "start_vs": 9,
+      "end_vs": 9
+    },
+    {
+      "role": "unison",
+      "osis": "ISA",
+      "ch": 11,
+      "start_vs": 9,
+      "end_vs": 9
+    }
+  ],
+  "114": [
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 65,
+      "start_vs": 6,
+      "end_vs": 6
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 65,
+      "start_vs": 7,
+      "end_vs": 7
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 65,
+      "start_vs": 8,
+      "end_vs": 8
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 65,
+      "start_vs": 8,
+      "end_vs": 8
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 65,
+      "start_vs": 9,
+      "end_vs": 9
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 65,
+      "start_vs": 9,
+      "end_vs": 9
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 65,
+      "start_vs": 10,
+      "end_vs": 10
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 65,
+      "start_vs": 10,
+      "end_vs": 10
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 65,
+      "start_vs": 11,
+      "end_vs": 11
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 65,
+      "start_vs": 12,
+      "end_vs": 12
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 65,
+      "start_vs": 13,
+      "end_vs": 13
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 65,
+      "start_vs": 13,
+      "end_vs": 13
+    }
+  ],
+  "115": [
+    {
+      "role": "leader",
+      "osis": "ISA",
+      "ch": 62,
+      "start_vs": 10,
+      "end_vs": 10
+    },
+    {
+      "role": "congregation",
+      "osis": "ISA",
+      "ch": 62,
+      "start_vs": 10,
+      "end_vs": 10
+    },
+    {
+      "role": "leader",
+      "osis": "ISA",
+      "ch": 62,
+      "start_vs": 11,
+      "end_vs": 11
+    },
+    {
+      "role": "congregation",
+      "osis": "ISA",
+      "ch": 62,
+      "start_vs": 11,
+      "end_vs": 11
+    },
+    {
+      "role": "leader",
+      "osis": "ISA",
+      "ch": 62,
+      "start_vs": 12,
+      "end_vs": 12
+    },
+    {
+      "role": "congregation",
+      "osis": "ISA",
+      "ch": 62,
+      "start_vs": 12,
+      "end_vs": 12
+    },
+    {
+      "role": "leader",
+      "osis": "LUK",
+      "ch": 3,
+      "start_vs": 4,
+      "end_vs": 4
+    },
+    {
+      "role": "congregation",
+      "osis": "LUK",
+      "ch": 3,
+      "start_vs": 4,
+      "end_vs": 4
+    },
+    {
+      "role": "leader",
+      "osis": "LUK",
+      "ch": 3,
+      "start_vs": 5,
+      "end_vs": 5
+    },
+    {
+      "role": "congregation",
+      "osis": "LUK",
+      "ch": 3,
+      "start_vs": 5,
+      "end_vs": 5
+    },
+    {
+      "role": "unison",
+      "osis": "LUK",
+      "ch": 3,
+      "start_vs": 6,
+      "end_vs": 6
+    }
+  ],
+  "116": [
+    {
+      "role": "leader",
+      "osis": "ISA",
+      "ch": 11,
+      "start_vs": 1,
+      "end_vs": 1
+    },
+    {
+      "role": "congregation",
+      "osis": "ISA",
+      "ch": 11,
+      "start_vs": 2,
+      "end_vs": 2
+    },
+    {
+      "role": "leader",
+      "osis": "ISA",
+      "ch": 11,
+      "start_vs": 2,
+      "end_vs": 2
+    },
+    {
+      "role": "congregation",
+      "osis": "ISA",
+      "ch": 11,
+      "start_vs": 3,
+      "end_vs": 3
+    },
+    {
+      "role": "leader",
+      "osis": "ISA",
+      "ch": 11,
+      "start_vs": 3,
+      "end_vs": 3
+    },
+    {
+      "role": "congregation",
+      "osis": "ISA",
+      "ch": 11,
+      "start_vs": 4,
+      "end_vs": 4
+    },
+    {
+      "role": "leader",
+      "osis": "ISA",
+      "ch": 11,
+      "start_vs": 4,
+      "end_vs": 4
+    },
+    {
+      "role": "congregation",
+      "osis": "ISA",
+      "ch": 11,
+      "start_vs": 5,
+      "end_vs": 5
+    },
+    {
+      "role": "leader",
+      "osis": "ISA",
+      "ch": 11,
+      "start_vs": 6,
+      "end_vs": 6
+    },
+    {
+      "role": "congregation",
+      "osis": "ISA",
+      "ch": 11,
+      "start_vs": 6,
+      "end_vs": 6
+    },
+    {
+      "role": "leader",
+      "osis": "ISA",
+      "ch": 11,
+      "start_vs": 7,
+      "end_vs": 7
+    },
+    {
+      "role": "congregation",
+      "osis": "ISA",
+      "ch": 11,
+      "start_vs": 8,
+      "end_vs": 8
+    },
+    {
+      "role": "leader",
+      "osis": "ISA",
+      "ch": 11,
+      "start_vs": 9,
+      "end_vs": 9
+    },
+    {
+      "role": "congregation",
+      "osis": "ISA",
+      "ch": 11,
+      "start_vs": 9,
+      "end_vs": 9
+    },
+    {
+      "role": "leader",
+      "osis": "ISA",
+      "ch": 11,
+      "start_vs": 10,
+      "end_vs": 10
+    },
+    {
+      "role": "congregation",
+      "osis": "ISA",
+      "ch": 11,
+      "start_vs": 10,
+      "end_vs": 10
+    }
+  ],
+  "117": [
+    {
+      "role": "leader",
+      "osis": "ISA",
+      "ch": 35,
+      "start_vs": 1,
+      "end_vs": 1
+    },
+    {
+      "role": "congregation",
+      "osis": "ISA",
+      "ch": 35,
+      "start_vs": 2,
+      "end_vs": 2
+    },
+    {
+      "role": "leader",
+      "osis": "ISA",
+      "ch": 35,
+      "start_vs": 2,
+      "end_vs": 2
+    },
+    {
+      "role": "congregation",
+      "osis": "ISA",
+      "ch": 35,
+      "start_vs": 3,
+      "end_vs": 3
+    },
+    {
+      "role": "leader",
+      "osis": "ISA",
+      "ch": 35,
+      "start_vs": 4,
+      "end_vs": 4
+    },
+    {
+      "role": "congregation",
+      "osis": "ISA",
+      "ch": 35,
+      "start_vs": 4,
+      "end_vs": 4
+    },
+    {
+      "role": "leader",
+      "osis": "ISA",
+      "ch": 35,
+      "start_vs": 5,
+      "end_vs": 5
+    },
+    {
+      "role": "congregation",
+      "osis": "ISA",
+      "ch": 35,
+      "start_vs": 6,
+      "end_vs": 6
+    },
+    {
+      "role": "leader",
+      "osis": "ISA",
+      "ch": 35,
+      "start_vs": 6,
+      "end_vs": 6
+    },
+    {
+      "role": "congregation",
+      "osis": "ISA",
+      "ch": 35,
+      "start_vs": 7,
+      "end_vs": 7
+    },
+    {
+      "role": "leader",
+      "osis": "ISA",
+      "ch": 35,
+      "start_vs": 7,
+      "end_vs": 7
+    },
+    {
+      "role": "congregation",
+      "osis": "ISA",
+      "ch": 35,
+      "start_vs": 8,
+      "end_vs": 8
+    },
+    {
+      "role": "unison",
+      "osis": "ISA",
+      "ch": 35,
+      "start_vs": 8,
+      "end_vs": 8
+    }
+  ],
+  "118": [
+    {
+      "role": "leader",
+      "osis": "ISA",
+      "ch": 62,
+      "start_vs": 1,
+      "end_vs": 1
+    },
+    {
+      "role": "congregation",
+      "osis": "ISA",
+      "ch": 62,
+      "start_vs": 1,
+      "end_vs": 1
+    },
+    {
+      "role": "leader",
+      "osis": "ISA",
+      "ch": 62,
+      "start_vs": 2,
+      "end_vs": 2
+    },
+    {
+      "role": "congregation",
+      "osis": "ISA",
+      "ch": 62,
+      "start_vs": 2,
+      "end_vs": 2
+    },
+    {
+      "role": "leader",
+      "osis": "ISA",
+      "ch": 62,
+      "start_vs": 3,
+      "end_vs": 3
+    },
+    {
+      "role": "congregation",
+      "osis": "ISA",
+      "ch": 64,
+      "start_vs": 1,
+      "end_vs": 1
+    },
+    {
+      "role": "leader",
+      "osis": "ISA",
+      "ch": 64,
+      "start_vs": 2,
+      "end_vs": 2
+    },
+    {
+      "role": "congregation",
+      "osis": "ISA",
+      "ch": 64,
+      "start_vs": 3,
+      "end_vs": 3
+    },
+    {
+      "role": "unison",
+      "osis": "ISA",
+      "ch": 64,
+      "start_vs": 4,
+      "end_vs": 4
+    }
+  ],
+  "119": [
+    {
+      "role": "leader",
+      "osis": "ISA",
+      "ch": 40,
+      "start_vs": 5,
+      "end_vs": 5
+    },
+    {
+      "role": "congregation",
+      "osis": "ISA",
+      "ch": 40,
+      "start_vs": 5,
+      "end_vs": 5
+    },
+    {
+      "role": "leader",
+      "osis": "MIC",
+      "ch": 5,
+      "start_vs": 2,
+      "end_vs": 2
+    },
+    {
+      "role": "congregation",
+      "osis": "MIC",
+      "ch": 5,
+      "start_vs": 2,
+      "end_vs": 2
+    },
+    {
+      "role": "leader",
+      "osis": "ISA",
+      "ch": 9,
+      "start_vs": 6,
+      "end_vs": 6
+    },
+    {
+      "role": "congregation",
+      "osis": "ISA",
+      "ch": 9,
+      "start_vs": 6,
+      "end_vs": 6
+    },
+    {
+      "role": "leader",
+      "osis": "ISA",
+      "ch": 9,
+      "start_vs": 6,
+      "end_vs": 6
+    },
+    {
+      "role": "congregation",
+      "osis": "ISA",
+      "ch": 9,
+      "start_vs": 7,
+      "end_vs": 7
+    },
+    {
+      "role": "leader",
+      "osis": "ISA",
+      "ch": 9,
+      "start_vs": 7,
+      "end_vs": 7
+    },
+    {
+      "role": "congregation",
+      "osis": "ISA",
+      "ch": 9,
+      "start_vs": 7,
+      "end_vs": 7
+    },
+    {
+      "role": "leader",
+      "osis": "LUK",
+      "ch": 2,
+      "start_vs": 10,
+      "end_vs": 10
+    },
+    {
+      "role": "congregation",
+      "osis": "LUK",
+      "ch": 2,
+      "start_vs": 11,
+      "end_vs": 11
+    }
+  ],
+  "120": [
+    {
+      "role": "leader",
+      "osis": "LUK",
+      "ch": 1,
+      "start_vs": 68,
+      "end_vs": 68
+    },
+    {
+      "role": "congregation",
+      "osis": "LUK",
+      "ch": 1,
+      "start_vs": 69,
+      "end_vs": 69
+    },
+    {
+      "role": "leader",
+      "osis": "LUK",
+      "ch": 1,
+      "start_vs": 70,
+      "end_vs": 70
+    },
+    {
+      "role": "congregation",
+      "osis": "LUK",
+      "ch": 1,
+      "start_vs": 71,
+      "end_vs": 71
+    },
+    {
+      "role": "leader",
+      "osis": "LUK",
+      "ch": 1,
+      "start_vs": 72,
+      "end_vs": 72
+    },
+    {
+      "role": "congregation",
+      "osis": "LUK",
+      "ch": 1,
+      "start_vs": 73,
+      "end_vs": 73
+    },
+    {
+      "role": "leader",
+      "osis": "LUK",
+      "ch": 1,
+      "start_vs": 74,
+      "end_vs": 74
+    },
+    {
+      "role": "congregation",
+      "osis": "LUK",
+      "ch": 1,
+      "start_vs": 75,
+      "end_vs": 75
+    },
+    {
+      "role": "leader",
+      "osis": "LUK",
+      "ch": 1,
+      "start_vs": 78,
+      "end_vs": 78
+    },
+    {
+      "role": "congregation",
+      "osis": "LUK",
+      "ch": 1,
+      "start_vs": 79,
+      "end_vs": 79
+    },
+    {
+      "role": "leader",
+      "osis": "ISA",
+      "ch": 7,
+      "start_vs": 14,
+      "end_vs": 14
+    },
+    {
+      "role": "congregation",
+      "osis": "ISA",
+      "ch": 7,
+      "start_vs": 14,
+      "end_vs": 14
+    }
+  ],
+  "121": [
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 36,
+      "start_vs": 5,
+      "end_vs": 5
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 36,
+      "start_vs": 5,
+      "end_vs": 5
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 36,
+      "start_vs": 6,
+      "end_vs": 6
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 36,
+      "start_vs": 6,
+      "end_vs": 6
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 36,
+      "start_vs": 7,
+      "end_vs": 7
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 36,
+      "start_vs": 7,
+      "end_vs": 7
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 36,
+      "start_vs": 8,
+      "end_vs": 8
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 36,
+      "start_vs": 8,
+      "end_vs": 8
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 36,
+      "start_vs": 9,
+      "end_vs": 9
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 36,
+      "start_vs": 9,
+      "end_vs": 9
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 36,
+      "start_vs": 10,
+      "end_vs": 10
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 36,
+      "start_vs": 10,
+      "end_vs": 10
+    }
+  ],
+  "122": [
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 138,
+      "start_vs": 1,
+      "end_vs": 1
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 138,
+      "start_vs": 1,
+      "end_vs": 1
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 138,
+      "start_vs": 2,
+      "end_vs": 2
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 138,
+      "start_vs": 2,
+      "end_vs": 2
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 138,
+      "start_vs": 4,
+      "end_vs": 4
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 138,
+      "start_vs": 5,
+      "end_vs": 5
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 138,
+      "start_vs": 6,
+      "end_vs": 6
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 138,
+      "start_vs": 8,
+      "end_vs": 8
+    }
+  ],
+  "123": [
+    {
+      "role": "leader",
+      "osis": "REV",
+      "ch": 4,
+      "start_vs": 8,
+      "end_vs": 8
+    },
+    {
+      "role": "congregation",
+      "osis": "REV",
+      "ch": 15,
+      "start_vs": 3,
+      "end_vs": 3
+    },
+    {
+      "role": "leader",
+      "osis": "REV",
+      "ch": 15,
+      "start_vs": 4,
+      "end_vs": 4
+    },
+    {
+      "role": "congregation",
+      "osis": "REV",
+      "ch": 15,
+      "start_vs": 4,
+      "end_vs": 4
+    },
+    {
+      "role": "leader",
+      "osis": "REV",
+      "ch": 4,
+      "start_vs": 11,
+      "end_vs": 11
+    },
+    {
+      "role": "congregation",
+      "osis": "REV",
+      "ch": 4,
+      "start_vs": 11,
+      "end_vs": 11
+    },
+    {
+      "role": "leader",
+      "osis": "REV",
+      "ch": 5,
+      "start_vs": 13,
+      "end_vs": 13
+    },
+    {
+      "role": "congregation",
+      "osis": "REV",
+      "ch": 7,
+      "start_vs": 12,
+      "end_vs": 12
+    }
+  ],
+  "124": [
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 22,
+      "start_vs": 1,
+      "end_vs": 1
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 22,
+      "start_vs": 1,
+      "end_vs": 1
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 22,
+      "start_vs": 2,
+      "end_vs": 2
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 22,
+      "start_vs": 3,
+      "end_vs": 3
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 22,
+      "start_vs": 4,
+      "end_vs": 4
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 22,
+      "start_vs": 5,
+      "end_vs": 5
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 22,
+      "start_vs": 11,
+      "end_vs": 11
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 22,
+      "start_vs": 16,
+      "end_vs": 16
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 22,
+      "start_vs": 17,
+      "end_vs": 18
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 22,
+      "start_vs": 19,
+      "end_vs": 19
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 22,
+      "start_vs": 21,
+      "end_vs": 21
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 22,
+      "start_vs": 22,
+      "end_vs": 22
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 22,
+      "start_vs": 23,
+      "end_vs": 23
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 22,
+      "start_vs": 23,
+      "end_vs": 23
+    }
+  ],
+  "125": [
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 42,
+      "start_vs": 1,
+      "end_vs": 1
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 42,
+      "start_vs": 1,
+      "end_vs": 1
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 42,
+      "start_vs": 2,
+      "end_vs": 2
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 42,
+      "start_vs": 2,
+      "end_vs": 2
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 42,
+      "start_vs": 3,
+      "end_vs": 3
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 42,
+      "start_vs": 3,
+      "end_vs": 3
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 42,
+      "start_vs": 5,
+      "end_vs": 5
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 42,
+      "start_vs": 5,
+      "end_vs": 5
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 42,
+      "start_vs": 8,
+      "end_vs": 8
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 42,
+      "start_vs": 8,
+      "end_vs": 8
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 42,
+      "start_vs": 9,
+      "end_vs": 9
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 42,
+      "start_vs": 9,
+      "end_vs": 9
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 42,
+      "start_vs": 10,
+      "end_vs": 10
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 42,
+      "start_vs": 10,
+      "end_vs": 10
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 42,
+      "start_vs": 11,
+      "end_vs": 11
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 42,
+      "start_vs": 11,
+      "end_vs": 11
+    }
+  ],
+  "126": [
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 25,
+      "start_vs": 1,
+      "end_vs": 1
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 25,
+      "start_vs": 2,
+      "end_vs": 2
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 25,
+      "start_vs": 2,
+      "end_vs": 2
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 25,
+      "start_vs": 3,
+      "end_vs": 3
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 25,
+      "start_vs": 4,
+      "end_vs": 4
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 25,
+      "start_vs": 5,
+      "end_vs": 5
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 25,
+      "start_vs": 6,
+      "end_vs": 6
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 25,
+      "start_vs": 6,
+      "end_vs": 6
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 25,
+      "start_vs": 7,
+      "end_vs": 7
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 25,
+      "start_vs": 7,
+      "end_vs": 7
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 25,
+      "start_vs": 8,
+      "end_vs": 8
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 25,
+      "start_vs": 9,
+      "end_vs": 9
+    },
+    {
+      "role": "unison",
+      "osis": "PSA",
+      "ch": 25,
+      "start_vs": 10,
+      "end_vs": 10
+    }
+  ],
+  "127": [
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 33,
+      "start_vs": 12,
+      "end_vs": 12
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 33,
+      "start_vs": 13,
+      "end_vs": 13
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 33,
+      "start_vs": 14,
+      "end_vs": 14
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 33,
+      "start_vs": 15,
+      "end_vs": 15
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 33,
+      "start_vs": 16,
+      "end_vs": 16
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 33,
+      "start_vs": 20,
+      "end_vs": 20
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 33,
+      "start_vs": 21,
+      "end_vs": 21
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 33,
+      "start_vs": 22,
+      "end_vs": 22
+    }
+  ],
+  "128": [
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 62,
+      "start_vs": 1,
+      "end_vs": 1
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 62,
+      "start_vs": 2,
+      "end_vs": 2
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 62,
+      "start_vs": 3,
+      "end_vs": 3
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 62,
+      "start_vs": 4,
+      "end_vs": 4
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 62,
+      "start_vs": 5,
+      "end_vs": 5
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 62,
+      "start_vs": 6,
+      "end_vs": 6
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 62,
+      "start_vs": 7,
+      "end_vs": 7
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 62,
+      "start_vs": 8,
+      "end_vs": 8
+    }
+  ],
+  "129": [
+    {
+      "role": "leader",
+      "osis": "ZEC",
+      "ch": 9,
+      "start_vs": 9,
+      "end_vs": 9
+    },
+    {
+      "role": "congregation",
+      "osis": "ZEC",
+      "ch": 9,
+      "start_vs": 9,
+      "end_vs": 9
+    },
+    {
+      "role": "leader",
+      "osis": "ZEC",
+      "ch": 9,
+      "start_vs": 9,
+      "end_vs": 9
+    },
+    {
+      "role": "congregation",
+      "osis": "ZEC",
+      "ch": 9,
+      "start_vs": 9,
+      "end_vs": 9
+    },
+    {
+      "role": "leader",
+      "osis": "ZEC",
+      "ch": 9,
+      "start_vs": 10,
+      "end_vs": 10
+    },
+    {
+      "role": "congregation",
+      "osis": "ZEC",
+      "ch": 9,
+      "start_vs": 10,
+      "end_vs": 10
+    },
+    {
+      "role": "leader",
+      "osis": "ZEC",
+      "ch": 9,
+      "start_vs": 10,
+      "end_vs": 10
+    },
+    {
+      "role": "congregation",
+      "osis": "ZEC",
+      "ch": 9,
+      "start_vs": 10,
+      "end_vs": 10
+    },
+    {
+      "role": "leader",
+      "osis": "MAT",
+      "ch": 21,
+      "start_vs": 9,
+      "end_vs": 9
+    },
+    {
+      "role": "congregation",
+      "osis": "MAT",
+      "ch": 21,
+      "start_vs": 9,
+      "end_vs": 9
+    },
+    {
+      "role": "unison",
+      "osis": "MAT",
+      "ch": 21,
+      "start_vs": 9,
+      "end_vs": 9
+    }
+  ],
+  "130": [
+    {
+      "role": "leader",
+      "osis": "JHN",
+      "ch": 1,
+      "start_vs": 29,
+      "end_vs": 29
+    },
+    {
+      "role": "congregation",
+      "osis": "JHN",
+      "ch": 1,
+      "start_vs": 29,
+      "end_vs": 29
+    },
+    {
+      "role": "leader",
+      "osis": "ZEC",
+      "ch": 13,
+      "start_vs": 1,
+      "end_vs": 1
+    },
+    {
+      "role": "congregation",
+      "osis": "ZEC",
+      "ch": 13,
+      "start_vs": 1,
+      "end_vs": 1
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 16,
+      "start_vs": 9,
+      "end_vs": 9
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 16,
+      "start_vs": 10,
+      "end_vs": 10
+    },
+    {
+      "role": "leader",
+      "osis": "PSA",
+      "ch": 16,
+      "start_vs": 11,
+      "end_vs": 11
+    },
+    {
+      "role": "congregation",
+      "osis": "PSA",
+      "ch": 16,
+      "start_vs": 11,
+      "end_vs": 11
+    },
+    {
+      "role": "unison",
+      "osis": "REV",
+      "ch": 5,
+      "start_vs": 12,
+      "end_vs": 12
+    }
+  ],
+  "131": [
+    {
+      "role": "leader",
+      "osis": "ISA",
+      "ch": 53,
+      "start_vs": 1,
+      "end_vs": 1
+    },
+    {
+      "role": "congregation",
+      "osis": "ISA",
+      "ch": 53,
+      "start_vs": 1,
+      "end_vs": 1
+    },
+    {
+      "role": "leader",
+      "osis": "ISA",
+      "ch": 53,
+      "start_vs": 2,
+      "end_vs": 2
+    },
+    {
+      "role": "congregation",
+      "osis": "ISA",
+      "ch": 53,
+      "start_vs": 2,
+      "end_vs": 2
+    },
+    {
+      "role": "leader",
+      "osis": "ISA",
+      "ch": 53,
+      "start_vs": 3,
+      "end_vs": 3
+    },
+    {
+      "role": "congregation",
+      "osis": "ISA",
+      "ch": 53,
+      "start_vs": 3,
+      "end_vs": 3
+    },
+    {
+      "role": "leader",
+      "osis": "ISA",
+      "ch": 53,
+      "start_vs": 4,
+      "end_vs": 4
+    },
+    {
+      "role": "congregation",
+      "osis": "ISA",
+      "ch": 53,
+      "start_vs": 4,
+      "end_vs": 4
+    },
+    {
+      "role": "leader",
+      "osis": "ISA",
+      "ch": 53,
+      "start_vs": 5,
+      "end_vs": 5
+    },
+    {
+      "role": "congregation",
+      "osis": "ISA",
+      "ch": 53,
+      "start_vs": 5,
+      "end_vs": 5
+    },
+    {
+      "role": "leader",
+      "osis": "ISA",
+      "ch": 53,
+      "start_vs": 5,
+      "end_vs": 5
+    },
+    {
+      "role": "congregation",
+      "osis": "ISA",
+      "ch": 53,
+      "start_vs": 5,
+      "end_vs": 5
+    },
+    {
+      "role": "leader",
+      "osis": "ISA",
+      "ch": 53,
+      "start_vs": 6,
+      "end_vs": 6
+    },
+    {
+      "role": "congregation",
+      "osis": "ISA",
+      "ch": 53,
+      "start_vs": 6,
+      "end_vs": 6
+    }
+  ],
+  "132": [
+    {
+      "role": "leader",
+      "osis": "MAT",
+      "ch": 16,
+      "start_vs": 24,
+      "end_vs": 24
+    },
+    {
+      "role": "congregation",
+      "osis": "MAT",
+      "ch": 16,
+      "start_vs": 24,
+      "end_vs": 24
+    },
+    {
+      "role": "leader",
+      "osis": "1PE",
+      "ch": 2,
+      "start_vs": 21,
+      "end_vs": 21
+    },
+    {
+      "role": "congregation",
+      "osis": "1PE",
+      "ch": 2,
+      "start_vs": 21,
+      "end_vs": 21
+    },
+    {
+      "role": "leader",
+      "osis": "1PE",
+      "ch": 2,
+      "start_vs": 22,
+      "end_vs": 23
+    },
+    {
+      "role": "congregation",
+      "osis": "1PE",
+      "ch": 2,
+      "start_vs": 23,
+      "end_vs": 23
+    },
+    {
+      "role": "leader",
+      "osis": "1PE",
+      "ch": 2,
+      "start_vs": 24,
+      "end_vs": 24
+    },
+    {
+      "role": "congregation",
+      "osis": "1PE",
+      "ch": 2,
+      "start_vs": 24,
+      "end_vs": 24
+    },
+    {
+      "role": "leader",
+      "osis": "1PE",
+      "ch": 2,
+      "start_vs": 24,
+      "end_vs": 24
+    },
+    {
+      "role": "congregation",
+      "osis": "1PE",
+      "ch": 2,
+      "start_vs": 25,
+      "end_vs": 25
+    }
+  ],
+  "133": [
+    {
+      "role": "leader",
+      "osis": "ACT",
+      "ch": 2,
+      "start_vs": 24,
+      "end_vs": 24
+    },
+    {
+      "role": "congregation",
+      "osis": "ACT",
+      "ch": 2,
+      "start_vs": 24,
+      "end_vs": 24
+    },
+    {
+      "role": "leader",
+      "osis": "1CO",
+      "ch": 15,
+      "start_vs": 57,
+      "end_vs": 57
+    },
+    {
+      "role": "congregation",
+      "osis": "1CO",
+      "ch": 15,
+      "start_vs": 58,
+      "end_vs": 58
+    },
+    {
+      "role": "leader",
+      "osis": "LUK",
+      "ch": 24,
+      "start_vs": 36,
+      "end_vs": 36
+    },
+    {
+      "role": "congregation",
+      "osis": "LUK",
+      "ch": 24,
+      "start_vs": 37,
+      "end_vs": 37
+    },
+    {
+      "role": "leader",
+      "osis": "LUK",
+      "ch": 24,
+      "start_vs": 38,
+      "end_vs": 38
+    },
+    {
+      "role": "congregation",
+      "osis": "LUK",
+      "ch": 24,
+      "start_vs": 39,
+      "end_vs": 39
+    },
+    {
+      "role": "leader",
+      "osis": "LUK",
+      "ch": 24,
+      "start_vs": 39,
+      "end_vs": 39
+    },
+    {
+      "role": "congregation",
+      "osis": "1CO",
+      "ch": 15,
+      "start_vs": 20,
+      "end_vs": 20
+    },
+    {
+      "role": "leader",
+      "osis": "JHN",
+      "ch": 11,
+      "start_vs": 25,
+      "end_vs": 26
+    },
+    {
+      "role": "congregation",
+      "osis": "JHN",
+      "ch": 11,
+      "start_vs": 27,
+      "end_vs": 27
+    }
+  ],
+  "134": [
+    {
+      "role": "leader",
+      "osis": "1CO",
+      "ch": 15,
+      "start_vs": 3,
+      "end_vs": 3
+    },
+    {
+      "role": "congregation",
+      "osis": "1CO",
+      "ch": 15,
+      "start_vs": 4,
+      "end_vs": 5
+    },
+    {
+      "role": "leader",
+      "osis": "1CO",
+      "ch": 15,
+      "start_vs": 5,
+      "end_vs": 6
+    },
+    {
+      "role": "congregation",
+      "osis": "1CO",
+      "ch": 15,
+      "start_vs": 6,
+      "end_vs": 7
+    },
+    {
+      "role": "leader",
+      "osis": "1CO",
+      "ch": 15,
+      "start_vs": 7,
+      "end_vs": 8
+    },
+    {
+      "role": "congregation",
+      "osis": "1CO",
+      "ch": 15,
+      "start_vs": 14,
+      "end_vs": 14
+    },
+    {
+      "role": "leader",
+      "osis": "1CO",
+      "ch": 15,
+      "start_vs": 19,
+      "end_vs": 19
+    },
+    {
+      "role": "congregation",
+      "osis": "1CO",
+      "ch": 15,
+      "start_vs": 20,
+      "end_vs": 20
+    }
+  ],
+  "135": [
+    {
+      "role": "leader",
+      "osis": "ISA",
+      "ch": 11,
+      "start_vs": 2,
+      "end_vs": 2
+    },
+    {
+      "role": "congregation",
+      "osis": "ISA",
+      "ch": 11,
+      "start_vs": 2,
+      "end_vs": 2
+    },
+    {
+      "role": "leader",
+      "osis": "1CO",
+      "ch": 2,
+      "start_vs": 10,
+      "end_vs": 10
+    },
+    {
+      "role": "congregation",
+      "osis": "1CO",
+      "ch": 2,
+      "start_vs": 10,
+      "end_vs": 10
+    },
+    {
+      "role": "leader",
+      "osis": "JHN",
+      "ch": 14,
+      "start_vs": 16,
+      "end_vs": 16
+    },
+    {
+      "role": "congregation",
+      "osis": "JHN",
+      "ch": 14,
+      "start_vs": 16,
+      "end_vs": 17
+    },
+    {
+      "role": "leader",
+      "osis": "JHN",
+      "ch": 14,
+      "start_vs": 26,
+      "end_vs": 26
+    },
+    {
+      "role": "congregation",
+      "osis": "JHN",
+      "ch": 14,
+      "start_vs": 26,
+      "end_vs": 26
+    },
+    {
+      "role": "leader",
+      "osis": "ACT",
+      "ch": 1,
+      "start_vs": 8,
+      "end_vs": 8
+    },
+    {
+      "role": "congregation",
+      "osis": "ACT",
+      "ch": 1,
+      "start_vs": 8,
+      "end_vs": 8
+    }
+  ],
+  "136": [
+    {
+      "role": "leader",
+      "osis": "JOL",
+      "ch": 2,
+      "start_vs": 28,
+      "end_vs": 28
+    },
+    {
+      "role": "congregation",
+      "osis": "JOL",
+      "ch": 2,
+      "start_vs": 28,
+      "end_vs": 28
+    },
+    {
+      "role": "leader",
+      "osis": "JOL",
+      "ch": 2,
+      "start_vs": 28,
+      "end_vs": 28
+    },
+    {
+      "role": "congregation",
+      "osis": "JOL",
+      "ch": 2,
+      "start_vs": 29,
+      "end_vs": 29
+    },
+    {
+      "role": "leader",
+      "osis": "JOL",
+      "ch": 2,
+      "start_vs": 30,
+      "end_vs": 30
+    },
+    {
+      "role": "congregation",
+      "osis": "JOL",
+      "ch": 2,
+      "start_vs": 31,
+      "end_vs": 31
+    },
+    {
+      "role": "leader",
+      "osis": "JOL",
+      "ch": 2,
+      "start_vs": 31,
+      "end_vs": 31
+    },
+    {
+      "role": "congregation",
+      "osis": "JOL",
+      "ch": 2,
+      "start_vs": 32,
+      "end_vs": 32
+    },
+    {
+      "role": "leader",
+      "osis": "JOL",
+      "ch": 2,
+      "start_vs": 32,
+      "end_vs": 32
+    },
+    {
+      "role": "congregation",
+      "osis": "JOL",
+      "ch": 2,
+      "start_vs": 32,
+      "end_vs": 32
+    }
+  ],
+  "137": [
+    {
+      "role": "leader",
+      "osis": "MAT",
+      "ch": 3,
+      "start_vs": 16,
+      "end_vs": 16
+    },
+    {
+      "role": "congregation",
+      "osis": "MAT",
+      "ch": 3,
+      "start_vs": 16,
+      "end_vs": 16
+    },
+    {
+      "role": "leader",
+      "osis": "MAT",
+      "ch": 3,
+      "start_vs": 17,
+      "end_vs": 17
+    },
+    {
+      "role": "congregation",
+      "osis": "MAT",
+      "ch": 3,
+      "start_vs": 17,
+      "end_vs": 17
+    },
+    {
+      "role": "leader",
+      "osis": "MAT",
+      "ch": 28,
+      "start_vs": 19,
+      "end_vs": 19
+    },
+    {
+      "role": "congregation",
+      "osis": "MAT",
+      "ch": 28,
+      "start_vs": 20,
+      "end_vs": 20
+    },
+    {
+      "role": "leader",
+      "osis": "MAT",
+      "ch": 28,
+      "start_vs": 20,
+      "end_vs": 20
+    },
+    {
+      "role": "congregation",
+      "osis": "EPH",
+      "ch": 4,
+      "start_vs": 4,
+      "end_vs": 4
+    },
+    {
+      "role": "leader",
+      "osis": "EPH",
+      "ch": 4,
+      "start_vs": 5,
+      "end_vs": 6
+    },
+    {
+      "role": "congregation",
+      "osis": "EPH",
+      "ch": 4,
+      "start_vs": 6,
+      "end_vs": 6
+    }
+  ]
+}

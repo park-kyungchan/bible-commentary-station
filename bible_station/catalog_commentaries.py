@@ -1,10 +1,13 @@
 """
-Expanded Curated Exegesis Dataset (v2.4) across 12 Official Authoritative Commentaries:
+Expanded Curated Exegesis Dataset (v3.0) across 12 Commentary Perspectives:
 - Classic Devotional (4): Matthew Henry, John Calvin, John Wesley, JFB
 - Academic / Original Language (4): Oxford, NICOT/NICNT, WBC, Baker Background
 - Expository / Pastoral (4): Constable (SonicLight), ESV Expository, Hokma, Grand
-Covers 25+ most-preached & most-read OT/NT passages, 16 Strong's core terms,
-20+ cross-references, and 4 multi-testament chain references (Isaac, Abraham, David, Moses).
+
+Provenance Policy (D-03 Option A):
+All 55 Korean study notes are explicitly tagged with provenance="EDITORIAL_SUMMARY"
+and attributionLabel="핵심 말씀 참고 요약" (editorial reference summaries, never
+represented as verbatim quotes from copyrighted editions).
 """
 
 from __future__ import annotations
@@ -12,6 +15,9 @@ from __future__ import annotations
 from typing import Any, Dict, List
 
 from .canon import calculate_verse_id
+
+EDITORIAL_PROVENANCE = "EDITORIAL_SUMMARY"
+EDITORIAL_ATTRIBUTION_LABEL = "핵심 말씀 참고 요약"
 
 
 def _c(src: str, b: int, ch: int, vs: int, disp: str, title: str, md: str, tags: str, pt: str) -> Dict[str, Any]:
@@ -30,7 +36,9 @@ def _c(src: str, b: int, ch: int, vs: int, disp: str, title: str, md: str, tags:
         "content_markdown": md,
         "theological_tags": tags,
         "practical_points": pt,
-        "provenance_id": "official_commentary_synthesis_v24",
+        "provenance_id": "editorial_study_summary_v3",
+        "provenance": EDITORIAL_PROVENANCE,
+        "attributionLabel": EDITORIAL_ATTRIBUTION_LABEL,
     }
 
 
@@ -45,12 +53,12 @@ def build_expanded_exegesis_dataset() -> Dict[str, Any]:
             "source_url": "https://bible.bskorea.or.kr/copyright_notice",
         },
         {
-            "source_id": "official_commentary_synthesis_v24",
+            "source_id": "editorial_study_summary_v3",
             "category": "COMMENTARY",
-            "title": "12대 공식 권위 주석 핵심 강해 (v2.4)",
+            "title": "핵심 말씀 참고 요약 (12대 주석 관점)",
             "rights_status": "SAMPLE_EXEGESIS",
-            "attribution": "CCEL 공공도메인 고전(매튜 헨리·칼빈·웨슬리·JFB), SonicLight(컨스터블) 및 학술·설교 표준 주석 관점 요약",
-            "source_url": "https://www.ccel.org/",
+            "attribution": "핵심 말씀 참고 요약 — 고전·학술·강해 주석의 핵심 관점을 목회 참고용으로 정리한 편집 요약 노트",
+            "source_url": None,
         },
         {
             "source_id": "strongs_public_domain",

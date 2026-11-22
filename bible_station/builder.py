@@ -1,5 +1,6 @@
 """
-Unified, Idempotent Database Builder, Web Chunk Exporter, Worship Exporter, and Zero-Cost Packager.
+Unified, Idempotent Database Builder, Deterministic Web Exporter, Corpus Validator,
+and Atomic WAL-Free Zero-Cost Bundle Packager (v3.0).
 """
 
 from __future__ import annotations
@@ -7,19 +8,61 @@ from __future__ import annotations
 import gzip
 import hashlib
 import json
+import re
 import sqlite3
+import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+from . import __version__
 from .canon import (
     BIBLE_BOOKS,
     BIBLE_VERSIONS_MASTER,
     COMMENTARY_SOURCES_MASTER,
 )
-from .collectors import get_curated_exegesis_dataset, get_worship_catalog
+from .catalog_commentaries import (
+    EDITORIAL_ATTRIBUTION_LABEL,
+    EDITORIAL_PROVENANCE,
+    build_expanded_exegesis_dataset,
+)
+from .catalog_worship import get_worship_catalog
 from .parsers import parse_krv_corpus_json
 from .schema import SCHEMA_VERSION, SQLITE_DDL_STATEMENTS
+
+WEB_MANIFEST_SCHEMA_VERSION = 3
+
+ALLOWED_FTS_TABLES = frozenset({
+    "fts_bible_verses_unicode",
+    "fts_bible_verses_trigram",
+    "fts_commentaries_unicode",
+    "fts_commentaries_trigram",
+    "fts_strong_lexicon",
+})
+
+ALLOWED_COUNT_TABLES = frozenset({
+    "bible_books",
+    "bible_versions",
+    "bible_verses",
+    "commentary_sources",
+    "commentaries",
+    "strong_lexicon",
+    "cross_references",
+    "chain_topics",
+    "chain_links",
+    "source_provenance",
+    "sermons",
+    "sermon_clips",
+})
+
+_INLINE_FOOTNOTE_RE = re.compile(r" / [㉠-㉻①-⑮]")
+
+
+def validate_table_name(table_name: str, allowlist: frozenset[str]) -> str:
+    """Validate SQL table identifier against an explicit allowlist before interpolation."""
+    if table_name not in allowlist:
+        raise ValueError(f"SQL table name not in allowlist: {table_name!r}")
+    return table_name
 
 
 class BibleDatabaseBuilder:
@@ -51,12 +94,27 @@ class BibleDatabaseBuilder:
 
     def initialize_schema(self) -> None:
         assert self.conn is not None
+        # Check existing schema version before applying DDL (R-BE-12)
+        has_mig = self.conn.execute(
+            "SELECT 1 FROM sqlite_master WHERE type='table' AND name='schema_migrations';"
+        ).fetchone()
+        if has_mig:
+            row = self.conn.execute("SELECT MAX(version) AS max_ver FROM schema_migrations;").fetchone()
+            max_ver = row["max_ver"] if row and row["max_ver"] is not None else 0
+            if max_ver > SCHEMA_VERSION:
+                raise RuntimeError(
+                    f"Database schema version {max_ver} is newer than supported SCHEMA_VERSION {SCHEMA_VERSION}"
+                )
+
         with self.conn:
             for ddl in SQLITE_DDL_STATEMENTS:
                 self.conn.execute(ddl)
             self.conn.execute(
                 "INSERT OR IGNORE INTO schema_migrations (version, description) VALUES (?, ?);",
-                (SCHEMA_VERSION, "SSOT v2.3 with Dual FTS5 (unicode61+trigram), 12 Official Commentaries & Worship Catalog"),
+                (
+                    SCHEMA_VERSION,
+                    f"SSOT v{__version__} with Dual FTS5 (unicode61+trigram), 12 Commentary Perspectives & Worship/Liturgy Catalog",
+                ),
             )
 
     def seed_master_data(self) -> None:
@@ -146,7 +204,7 @@ class BibleDatabaseBuilder:
 
     def ingest_curated_exegesis(self) -> Dict[str, int]:
         assert self.conn is not None
-        ds = get_curated_exegesis_dataset()
+        ds = build_expanded_exegesis_dataset()
         self.ingest_provenance(ds["provenance"])
         with self.conn:
             self.conn.executemany(
@@ -161,7 +219,8 @@ class BibleDatabaseBuilder:
                 ON CONFLICT(source_code, verse_start_id, verse_end_id, title) DO UPDATE SET
                     content_markdown=excluded.content_markdown,
                     theological_tags=excluded.theological_tags,
-                    practical_points=excluded.practical_points;
+                    practical_points=excluded.practical_points,
+                    provenance_id=excluded.provenance_id;
                 """,
                 ds["commentaries"],
             )
@@ -216,7 +275,7 @@ class BibleDatabaseBuilder:
         }
 
     def ingest_full_krv(self, krv_json_path: Path) -> int:
-        ds = get_curated_exegesis_dataset()
+        ds = build_expanded_exegesis_dataset()
         self.ingest_provenance(ds["provenance"])
         verses = parse_krv_corpus_json(krv_json_path)
         return self.ingest_verses(verses)
@@ -231,51 +290,99 @@ class BibleDatabaseBuilder:
                 "fts_commentaries_trigram",
                 "fts_strong_lexicon",
             ):
-                self.conn.execute(f"INSERT INTO {tbl}({tbl}) VALUES('optimize');")
+                safe_tbl = validate_table_name(tbl, ALLOWED_FTS_TABLES)
+                self.conn.execute(f"INSERT INTO {safe_tbl}({safe_tbl}) VALUES('optimize');")
             self.conn.execute("PRAGMA optimize;")
+        # Reclaim freelist pages on re-builds (must execute outside transaction)
+        self.conn.execute("PRAGMA wal_checkpoint(TRUNCATE);")
+        self.conn.execute("VACUUM;")
 
-    def get_table_counts(self) -> Dict[str, int]:
+    def get_table_counts(self, tables: Optional[List[str]] = None) -> Dict[str, int]:
         assert self.conn is not None
-        tables = [
+        target_tables = tables or [
             "bible_books", "bible_versions", "bible_verses", "commentary_sources",
             "commentaries", "strong_lexicon", "cross_references", "chain_topics",
             "chain_links", "source_provenance",
         ]
-        return {t: self.conn.execute(f"SELECT COUNT(*) FROM {t}").fetchone()[0] for t in tables}
+        result: Dict[str, int] = {}
+        for t in target_tables:
+            safe_t = validate_table_name(t, ALLOWED_COUNT_TABLES)
+            result[safe_t] = self.conn.execute(f"SELECT COUNT(*) FROM {safe_t}").fetchone()[0]
+        return result
 
-    def export_web_chunks(self, web_data_dir: Path) -> Dict[str, Any]:
+    def export_web_chunks(
+        self,
+        web_data_dir: Path,
+        source_date_epoch: Optional[int] = None,
+    ) -> Dict[str, Any]:
+        """Export deterministic v3 web data artifacts matching SPEC.md §3.5."""
         assert self.conn is not None
+        web_data_dir = Path(web_data_dir)
         krv_dir = web_data_dir / "krv"
+        search_dir = web_data_dir / "search"
         krv_dir.mkdir(parents=True, exist_ok=True)
+        search_dir.mkdir(parents=True, exist_ok=True)
 
         book_manifest: List[Dict[str, Any]] = []
+        search_books: List[str] = []
+        search_verses: List[List[Any]] = []
         total_verses = 0
         chunk_sizes: Dict[str, int] = {}
+        checksums: Dict[str, str] = {}
 
-        for b in BIBLE_BOOKS:
+        for book_idx, b in enumerate(BIBLE_BOOKS):
+            search_books.append(b.osis_code)
             rows = self.conn.execute(
                 "SELECT chapter, verse, text FROM bible_verses WHERE version_code='KRV' AND book_id=? ORDER BY chapter, verse;",
                 (b.book_id,),
             ).fetchall()
             chapters: Dict[str, List[str]] = {}
             for r in rows:
-                chapters.setdefault(str(r["chapter"]), []).append(r["text"])
+                ch_int = int(r["chapter"])
+                vs_int = int(r["verse"])
+                txt = r["text"]
+                chapters.setdefault(str(ch_int), []).append(txt)
+                search_verses.append([book_idx, ch_int, vs_int, txt])
                 total_verses += 1
             chunk_payload = {
-                "bookId": b.book_id, "osis": b.osis_code, "nameKr": b.name_kr,
-                "nameEn": b.name_en, "version": "KRV", "chapters": chapters,
+                "bookId": b.book_id,
+                "osis": b.osis_code,
+                "nameKr": b.name_kr,
+                "nameEn": b.name_en,
+                "version": "KRV",
+                "chapters": chapters,
             }
             encoded = json.dumps(chunk_payload, ensure_ascii=False, separators=(",", ":"))
-            (krv_dir / f"{b.osis_code}.json").write_text(encoded, encoding="utf-8")
+            chunk_path = krv_dir / f"{b.osis_code}.json"
+            chunk_path.write_text(encoded, encoding="utf-8")
             chunk_sizes[b.osis_code] = len(encoded.encode("utf-8"))
+            checksums[f"krv/{b.osis_code}.json"] = sha256_file(chunk_path)
             book_manifest.append({
-                "bookId": b.book_id, "id": b.osis_code, "name": b.name_kr, "abbr": b.name_kr_abbr,
-                "nameEn": b.name_en, "testament": b.testament, "category": b.category,
+                "bookId": b.book_id,
+                "id": b.osis_code,
+                "name": b.name_kr,
+                "abbr": b.name_kr_abbr,
+                "nameEn": b.name_en,
+                "testament": b.testament,
+                "category": b.category,
                 "totalChapters": len(chapters) or b.total_chapters,
                 "totalVerses": sum(len(v) for v in chapters.values()),
             })
 
-        # Enrich commentary sources with category & official_url from SSOT
+        # Export compact single-fetch web search index (R-BE-05, SPEC.md §3.5)
+        search_payload = {
+            "version": "krv",
+            "books": search_books,
+            "verses": search_verses,
+        }
+        search_path = search_dir / "krv.json"
+        search_path.write_text(
+            json.dumps(search_payload, ensure_ascii=False, separators=(",", ":")),
+            encoding="utf-8",
+        )
+        checksums["search/krv.json"] = sha256_file(search_path)
+
+        # Enrich commentary sources with category & fixed official_url (None where invalid)
         extra_meta = {s["code"]: s for s in COMMENTARY_SOURCES_MASTER}
         sources = []
         for r in self.conn.execute("SELECT * FROM commentary_sources ORDER BY sort_order").fetchall():
@@ -283,12 +390,34 @@ class BibleDatabaseBuilder:
             meta = extra_meta.get(d["source_code"], {})
             d["category"] = meta.get("category", "EXPOSITORY")
             d["category_kr"] = meta.get("category_kr", "강해·설교")
-            d["official_url"] = meta.get("official_url", "")
+            d["official_url"] = meta.get("official_url")
             sources.append(d)
 
-        provenance = {r["source_id"]: dict(r) for r in self.conn.execute("SELECT * FROM source_provenance").fetchall()}
-        commentaries = [dict(r) for r in self.conn.execute("SELECT * FROM commentaries ORDER BY verse_start_id, source_code").fetchall()]
-        strongs = {r["strong_id"]: dict(r) for r in self.conn.execute("SELECT * FROM strong_lexicon").fetchall()}
+        # Omit volatile timestamps (`verified_at`, `created_at`) for byte-identical determinism (R-BE-09)
+        provenance = {}
+        for r in self.conn.execute("SELECT * FROM source_provenance ORDER BY source_id").fetchall():
+            d = dict(r)
+            d.pop("verified_at", None)
+            provenance[d["source_id"]] = d
+
+        commentaries = []
+        covered_verse_ids = set()
+        covered_book_ids = set()
+        for r in self.conn.execute(
+            "SELECT * FROM commentaries ORDER BY verse_start_id, source_code, title"
+        ).fetchall():
+            d = dict(r)
+            d.pop("created_at", None)
+            d["provenance"] = EDITORIAL_PROVENANCE
+            d["attributionLabel"] = EDITORIAL_ATTRIBUTION_LABEL
+            covered_verse_ids.add(d["verse_start_id"])
+            covered_book_ids.add(d["book_id"])
+            commentaries.append(d)
+
+        strongs = {
+            r["strong_id"]: dict(r)
+            for r in self.conn.execute("SELECT * FROM strong_lexicon ORDER BY strong_id").fetchall()
+        }
         cross_refs_rows = self.conn.execute(
             """
             SELECT cr.from_verse_id, cr.to_verse_id, cr.score, cr.relationship_type, cr.note,
@@ -298,7 +427,7 @@ class BibleDatabaseBuilder:
             FROM cross_references cr
             JOIN bible_books b ON (cr.to_verse_id / 1000000) = b.book_id
             LEFT JOIN bible_verses v ON cr.to_verse_id = v.verse_id AND v.version_code = 'KRV'
-            ORDER BY cr.from_verse_id, cr.score DESC;
+            ORDER BY cr.from_verse_id, cr.score DESC, cr.to_verse_id ASC;
             """
         ).fetchall()
         cross_refs_by_verse: Dict[str, List[Dict[str, Any]]] = {}
@@ -307,7 +436,7 @@ class BibleDatabaseBuilder:
             cross_refs_by_verse.setdefault(str(d["from_verse_id"]), []).append(d)
 
         chains: Dict[str, Any] = {}
-        for t in self.conn.execute("SELECT * FROM chain_topics").fetchall():
+        for t in self.conn.execute("SELECT * FROM chain_topics ORDER BY topic_key").fetchall():
             links = self.conn.execute(
                 """
                 SELECT cl.verse_id, cl.passage_display, cl.stage_label, cl.sermon_point,
@@ -322,36 +451,63 @@ class BibleDatabaseBuilder:
             ).fetchall()
             chains[t["topic_key"]] = {**dict(t), "links": [dict(l) for l in links]}
 
-        (web_data_dir / "manifest.json").write_text(
-            json.dumps({
-                "schemaVersion": SCHEMA_VERSION,
-                "generatedAt": datetime.now(timezone.utc).isoformat(),
-                "versionCode": "KRV",
-                "totalBooks": len(book_manifest),
-                "totalVerses": total_verses,
-                "attribution": "Korean Revised Version © Korean Bible Society 1961 (저작권 보호기간 만료)",
-                "books": book_manifest,
-            }, ensure_ascii=False, separators=(",", ":")),
+        exegesis_payload = {
+            "schemaVersion": WEB_MANIFEST_SCHEMA_VERSION,
+            "coverageStats": {
+                "commentaryEntries": len(commentaries),
+                "coveredVerses": len(covered_verse_ids),
+                "coveredBooks": len(covered_book_ids),
+                "totalVerses": total_verses or 31102,
+            },
+            "provenance": provenance,
+            "sources": sources,
+            "commentaries": commentaries,
+            "strongs": strongs,
+            "crossReferences": cross_refs_by_verse,
+            "chains": chains,
+        }
+        exegesis_path = web_data_dir / "exegesis.json"
+        exegesis_path.write_text(
+            json.dumps(exegesis_payload, ensure_ascii=False, separators=(",", ":")),
             encoding="utf-8",
         )
+        checksums["exegesis.json"] = sha256_file(exegesis_path)
 
-        (web_data_dir / "exegesis.json").write_text(
-            json.dumps({
-                "schemaVersion": SCHEMA_VERSION,
-                "provenance": provenance,
-                "sources": sources,
-                "commentaries": commentaries,
-                "strongs": strongs,
-                "crossReferences": cross_refs_by_verse,
-                "chains": chains,
-            }, ensure_ascii=False, separators=(",", ":")),
-            encoding="utf-8",
-        )
-
-        # Export Korean Hymn & Responsive Reading (새찬송가 · 교독문) catalog
+        # Export Korean Worship, Liturgy & Templates catalog
         worship = get_worship_catalog()
-        (web_data_dir / "worship.json").write_text(
+        worship_path = web_data_dir / "worship.json"
+        worship_path.write_text(
             json.dumps(worship, ensure_ascii=False, separators=(",", ":")),
+            encoding="utf-8",
+        )
+        checksums["worship.json"] = sha256_file(worship_path)
+
+        manifest_payload: Dict[str, Any] = {
+            "schemaVersion": WEB_MANIFEST_SCHEMA_VERSION,
+            "appVersion": __version__,
+            "defaultVersion": "krv",
+            "versions": [
+                {
+                    "id": "krv",
+                    "nameKr": "개역한글",
+                    "attribution": "대한성서공회 1961 (저작권 보호기간 만료)",
+                    "license": "PUBLIC_DOMAIN",
+                    "pathPrefix": "./data/krv/",
+                    "searchIndexPath": "./data/search/krv.json",
+                    "totalBooks": len(book_manifest),
+                    "totalVerses": total_verses,
+                }
+            ],
+            "books": book_manifest,
+            "checksums": dict(sorted(checksums.items())),
+        }
+        if source_date_epoch is not None:
+            manifest_payload["generatedAt"] = datetime.fromtimestamp(
+                int(source_date_epoch), tz=timezone.utc
+            ).isoformat()
+
+        (web_data_dir / "manifest.json").write_text(
+            json.dumps(manifest_payload, ensure_ascii=False, separators=(",", ":")),
             encoding="utf-8",
         )
 
@@ -361,7 +517,85 @@ class BibleDatabaseBuilder:
             "avg_chunk_bytes": sum(chunk_sizes.values()) // max(len(chunk_sizes), 1),
             "hymns": len(worship["hymns"]),
             "responsive_readings": len(worship["responsiveReadings"]),
+            "liturgies": len(worship["liturgies"]),
+            "templates": len(worship["templates"]),
         }
+
+
+def validate_web_corpus(web_data_dir: Path, conn: Optional[sqlite3.Connection] = None) -> Dict[str, Any]:
+    """Strict corpus validator enforcing R-BE-03 invariants across web/data/."""
+    web_data_dir = Path(web_data_dir)
+    manifest_path = web_data_dir / "manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+
+    versions = manifest.get("versions", [])
+    allowed_dirs = {v["id"] for v in versions} | {"search"}
+    actual_dirs = {p.name for p in web_data_dir.iterdir() if p.is_dir()}
+    extra_dirs = actual_dirs - allowed_dirs
+    if extra_dirs:
+        raise ValueError(f"Unlisted web/data directories violate license allowlist: {sorted(extra_dirs)}")
+
+    checksums = manifest.get("checksums", {})
+    if not checksums:
+        raise ValueError("manifest.json missing checksums map")
+    for rel_path, expected_hash in checksums.items():
+        fp = web_data_dir / rel_path
+        if not fp.exists():
+            raise ValueError(f"Checksum target missing on disk: {rel_path}")
+        actual_hash = sha256_file(fp)
+        if actual_hash != expected_hash:
+            raise ValueError(f"SHA-256 mismatch for {rel_path}: expected {expected_hash}, got {actual_hash}")
+
+    total_checked_verses = 0
+    for v in versions:
+        vid = v["id"]
+        vdir = web_data_dir / vid
+        files = sorted(vdir.glob("*.json"))
+        if len(files) != 66:
+            raise ValueError(f"Version {vid} expected 66 book files, found {len(files)}")
+        chapters_count = 0
+        verses_count = 0
+        for f in files:
+            data = json.loads(f.read_text(encoding="utf-8"))
+            for key in ("bookId", "osis", "nameKr", "nameEn", "version", "chapters"):
+                if key not in data:
+                    raise ValueError(f"{vid}/{f.name} missing required schema key {key!r}")
+            for ch_str, verse_list in data["chapters"].items():
+                if not isinstance(verse_list, list):
+                    raise ValueError(f"{vid}/{f.name} chapter {ch_str} must be list[str]")
+                chapters_count += 1
+                for idx, txt in enumerate(verse_list, start=1):
+                    if not isinstance(txt, str) or not txt.strip():
+                        raise ValueError(f"Empty verse in {vid}/{f.name} {ch_str}:{idx}")
+                    if "\ufffd" in txt:
+                        raise ValueError(f"Mojibake U+FFFD in {vid}/{f.name} {ch_str}:{idx}")
+                    if _INLINE_FOOTNOTE_RE.search(txt):
+                        raise ValueError(f"Inline footnote pollution in {vid}/{f.name} {ch_str}:{idx}")
+                    verses_count += 1
+        if chapters_count != 1189:
+            raise ValueError(f"Version {vid} expected 1,189 chapters, got {chapters_count}")
+        if verses_count != v["totalVerses"]:
+            raise ValueError(f"Version {vid} verse count mismatch: {verses_count} vs manifest {v['totalVerses']}")
+        total_checked_verses += verses_count
+
+    if conn is not None:
+        mismatches = conn.execute(
+            """
+            SELECT b.osis_code, b.total_verses, COUNT(v.id) AS actual
+            FROM bible_books b
+            LEFT JOIN bible_verses v ON v.book_id = b.book_id AND v.version_code = 'KRV'
+            GROUP BY b.book_id
+            HAVING b.total_verses != COUNT(v.id);
+            """
+        ).fetchall()
+        if mismatches:
+            raise ValueError(f"bible_books.total_verses mismatches: {[tuple(m) for m in mismatches]}")
+
+    return {
+        "versions": [v["id"] for v in versions],
+        "checksum_files": len(checksums),
+        "total_checked_verses": total_checked_verses,
+    }
 
 
 def sha256_file(path: Path) -> str:
@@ -372,21 +606,77 @@ def sha256_file(path: Path) -> str:
     return h.hexdigest()
 
 
-def export_zero_cost_bundle(db_path: Path, out_dir: Path, version: str = "2.3.0") -> Dict[str, Any]:
+def export_zero_cost_bundle(
+    db_path: Path,
+    out_dir: Path,
+    version: str = __version__,
+) -> Dict[str, Any]:
+    """
+    Create an atomic, WAL-free, VACUUMed, read-only-safe SQLite bundle (.db.gz).
+    Uses SQLite Online Backup API so live open WAL connections snapshot cleanly (R-BE-02).
+    """
+    db_path = Path(db_path)
+    out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     gz_path = out_dir / f"{db_path.name}.gz"
-    with db_path.open("rb") as f_in, gzip.open(gz_path, "wb", compresslevel=9) as f_out:
-        for chunk in iter(lambda: f_in.read(65536), b""):
-            f_out.write(chunk)
 
-    conn = sqlite3.connect(str(db_path))
-    counts = {
-        t: conn.execute(f"SELECT COUNT(*) FROM {t}").fetchone()[0]
-        for t in ("bible_books", "bible_verses", "commentary_sources", "commentaries", "strong_lexicon", "cross_references", "chain_links")
-    }
-    conn.close()
+    with tempfile.TemporaryDirectory(prefix="bcs-bundle-") as tmpdir:
+        staging_db = Path(tmpdir) / db_path.name
 
-    uncompressed_size = db_path.stat().st_size
+        # 1. Consistent online backup (captures uncommitted WAL frames from any open WAL connection)
+        src_conn = sqlite3.connect(str(db_path))
+        dst_conn = sqlite3.connect(str(staging_db))
+        try:
+            src_conn.backup(dst_conn)
+        finally:
+            src_conn.close()
+
+        # 2. Checkpoint WAL, switch to DELETE journal mode, VACUUM to 0 freelist pages
+        try:
+            dst_conn.execute("PRAGMA wal_checkpoint(TRUNCATE);")
+            dst_conn.execute("PRAGMA journal_mode = DELETE;")
+            dst_conn.execute("VACUUM;")
+
+            integrity = dst_conn.execute("PRAGMA integrity_check;").fetchone()[0]
+            if integrity != "ok":
+                raise RuntimeError(f"Staged bundle failed PRAGMA integrity_check: {integrity}")
+            freelist = dst_conn.execute("PRAGMA freelist_count;").fetchone()[0]
+            if freelist != 0:
+                raise RuntimeError(f"Staged bundle has non-zero freelist_count: {freelist}")
+
+            count_tables = (
+                "bible_books",
+                "bible_verses",
+                "commentary_sources",
+                "commentaries",
+                "strong_lexicon",
+                "cross_references",
+                "chain_links",
+            )
+            counts = {
+                t: dst_conn.execute(
+                    f"SELECT COUNT(*) FROM {validate_table_name(t, ALLOWED_COUNT_TABLES)}"
+                ).fetchone()[0]
+                for t in count_tables
+            }
+        finally:
+            dst_conn.close()
+
+        # 3. Verify SQLite file format header bytes 18:20 == (1, 1) (DELETE journal mode, read-only safe)
+        with staging_db.open("rb") as f_hdr:
+            header = f_hdr.read(20)
+        if len(header) < 20 or header[18:20] != b"\x01\x01":
+            raise RuntimeError(f"Invalid SQLite journal header in bundle: {header[18:20]!r}")
+
+        # 4. Compress closed staging file only
+        with staging_db.open("rb") as f_in, gz_path.open("wb") as raw_out:
+            with gzip.GzipFile(filename=db_path.name, mode="wb", compresslevel=9, fileobj=raw_out, mtime=0) as f_out:
+                for chunk in iter(lambda: f_in.read(65536), b""):
+                    f_out.write(chunk)
+
+        uncompressed_size = staging_db.stat().st_size
+        uncompressed_sha256 = sha256_file(staging_db)
+
     compressed_size = gz_path.stat().st_size
     manifest = {
         "schema_version": SCHEMA_VERSION,
@@ -395,7 +685,7 @@ def export_zero_cost_bundle(db_path: Path, out_dir: Path, version: str = "2.3.0"
         "distribution_policy": "ZERO_COST_STATIC_CDN",
         "database_name": db_path.name,
         "uncompressed_size_bytes": uncompressed_size,
-        "uncompressed_sha256": sha256_file(db_path),
+        "uncompressed_sha256": uncompressed_sha256,
         "compressed_file_name": gz_path.name,
         "compressed_size_bytes": compressed_size,
         "compressed_sha256": sha256_file(gz_path),
