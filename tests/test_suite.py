@@ -162,11 +162,13 @@ class TestWebAndFlutterStaticAudit(unittest.TestCase):
         self.assertEqual(len(list((WEB_DIR / "data" / "krv").glob("*.json"))), 66)
 
         worship = json.loads((WEB_DIR / "data" / "worship.json").read_text(encoding="utf-8"))
-        self.assertGreaterEqual(len(worship["hymns"]), 40)
-        self.assertGreaterEqual(len(worship["responsiveReadings"]), 20)
+        self.assertGreaterEqual(len(worship["hymns"]), 100)
+        self.assertGreaterEqual(len(worship["responsiveReadings"]), 44)
 
         exegesis = json.loads((WEB_DIR / "data" / "exegesis.json").read_text(encoding="utf-8"))
         self.assertEqual(len(exegesis["sources"]), 12)
+        self.assertGreaterEqual(len(exegesis["commentaries"]), 50)
+        self.assertGreaterEqual(len(exegesis["chains"]), 4)
         categories = {s["category"] for s in exegesis["sources"]}
         self.assertEqual(categories, {"CLASSIC", "ACADEMIC", "EXPOSITORY"})
 
@@ -220,6 +222,42 @@ class TestWebAndFlutterStaticAudit(unittest.TestCase):
         self.assertIn("찬송·교독문", html)
         self.assertIn("12대 주석", html)
         self.assertIn("@media print", css)
+
+
+
+    def test_06_v25_full_645_hymns_multiversion_and_live_commentaries(self):
+        worship = json.loads((REPO_ROOT / "web" / "data" / "worship.json").read_text(encoding="utf-8"))
+        hymns = worship["hymns"]
+        self.assertEqual(len(hymns), 645, "All 645 hymns of 21st-century New Hymnal must be indexed")
+        nums = [h["num"] for h in hymns]
+        self.assertEqual(nums, list(range(1, 646)), "Hymn numbers must cover 1..645 without gaps")
+        self.assertEqual(hymns[0]["title"], "만복의 근원 하나님")
+        self.assertEqual(hymns[644]["title"], "아멘")
+
+        # Verify HelloAO multi-version + live commentary support in bibleService.js
+        bs_js = (REPO_ROOT / "web" / "js" / "bibleService.js").read_text(encoding="utf-8")
+        self.assertIn("https://bible.helloao.org/api", bs_js)
+        self.assertIn("matthew-henry", bs_js)
+        self.assertIn("john-calvin", bs_js)
+        self.assertIn("keil-delitzsch", bs_js)
+        self.assertIn("hbo_wlc", bs_js)
+        self.assertIn("grc_sbl", bs_js)
+
+        # Verify BYOT Bible & Hymn parser in storage.js via Node ESM execution
+        import subprocess
+        node_test = r"""
+import { parseCustomBibleFile, parseCustomHymnFile } from './web/js/storage.js';
+const b = parseCustomBibleFile('창1:1 태초에 하나님이 천지를 창조하시니라\n요3:16 하나님이 세상을 이처럼 사랑하사', 'gae.txt', '개역개정');
+if (b.verseCount !== 2 || b.books.GEN['1']['1'] !== '태초에 하나님이 천지를 창조하시니라' || !b.books.JHN['3']['16']) {
+  process.exit(1);
+}
+const h = parseCustomHymnFile('1장 만복의 근원 하나님\n온 백성 찬송 드리고\n305장 나 같은 죄인 살리신\n주 은혜 놀라워');
+if (!h[1] || !h[305]) process.exit(2);
+console.log('NODE_BYOT_OK');
+"""
+        proc = subprocess.run(["node", "--input-type=module", "-e", node_test], cwd=REPO_ROOT, capture_output=True, text=True)
+        self.assertEqual(proc.returncode, 0, f"Node BYOT test failed: {proc.stderr}")
+        self.assertIn("NODE_BYOT_OK", proc.stdout)
 
 
 if __name__ == "__main__":
