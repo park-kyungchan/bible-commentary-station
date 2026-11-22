@@ -1,0 +1,531 @@
+/*
+ * Calm 4-Mode Information Architecture & Responsive Shell Layout
+ * Guarantees >= 80% mobile reading viewport (>= 676px of 844px) and <= 124px desktop chrome.
+ */
+
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  background: var(--bg-canvas);
+}
+
+/* Global Banners: Strictly 0px when collapsed */
+.global-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 20px;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--border-hairline);
+}
+
+.global-banner[data-open="false"] {
+  display: none;
+}
+
+.global-banner-info {
+  background: var(--brand-soft);
+  color: var(--ink-primary);
+}
+
+.global-banner-warn {
+  background: var(--accent-soft);
+  color: var(--ink-primary);
+}
+
+.global-banner-text {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+/* 1. Single-Row Top Header (64px Desktop) */
+.topbar {
+  height: var(--topbar-h);
+  min-height: var(--topbar-h);
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--bg-surface);
+  box-shadow: inset 0 -1px 0 var(--border-hairline);
+  flex-shrink: 0;
+  z-index: 200;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.brand-mark {
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  display: block;
+  flex-shrink: 0;
+}
+
+.brand-title {
+  font-family: var(--font-serif);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--brand-primary);
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+
+.mode-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 8px;
+}
+
+.topbar-controls {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* Theme Icon Visibility */
+html[data-theme="light"] .icon-sun-glyph {
+  display: none;
+}
+
+html[data-theme="dark"] .icon-moon-glyph {
+  display: none;
+}
+
+/* 2. Unified Main Mode Container */
+.app-main {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+.mode-view {
+  display: none;
+  flex: 1;
+  min-height: 0;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+html[data-mode="bible"] #viewBible,
+html[data-mode="worship"] #viewWorship,
+html[data-mode="sermon"] #viewSermon {
+  display: flex;
+}
+
+/* Bible Context Bar (56px Desktop single row) */
+.context-bar {
+  height: var(--context-h);
+  min-height: var(--context-h);
+  padding: 4px 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-subtle);
+  box-shadow: inset 0 -1px 0 var(--border-hairline);
+  flex-shrink: 0;
+  z-index: 150;
+}
+
+.search-form {
+  flex: 1;
+  min-width: 220px;
+  max-width: 420px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.search-input {
+  flex: 1;
+  min-width: 140px;
+}
+
+/* Bible 2-Column Editorial Studio */
+.bible-workspace {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  overflow: hidden;
+}
+
+.pane-scripture {
+  min-height: 0;
+  overflow-y: auto;
+  background: var(--bg-canvas);
+  border-right: 1px solid var(--border-hairline);
+  padding: 20px 24px 48px;
+}
+
+.scripture-inner {
+  max-width: var(--measure-reading);
+  margin-inline: auto;
+}
+
+.pane-study {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--bg-subtle);
+}
+
+.mobile-study-back-bar {
+  display: none;
+  align-items: center;
+  padding: 6px 12px;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-hairline);
+  flex-shrink: 0;
+}
+
+.study-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 8px 16px;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-hairline);
+  flex-shrink: 0;
+}
+
+.study-overlay-header {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 16px;
+  background: var(--brand-soft);
+  border-bottom: 1px solid var(--border-hairline);
+  flex-shrink: 0;
+}
+
+.pane-study[data-study-overlay="bookmarks"] .study-overlay-header,
+.pane-study[data-study-overlay="search"] .study-overlay-header {
+  display: flex;
+}
+
+.study-overlay-title {
+  font-size: 16.5px;
+  font-weight: 800;
+  color: var(--ink-primary);
+}
+
+.study-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 16px 20px 44px;
+}
+
+/* Mode 2: Worship Full-Width Centered Editorial Canvas */
+.worship-shell {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--bg-canvas);
+}
+
+.worship-top {
+  width: 100%;
+  max-width: 1080px;
+  margin-inline: auto;
+  padding: 14px 20px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.worship-subtabs {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.worship-search-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.worship-search-icon {
+  position: absolute;
+  left: 14px;
+  color: var(--ink-muted);
+  pointer-events: none;
+}
+
+.worship-search-input {
+  width: 100%;
+  padding-left: 44px;
+}
+
+.worship-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 8px 20px 48px;
+}
+
+.worship-container {
+  width: 100%;
+  max-width: 1080px;
+  margin-inline: auto;
+}
+
+#viewWorship[data-has-detail="true"] #worshipSearchWrap,
+#viewWorship[data-has-detail="true"] #worshipFilterBar,
+#viewWorship[data-has-detail="true"] #worshipListContainer {
+  display: none;
+}
+
+#viewWorship[data-has-detail="false"] #worshipDetailContainer {
+  display: none;
+}
+
+/* Mode 3: Sermon Studio 2-Column Layout */
+.sermon-toolbar {
+  padding: 8px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  background: var(--bg-subtle);
+  border-bottom: 1px solid var(--border-hairline);
+  flex-shrink: 0;
+}
+
+.sermon-toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.sermon-select {
+  min-width: 220px;
+  max-width: 320px;
+}
+
+.sermon-workspace {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  overflow: hidden;
+}
+
+.sermon-editor-pane {
+  min-height: 0;
+  overflow-y: auto;
+  padding: 20px 24px 48px;
+  background: var(--bg-canvas);
+  border-right: 1px solid var(--border-hairline);
+}
+
+.sermon-clips-pane {
+  min-height: 0;
+  overflow-y: auto;
+  padding: 20px 20px 48px;
+  background: var(--bg-subtle);
+}
+
+/* 3. Mobile 4-Mode Bottom Nav (Hidden on Desktop) */
+.mobile-nav {
+  display: none;
+}
+
+/* Desktop-only hiding of mobile-study helper button */
+@media (min-width: 961px) {
+  [data-action="open-mobile-study"] {
+    display: none;
+  }
+}
+
+/* Tablet & Mobile Responsive Layout (<= 960px) */
+/* Strict Mobile Budget on 390x844: 48px topbar + 54px context + 62px bottom nav = 164px -> 680px (>= 80.5%) reading area */
+@media (max-width: 960px) {
+  :root {
+    --topbar-h: 48px;
+    --context-h: 54px;
+    --mobile-nav-h: 62px;
+  }
+
+  .topbar {
+    padding: 0 8px;
+    gap: 8px;
+  }
+
+  .brand {
+    gap: 6px;
+  }
+
+  .brand-mark {
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+  }
+
+  .brand-title {
+    font-size: 15.5px;
+  }
+
+  .topbar .mode-nav,
+  .topbar .topbar-pulpit-btn,
+  .topbar .stepper-label {
+    display: none;
+  }
+
+  .topbar-controls {
+    gap: 8px;
+  }
+
+  .context-bar {
+    padding: 3px 8px;
+    gap: 8px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .context-bar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .context-bar > * {
+    flex-shrink: 0;
+  }
+
+  .search-form {
+    flex: 0 0 auto;
+    min-width: 0;
+    max-width: none;
+  }
+
+  .search-input {
+    width: 170px;
+    min-width: 140px;
+  }
+
+  .version-btn-prefix {
+    display: none;
+  }
+
+  .bible-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .pane-scripture {
+    border-right: none;
+    padding: 12px 14px 28px;
+  }
+
+  /* Study Pane becomes a smooth full-height slide-up sheet on mobile */
+  .pane-study {
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: var(--topbar-h);
+    bottom: var(--mobile-nav-h);
+    z-index: 400;
+    background: var(--bg-subtle);
+    box-shadow: var(--shadow-elevated);
+  }
+
+  .mobile-study-back-bar {
+    display: flex;
+  }
+
+  .study-tabs {
+    padding: 8px 10px;
+  }
+
+  .study-body {
+    padding: 14px 14px 32px;
+  }
+
+  /* Worship Mobile */
+  .worship-top {
+    padding: 10px 12px 6px;
+    gap: 8px;
+  }
+
+  .worship-subtabs {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .worship-scroll {
+    padding: 8px 12px 28px;
+  }
+
+  /* Sermon Mobile */
+  .sermon-toolbar {
+    padding: 8px 12px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .sermon-toolbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .sermon-toolbar-group {
+    flex-wrap: nowrap;
+    flex-shrink: 0;
+  }
+
+  .sermon-workspace {
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+  }
+
+  .sermon-editor-pane,
+  .sermon-clips-pane {
+    overflow: visible;
+    flex: none;
+    border-right: none;
+    padding: 14px 14px 24px;
+  }
+
+  .sermon-clips-pane {
+    border-top: 1px solid var(--border-hairline);
+  }
+
+  /* Mobile 4-Mode Bottom Nav (62px height, >=48px buttons, 8px gap) */
+  .mobile-nav {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    height: var(--mobile-nav-h);
+    min-height: var(--mobile-nav-h);
+    padding: 6px 8px;
+    background: var(--bg-surface);
+    box-shadow: inset 0 1px 0 var(--border-hairline);
+    flex-shrink: 0;
+    z-index: 500;
+  }
+}

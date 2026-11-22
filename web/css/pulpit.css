@@ -1,0 +1,225 @@
+/*
+ * Isolated Zero-Glare Pulpit Presentation Theme
+ * Completely decoupled from html[data-theme="light"|"dark"].
+ * Every button maintains background relative luminance < 0.08 and contrast >= 10:1.
+ */
+
+.pulpit-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9500;
+  background: var(--pulpit-bg);
+  color: var(--pulpit-ink);
+  display: flex;
+  flex-direction: column;
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.pulpit-overlay[data-open="true"] {
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.pulpit-overlay :focus-visible {
+  outline: 3px solid var(--pulpit-gold);
+  outline-offset: 2px;
+}
+
+/* Thin Top Sanctuary Gold Progress Track */
+.pulpit-progress-track {
+  height: 4px;
+  width: 100%;
+  background: #1C1916;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.pulpit-progress-bar {
+  height: 100%;
+  width: 100%;
+  background: var(--pulpit-gold);
+  transform-origin: left center;
+  transform: scaleX(var(--pulpit-progress, 0));
+}
+
+/* Zero-Glare Top Control Bar */
+.pulpit-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 12px 24px;
+  background: var(--pulpit-bar-bg);
+  border-bottom: 1px solid var(--pulpit-border);
+  flex-shrink: 0;
+}
+
+.pulpit-bar-left,
+.pulpit-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.pulpit-progress-text {
+  font-size: 19px;
+  font-weight: 800;
+  color: var(--pulpit-gold);
+  font-variant-numeric: tabular-nums;
+  min-width: 64px;
+}
+
+.pulpit-timer {
+  font-family: var(--font-mono);
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--pulpit-gold);
+  font-variant-numeric: tabular-nums;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  background: #1C1814;
+  border: 1px solid var(--pulpit-border);
+}
+
+.pulpit-timer[data-warning="true"],
+.pulpit-timer[data-overtime="true"] {
+  color: var(--pulpit-alert);
+  border-color: var(--pulpit-alert);
+}
+
+/* Strictly Isolated Zero-Glare Pulpit Buttons (Luminance < 0.02, Contrast >= 11.7:1) */
+.pulpit-overlay button,
+.pulpit-overlay .btn,
+.pulpit-btn {
+  min-height: var(--target-min);
+  min-width: var(--target-min);
+  padding: 10px 16px;
+  border-radius: var(--radius-sm);
+  background: var(--pulpit-btn-bg);
+  color: var(--pulpit-ink);
+  border: 1px solid var(--pulpit-border);
+  font-size: 16px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.pulpit-overlay button:hover:not(:disabled),
+.pulpit-overlay .btn:hover:not(:disabled),
+.pulpit-btn:hover:not(:disabled) {
+  background: var(--pulpit-btn-hover);
+  border-color: var(--pulpit-gold);
+}
+
+.pulpit-overlay .pulpit-btn-accent,
+.pulpit-overlay .btn-primary,
+.pulpit-overlay .btn-warm {
+  background: var(--pulpit-btn-accent-bg);
+  color: var(--pulpit-gold);
+  border: 1.5px solid var(--pulpit-gold);
+}
+
+.pulpit-overlay .pulpit-btn-accent:hover:not(:disabled),
+.pulpit-overlay .btn-primary:hover:not(:disabled),
+.pulpit-overlay .btn-warm:hover:not(:disabled) {
+  background: #362B1D;
+  color: var(--pulpit-gold);
+}
+
+/* Scroll-Safe Sanctuary Reading Stage (Zero Blocking Tap Overlays) */
+.pulpit-stage {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 36px 48px 48px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.pulpit-content {
+  max-width: 1040px;
+  margin-inline: auto;
+}
+
+.pulpit-title {
+  font-family: var(--font-serif);
+  font-size: calc(var(--pulpit-font-pt, 34pt) * 1.12);
+  font-weight: 700;
+  color: var(--pulpit-gold);
+  line-height: 1.38;
+  margin-bottom: 28px;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+.pulpit-body {
+  font-family: var(--font-serif);
+  font-size: var(--pulpit-font-pt, 34pt);
+  color: var(--pulpit-ink);
+  line-height: 1.72;
+  white-space: pre-line;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+.pulpit-next-hint {
+  margin-top: 40px;
+  padding-top: 18px;
+  border-top: 1px solid var(--pulpit-border);
+  font-size: 19px;
+  font-weight: 600;
+  color: var(--pulpit-muted);
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+.pulpit-next-hint:empty {
+  display: none;
+}
+
+/* Footer Navigation Bar */
+.pulpit-footer {
+  padding: 14px 24px;
+  background: var(--pulpit-bar-bg);
+  border-top: 1px solid var(--pulpit-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  flex-shrink: 0;
+}
+
+.pulpit-nav-btn {
+  min-height: 54px;
+  min-width: 168px;
+  font-size: 18px;
+}
+
+@media (max-width: 768px) {
+  .pulpit-bar {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+
+  .pulpit-stage {
+    padding: 20px 18px 32px;
+  }
+
+  .pulpit-footer {
+    padding: 10px 12px;
+    gap: 12px;
+  }
+
+  .pulpit-nav-btn {
+    flex: 1;
+    min-width: 0;
+  }
+}

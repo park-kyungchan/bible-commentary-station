@@ -1,0 +1,306 @@
+/*
+ * GPU-Composited Pastoral Motion Choreography
+ * Strict invariant: ALL @keyframes animate ONLY transform and opacity.
+ */
+
+@keyframes pastoralFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes chapterSlideNext {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes chapterSlidePrev {
+  from {
+    opacity: 0;
+    transform: translateX(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulpitSlideNext {
+  from {
+    opacity: 0;
+    transform: translateX(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulpitSlidePrev {
+  from {
+    opacity: 0;
+    transform: translateX(-14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes paperShimmer {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 0.95;
+  }
+}
+
+/* Tactile Control Feedback */
+.btn,
+.mode-btn,
+.mobile-nav-btn,
+.study-tab,
+.worship-tab,
+.current-place-btn,
+.stepper-btn,
+.filter-pill,
+.hl-btn,
+.testament-tab,
+.book-tile,
+.chap-tile,
+.pulpit-btn {
+  transition:
+    background-color 140ms var(--ease-tactile),
+    border-color 140ms var(--ease-tactile),
+    color 140ms var(--ease-tactile),
+    transform var(--dur-tactile) var(--ease-tactile);
+}
+
+.btn:active:not(:disabled),
+.mode-btn:active:not(:disabled),
+.mobile-nav-btn:active:not(:disabled),
+.study-tab:active:not(:disabled),
+.worship-tab:active:not(:disabled),
+.current-place-btn:active:not(:disabled),
+.stepper-btn:active:not(:disabled),
+.filter-pill:active:not(:disabled),
+.hl-btn:active:not(:disabled),
+.book-tile:active:not(:disabled),
+.chap-tile:active:not(:disabled),
+.pulpit-btn:active:not(:disabled) {
+  transform: translateY(1px) scale(0.985);
+}
+
+/* Mode & Study Panel Cross-Fade */
+[data-panel-enter] {
+  animation: pastoralFadeUp var(--dur-view) var(--ease-pastoral) both;
+}
+
+/* Directional Chapter Transitions */
+#verseList[data-chapter-dir="next"] {
+  animation: chapterSlideNext var(--dur-view) var(--ease-pastoral) both;
+}
+
+#verseList[data-chapter-dir="prev"] {
+  animation: chapterSlidePrev var(--dur-view) var(--ease-pastoral) both;
+}
+
+/* In-Place Verse Selection Indicator & Toolbar Grid-Row Reveal */
+.verse-card {
+  transition:
+    background-color var(--dur-state) var(--ease-pastoral),
+    border-color var(--dur-state) var(--ease-pastoral);
+}
+
+.verse-card::before {
+  transition: transform var(--dur-state) var(--ease-pastoral);
+}
+
+.verse-toolbar-wrap {
+  transition:
+    grid-template-rows 200ms var(--ease-pastoral),
+    opacity var(--dur-state) var(--ease-pastoral);
+}
+
+.verse-card[data-selected="true"] > .verse-toolbar,
+.verse-card[data-selected="true"] .verse-body > .verse-toolbar {
+  animation: pastoralFadeUp var(--dur-state) var(--ease-pastoral) both;
+}
+
+/* Warm Hanji Paper Skeleton Shimmer */
+.skeleton-card {
+  animation: paperShimmer 1.6s ease-in-out infinite;
+}
+
+/* Smooth Modals & Mobile Bottom Sheets (No display: none Snap) */
+.modal-overlay {
+  transition:
+    opacity var(--dur-view) var(--ease-pastoral),
+    visibility 0s linear var(--dur-overlay);
+}
+
+.modal-overlay[data-open="true"] {
+  transition:
+    opacity var(--dur-view) var(--ease-pastoral),
+    visibility 0s linear 0s;
+}
+
+.modal-box {
+  opacity: 0;
+  transform: translateY(12px) scale(0.98);
+  transition:
+    opacity var(--dur-overlay) var(--ease-pastoral),
+    transform var(--dur-overlay) var(--ease-pastoral);
+}
+
+.modal-overlay[data-open="true"] .modal-box {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+@media (max-width: 768px) {
+  .modal-box {
+    transform: translateY(24px);
+  }
+
+  .modal-overlay[data-open="true"] .modal-box {
+    transform: translateY(0);
+  }
+}
+
+/* Smooth Mobile Study Sheet Slide-Up */
+@media (max-width: 960px) {
+  .pane-study {
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(24px);
+    transition:
+      opacity var(--dur-overlay) var(--ease-pastoral),
+      transform var(--dur-overlay) var(--ease-pastoral),
+      visibility 0s linear var(--dur-overlay);
+  }
+
+  .pane-study[data-mobile-open="true"] {
+    visibility: visible;
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+    transition:
+      opacity var(--dur-overlay) var(--ease-pastoral),
+      transform var(--dur-overlay) var(--ease-pastoral),
+      visibility 0s linear 0s;
+  }
+}
+
+/* Smooth Pulpit Sanctuary Fade, Slide Cross-Fade & GPU Progress Bar */
+.pulpit-overlay {
+  transition:
+    opacity var(--dur-pulpit) var(--ease-pastoral),
+    visibility 0s linear var(--dur-pulpit);
+}
+
+.pulpit-overlay[data-open="true"] {
+  transition:
+    opacity var(--dur-pulpit) var(--ease-pastoral),
+    visibility 0s linear 0s;
+}
+
+.pulpit-stage[data-slide-dir="next"] .pulpit-content {
+  animation: pulpitSlideNext 260ms var(--ease-pastoral) both;
+}
+
+.pulpit-stage[data-slide-dir="prev"] .pulpit-content {
+  animation: pulpitSlidePrev 260ms var(--ease-pastoral) both;
+}
+
+.pulpit-progress-bar {
+  transition: transform 240ms var(--ease-pastoral);
+}
+
+/* Toast GPU Slide-Up Fade */
+.toast {
+  transition:
+    opacity 200ms var(--ease-pastoral),
+    transform 200ms var(--ease-pastoral),
+    visibility 0s linear 200ms;
+}
+
+.toast[data-open="true"] {
+  transition:
+    opacity 200ms var(--ease-pastoral),
+    transform 200ms var(--ease-pastoral),
+    visibility 0s linear 0s;
+}
+
+/* Complete Reduced-Motion Accessibility Fallback */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-tactile: 60ms;
+    --dur-state: 80ms;
+    --dur-view: 100ms;
+    --dur-overlay: 120ms;
+    --dur-pulpit: 120ms;
+  }
+
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+  }
+
+  [data-panel-enter],
+  #verseList[data-chapter-dir="next"],
+  #verseList[data-chapter-dir="prev"],
+  .pulpit-stage[data-slide-dir="next"] .pulpit-content,
+  .pulpit-stage[data-slide-dir="prev"] .pulpit-content,
+  .verse-card[data-selected="true"] > .verse-toolbar,
+  .verse-card[data-selected="true"] .verse-body > .verse-toolbar,
+  .skeleton-card {
+    animation: none !important;
+  }
+
+  .btn:active:not(:disabled),
+  .mode-btn:active:not(:disabled),
+  .mobile-nav-btn:active:not(:disabled),
+  .study-tab:active:not(:disabled),
+  .worship-tab:active:not(:disabled),
+  .current-place-btn:active:not(:disabled),
+  .stepper-btn:active:not(:disabled),
+  .filter-pill:active:not(:disabled),
+  .hl-btn:active:not(:disabled),
+  .book-tile:active:not(:disabled),
+  .chap-tile:active:not(:disabled),
+  .pulpit-btn:active:not(:disabled),
+  .modal-box,
+  .pane-study,
+  .toast {
+    transform: none !important;
+  }
+
+  .toast[data-open="true"],
+  .toast[data-open="false"] {
+    transform: translateX(-50%) !important;
+  }
+
+  .modal-overlay,
+  .modal-box,
+  .pulpit-overlay,
+  .pane-study,
+  .toast {
+    transition-duration: 100ms !important;
+  }
+}
