@@ -1,0 +1,99 @@
+/*
+ * Clean Multi-Page A4 Large-Print Stylesheet (via #printSheet)
+ * Guarantees zero page-1 clipping and dark-on-white senior readability.
+ */
+
+.print-sheet {
+  display: none;
+}
+
+@page {
+  size: A4 portrait;
+  margin: 16mm 16mm 18mm 16mm;
+}
+
+@media print {
+  html,
+  body {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    display: block !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-family: "Noto Serif KR", "Nanum Myeongjo", "Batang", Georgia, serif !important;
+    font-size: 14pt !important;
+    line-height: 1.75 !important;
+    word-break: keep-all !important;
+    overflow-wrap: break-word !important;
+  }
+
+  .app-shell,
+  .modal-overlay,
+  .pulpit-overlay,
+  .toast,
+  .global-banner,
+  .no-print {
+    display: none !important;
+  }
+
+  #printSheet,
+  .print-sheet {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  .print-doc {
+    display: block !important;
+    width: 100% !important;
+    color: #000000 !important;
+  }
+
+  .print-doc h1 {
+    font-size: 22pt !important;
+    font-weight: 700 !important;
+    line-height: 1.35 !important;
+    margin-bottom: 8pt !important;
+    padding-bottom: 8pt !important;
+    border-bottom: 1.5pt solid #1F1A15 !important;
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  .print-doc h2,
+  .print-doc h3 {
+    font-size: 16pt !important;
+    font-weight: 700 !important;
+    line-height: 1.4 !important;
+    margin-top: 14pt !important;
+    margin-bottom: 6pt !important;
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  .print-section {
+    display: block !important;
+    margin-bottom: 16pt !important;
+    padding-bottom: 12pt !important;
+    border-bottom: 0.75pt solid #B5A998 !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .print-doc p,
+  .print-section p,
+  .print-section .rr-line {
+    font-size: 14pt !important;
+    line-height: 1.8 !important;
+    color: #000000 !important;
+    background: transparent !important;
+    border-color: #666666 !important;
+    white-space: pre-line !important;
+    margin-bottom: 6pt !important;
+  }
+}

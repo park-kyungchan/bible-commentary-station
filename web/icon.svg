@@ -1,29 +1,44 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
   <defs>
-    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#1A2B49"/>
-      <stop offset="100%" stop-color="#0B1320"/>
+    <linearGradient id="sanctuaryBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#22416E"/>
+      <stop offset="100%" stop-color="#142947"/>
     </linearGradient>
-    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#F6E05E"/>
-      <stop offset="100%" stop-color="#C59B27"/>
+    <linearGradient id="sanctuaryGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E8C272"/>
+      <stop offset="100%" stop-color="#C69238"/>
+    </linearGradient>
+    <linearGradient id="hanjiLeft" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#FAF6EE"/>
+      <stop offset="85%" stop-color="#F7F1E4"/>
+      <stop offset="100%" stop-color="#E7DBC5"/>
+    </linearGradient>
+    <linearGradient id="hanjiRight" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#E7DBC5"/>
+      <stop offset="15%" stop-color="#F7F1E4"/>
+      <stop offset="100%" stop-color="#FFFDF9"/>
     </linearGradient>
   </defs>
-  <rect width="512" height="512" rx="104" fill="url(#bg)"/>
-  <!-- Cross in Gold -->
-  <path d="M256 90 V200 M210 130 H302" stroke="url(#gold)" stroke-width="18" stroke-linecap="round"/>
-  <!-- Open Bible Pages -->
-  <path d="M110 240 C170 215, 230 220, 256 245 C282 220, 342 215, 402 240 V385 C342 360, 282 365, 256 390 C230 365, 170 360, 110 385 Z" fill="#FBF8F1" stroke="url(#gold)" stroke-width="8" stroke-linejoin="round"/>
-  <!-- Spine center line -->
-  <line x1="256" y1="245" x2="256" y2="390" stroke="#C59B27" stroke-width="5" stroke-linecap="round"/>
-  <!-- Page Lines Left -->
-  <line x1="140" y1="270" x2="230" y2="282" stroke="#CBD5E0" stroke-width="6" stroke-linecap="round"/>
-  <line x1="140" y1="300" x2="230" y2="312" stroke="#CBD5E0" stroke-width="6" stroke-linecap="round"/>
-  <line x1="140" y1="330" x2="230" y2="342" stroke="#CBD5E0" stroke-width="6" stroke-linecap="round"/>
-  <!-- Page Lines Right -->
-  <line x1="282" y1="282" x2="372" y2="270" stroke="#CBD5E0" stroke-width="6" stroke-linecap="round"/>
-  <line x1="282" y1="312" x2="372" y2="300" stroke="#CBD5E0" stroke-width="6" stroke-linecap="round"/>
-  <line x1="282" y1="342" x2="372" y2="330" stroke="#CBD5E0" stroke-width="6" stroke-linecap="round"/>
-  <!-- Alpha & Omega or Exegesis Ribbon -->
-  <path d="M256 245 L256 425 L244 412 L232 425 L232 245" fill="url(#gold)"/>
+  <rect width="512" height="512" rx="112" fill="url(#sanctuaryBg)"/>
+  <rect x="26" y="26" width="460" height="460" rx="90" fill="none" stroke="url(#sanctuaryGold)" stroke-opacity="0.32" stroke-width="3"/>
+  <!-- Cross -->
+  <path d="M256 90 V192 M214 130 H298" stroke="url(#sanctuaryGold)" stroke-width="18" stroke-linecap="round"/>
+  <!-- Book binding shadow -->
+  <path d="M98 250 C162 224, 224 228, 256 254 C288 228, 350 224, 414 250 V394 C350 368, 288 372, 256 398 C224 372, 162 368, 98 394 Z" fill="#0E1E34" opacity="0.45" transform="translate(0, 10)"/>
+  <!-- Open Hanji Bible pages -->
+  <path d="M104 242 C164 218, 226 222, 256 248 V388 C226 364, 164 360, 104 384 Z" fill="url(#hanjiLeft)" stroke="url(#sanctuaryGold)" stroke-width="7" stroke-linejoin="round"/>
+  <path d="M408 242 C348 218, 286 222, 256 248 V388 C286 364, 348 360, 408 384 Z" fill="url(#hanjiRight)" stroke="url(#sanctuaryGold)" stroke-width="7" stroke-linejoin="round"/>
+  <!-- Gold ribbon -->
+  <path d="M244 250 L268 250 L268 424 L256 410 L244 424 Z" fill="url(#sanctuaryGold)"/>
+  <!-- Spine crease -->
+  <line x1="256" y1="248" x2="256" y2="388" stroke="#B6842D" stroke-width="4" stroke-linecap="round"/>
+  <!-- Delicate page lines -->
+  <g stroke="#9E8F7B" stroke-width="5.5" stroke-linecap="round" opacity="0.65">
+    <line x1="136" y1="274" x2="222" y2="284"/>
+    <line x1="136" y1="304" x2="222" y2="314"/>
+    <line x1="136" y1="334" x2="210" y2="342"/>
+    <line x1="290" y1="284" x2="376" y2="274"/>
+    <line x1="290" y1="314" x2="376" y2="304"/>
+    <line x1="302" y1="342" x2="376" y2="334"/>
+  </g>
 </svg>
