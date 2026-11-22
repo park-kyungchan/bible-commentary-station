@@ -77,6 +77,84 @@ def _classify_hymn_21c(num: int) -> tuple[str, str, Dict[str, Any]]:
         return ('장례·추도·파송', '장례·파송', {'osis': 'REV', 'ch': 21, 'vs': 4, 'label': '요한계시록 21:4'})
     return ('예전·기도송·아멘', '주일경배', {'osis': 'PSA', 'ch': 150, 'vs': 6, 'label': '시편 150:6'})
 
+
+_BOOK_PREFIX_OSIS = {
+    "시편": "PSA", "잠언": "PRO", "이사야": "ISA", "마태복음": "MAT",
+    "요한복음": "JHN", "고린도후서": "2CO", "에베소서": "EPH",
+    "빌립보서": "PHP", "히브리서": "HEB", "요한1서": "1JN", "요한계시록": "REV",
+}
+
+def _merge_137_responsive_readings(curated_list: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    import json, re
+    from pathlib import Path
+
+    drive_map_path = Path(__file__).parent / "responsive_drive_ppts.json"
+    drive_map = json.loads(drive_map_path.read_text(encoding="utf-8")) if drive_map_path.exists() else {}
+    curated_by_num = {r["num"]: r for r in curated_list}
+
+    out: List[Dict[str, Any]] = []
+    for num in range(1, 138):
+        d = drive_map.get(str(num))
+        if d:
+            raw_name = re.sub(r"\.pptx?$", "", d["file"], flags=re.I)
+            raw_title = re.sub(r"^\d+번\s*-\s*", "", raw_name).replace("_", " ").strip()
+            drive_id = d["id"]
+            ppt_preview = f"https://drive.google.com/file/d/{drive_id}/preview"
+            ppt_view = f"https://drive.google.com/file/d/{drive_id}/view?usp=drivesdk"
+        else:
+            raw_title = "시편 2편" if num == 2 else f"교독문 {num}번"
+            drive_id = ""
+            ppt_preview = ""
+            ppt_view = ""
+
+        # Parse scripture book & chapter from title if present (e.g., "시편97편", "이사야 40장(1)")
+        osis, ch, start_vs, end_vs = "", 0, 1, 12
+        m = re.match(r"^(시편|잠언|이사야|마태복음|요한복음|고린도후서|에베소서|빌립보서|히브리서|요한1서|요한계시록)\s*(\d+)", raw_title)
+        if m:
+            osis = _BOOK_PREFIX_OSIS.get(m.group(1), "")
+            ch = int(m.group(2))
+            if "(2)" in raw_title:
+                start_vs, end_vs = 13, 31
+
+        # Classify season & group cleanly
+        if num <= 66:
+            season, group = "시편 교독", "주일예배"
+            if any(k in raw_title for k in ("23편", "27편", "37편", "46편", "63편", "91편", "121편", "130편")):
+                group = "위로·기도"
+            elif any(k in raw_title for k in ("34편", "65편", "67편", "96편", "98편", "100편", "103편", "104편", "118편", "136편", "145편", "148편", "149편", "150편")):
+                group = "감사·찬양"
+        elif num <= 87:
+            season, group = "구·신약 교독", "주일예배"
+        else:
+            season, group = "절기·예식", "절기·특별"
+            if "감사" in raw_title:
+                group = "감사·찬양"
+
+        # Preserve curated scripture range if exact match on same book/chapter
+        cur = curated_by_num.get(num)
+        if cur and cur.get("osis") == osis and cur.get("ch") == ch:
+            start_vs = cur["start_vs"]
+            end_vs = cur["end_vs"]
+            season = cur["season"]
+            group = cur["group"]
+        elif num == 2 and cur:
+            osis, ch, start_vs, end_vs = cur["osis"], cur["ch"], cur["start_vs"], cur["end_vs"]
+
+        out.append({
+            "num": num,
+            "title": raw_title,
+            "season": season,
+            "group": group,
+            "osis": osis,
+            "ch": ch,
+            "start_vs": start_vs,
+            "end_vs": end_vs,
+            "driveId": drive_id,
+            "pptPreviewUrl": ppt_preview,
+            "pptViewUrl": ppt_view,
+        })
+    return out
+
 def build_expanded_worship_catalog() -> Dict[str, Any]:
     # Theme groups: 주일경배 | 은혜·사랑 | 기도·위로 | 감사·헌신 | 절기·특별 | 장례·파송
     hymns: List[Dict[str, Any]] = [
@@ -247,6 +325,8 @@ def build_expanded_worship_catalog() -> Dict[str, Any]:
 
     curated_by_num = {h["num"]: h for h in hymns}
     hymns_645_path = Path(__file__).parent / "hymns_645.json"
+    hymns_ppt_path = Path(__file__).parent / "hymns_drive_ppts.json"
+    hymns_ppt_map = json.loads(hymns_ppt_path.read_text(encoding="utf-8")) if hymns_ppt_path.exists() else {}
     full_hymns: List[Dict[str, Any]] = []
     if hymns_645_path.exists():
         titles_map = json.loads(hymns_645_path.read_text(encoding="utf-8"))
@@ -256,6 +336,11 @@ def build_expanded_worship_catalog() -> Dict[str, Any]:
                 item = dict(curated_by_num[num])
                 item["section"] = section
                 item["featured"] = True
+                hp = hymns_ppt_map.get(str(num))
+                if hp:
+                    item["driveId"] = hp["id"]
+                    item["pptPreviewUrl"] = f"https://drive.google.com/file/d/{hp['id']}/preview"
+                    item["pptViewUrl"] = f"https://drive.google.com/file/d/{hp['id']}/view?usp=drivesdk"
                 full_hymns.append(item)
             else:
                 full_hymns.append({
@@ -266,6 +351,7 @@ def build_expanded_worship_catalog() -> Dict[str, Any]:
                     "section": section,
                     "featured": False,
                     "ref": default_ref,
+                    **({"driveId": hymns_ppt_map[str(num)]["id"], "pptPreviewUrl": f"https://drive.google.com/file/d/{hymns_ppt_map[str(num)]['id']}/preview", "pptViewUrl": f"https://drive.google.com/file/d/{hymns_ppt_map[str(num)]['id']}/view?usp=drivesdk"} if str(num) in hymns_ppt_map else {}),
                 })
     else:
         full_hymns = hymns
@@ -274,5 +360,5 @@ def build_expanded_worship_catalog() -> Dict[str, Any]:
         "hymnGroups": ["전체", "주일경배", "은혜·사랑", "기도·위로", "감사·헌신", "절기·특별", "장례·파송"],
         "responsiveGroups": ["전체", "주일예배", "위로·기도", "감사·찬양", "절기·특별"],
         "hymns": full_hymns,
-        "responsiveReadings": responsive_readings,
+        "responsiveReadings": _merge_137_responsive_readings(responsive_readings),
     }
