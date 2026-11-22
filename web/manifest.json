@@ -1,0 +1,19 @@
+{
+  "name": "성경주혜주석 — Biblical Exegesis & Sermon Workstation",
+  "short_name": "성경주혜주석",
+  "description": "성경 66권(개역한글 31,102절), 8대 주석 비교, 심층·연쇄 관주, 원어 스트롱코드, 다중 설교 스튜디오 및 강단 프롬프터 오프라인 PWA",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0F172A",
+  "theme_color": "#1E293B",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

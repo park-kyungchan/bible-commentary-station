@@ -1,0 +1,33 @@
+name: Bible Commentary Station CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install Python dependencies
+        run: pip install beautifulsoup4
+      - name: Build SQLite Dual-FTS5 DB, 66 Web Chunks & Zero-Cost Bundle
+        run: |
+          python -m bible_station.cli build --export-web --export-bundle
+          python -m bible_station.cli sync-drift
+      - name: Run Full Engineering Harness
+        run: python tests/run_harness.py
+      - name: Verify JavaScript Module Syntax (Node.js)
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: |
+          node --check web/js/storage.js
+          node --check web/js/bibleService.js
+          node --check web/js/app.js
+          node --check web/sw.js

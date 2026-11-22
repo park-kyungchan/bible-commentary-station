@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>큰글씨 성경주혜주석 — 누구나 쉽게 쓰는 성경 읽기 · 주석 · 설교 노트</title>
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="icon" href="./icon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="./css/workstation.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <!-- 1. 상단 안내 바 -->
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-icon">📖</span>
+        <span>성경주혜주석</span>
+      </div>
+
+      <div class="search-bar">
+        <input id="searchInput" type="search" placeholder="성경 말씀 찾기 (예: 요한복음 3장, 사랑, 독생자)" aria-label="성경 말씀 찾기" />
+        <button id="btnSearch" type="button" class="btn btn-primary">찾기</button>
+      </div>
+
+      <div class="topbar-controls">
+        <div class="font-stepper" aria-label="글자 크기 조절">
+          <button id="btnFontDec" type="button" title="글자 작게">작게 -</button>
+          <span id="fontSizeLabel">크게</span>
+          <button id="btnFontInc" type="button" title="글자 크게">크게 +</button>
+        </div>
+        <button id="btnThemeToggle" type="button" class="btn">🌙 어둡게</button>
+        <button id="btnHelp" type="button" class="btn">❓ 사용법</button>
+        <button id="btnPulpitTop" type="button" class="btn btn-accent">🎤 강단 큰 화면</button>
+      </div>
+    </header>
+
+    <!-- 2. 현재 성경 위치 & 오디오 낭독 바 -->
+    <div class="location-strip">
+      <button id="btnOpenPicker" type="button" class="current-place-btn">
+        <span id="currentPlaceText">창세기 22장</span>
+        <span style="font-size:14px;">▼ 성경 고르기</span>
+      </button>
+      <button id="btnPrevChap" type="button" class="btn">◀ 이전 장</button>
+      <button id="btnNextChap" type="button" class="btn">다음 장 ▶</button>
+      <button id="btnReadAloud" type="button" class="btn btn-soft">🔊 이 장 읽어주기</button>
+      <button id="btnBookmarks" type="button" class="btn">📌 표시한 말씀</button>
+      <button id="btnResume" type="button" class="resume-pill" style="display:none;">어제 읽던 곳 이어 읽기</button>
+    </div>
+
+    <!-- 3. 2단 화면: 왼쪽 성경 읽기 | 오른쪽 주석·연결 말씀·설교 노트 -->
+    <main class="workspace">
+      <section id="paneScripture" class="pane pane-scripture mobile-active" aria-label="성경 본문">
+        <div id="verseList" class="pane-scroll"></div>
+      </section>
+
+      <section id="paneStudy" class="pane pane-study" aria-label="주석 및 설교 노트">
+        <div class="study-tabs">
+          <button type="button" class="study-tab active" data-study-tab="commentary">📚 8대 주석</button>
+          <button type="button" class="study-tab" data-study-tab="crossref">🔗 연결 말씀</button>
+          <button type="button" class="study-tab" data-study-tab="strongs">🔤 원어 뜻</button>
+          <button type="button" class="study-tab" data-study-tab="studio">✍️ 설교 노트</button>
+        </div>
+        <div id="studyBody" class="pane-scroll"></div>
+      </section>
+    </main>
+
+    <!-- 모바일 전용 큼직한 하단 탭 -->
+    <nav class="mobile-nav" aria-label="화면 전환">
+      <button type="button" class="btn btn-primary" data-mobile-pane="paneScripture">📖 성경 읽기</button>
+      <button type="button" class="btn" data-mobile-pane="paneStudy">📚 주석 · 설교 노트</button>
+    </nav>
+  </div>
+
+  <!-- 성경 66권 · 장 고르기 쉬운 큰 모달 -->
+  <div id="pickerModal" class="modal-overlay" role="dialog" aria-modal="true" aria-label="성경과 장 고르기">
+    <div class="modal-box">
+      <div class="modal-head">
+        <h2 id="pickerTitle">1단계: 읽으실 성경을 눌러주세요</h2>
+        <button id="btnClosePicker" type="button" class="btn">닫기 ✕</button>
+      </div>
+      <div class="modal-body">
+        <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+          <button type="button" class="btn btn-primary" data-picker-test="OT">구약 성경 (39권)</button>
+          <button type="button" class="btn" data-picker-test="NT">신약 성경 (27권)</button>
+          <button id="btnBackToBooks" type="button" class="btn" style="display:none;margin-left:auto;">◀ 성경 목록으로</button>
+        </div>
+        <div id="pickerGrid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 어르신용 쉬운 사용 안내 모달 -->
+  <div id="helpModal" class="modal-overlay" role="dialog" aria-modal="true" aria-label="쉬운 사용 안내">
+    <div class="modal-box" style="max-width:620px;">
+      <div class="modal-head">
+        <h2>쉬운 사용 안내</h2>
+        <button id="btnCloseHelp" type="button" class="btn">닫기 ✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="card">
+          <h3>1. 성경 찾기와 읽기</h3>
+          <p>왼쪽 위의 <strong>[성경 고르기]</strong> 버튼을 누르면 구약·신약 66권을 큰 글씨로 고를 수 있습니다. 위쪽 <strong>[작게 - / 크게 +]</strong> 버튼으로 글자 크기를 편하게 조절하세요.</p>
+        </div>
+        <div class="card">
+          <h3>2. 말씀 듣기와 형광펜 표시</h3>
+          <p><strong>[🔊 이 장 읽어주기]</strong>를 누르면 소리로 성경을 읽어드립니다. 마음에 와닿는 절을 누르면 <strong>노랑·초록·분홍 형광펜</strong>으로 밑줄을 긋거나 <strong>[설교 노트에 담기]</strong>를 할 수 있습니다.</p>
+        </div>
+        <div class="card">
+          <h3>3. 주석 보기 · 설교 노트 · 강단 큰 화면</h3>
+          <p>성경 절을 하나 누르면 오른쪽에 <strong>8대 주석</strong>과 <strong>연결 말씀(관주)</strong>이 바로 나타납니다. 작성한 설교 노트는 <strong>[큰 글씨 인쇄]</strong>하거나 <strong>[🎤 강단 큰 화면]</strong>으로 바로 띄워 설교하실 수 있습니다.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 강단 큰 화면 프롬프터 (검정 바탕 · 흰 글씨 · 40pt 기본) -->
+  <div id="pulpitOverlay" class="pulpit-overlay" role="dialog" aria-modal="true" aria-label="강단 큰 화면 모드">
+    <div class="pulpit-bar">
+      <span id="pulpitProgress" style="font-size:20px;font-weight:800;color:#fbbf24;">1 / 1</span>
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+        <button id="btnPulpitSmaller" type="button" class="btn btn-sm">글자 작게</button>
+        <button id="btnPulpitBigger" type="button" class="btn btn-sm">글자 크게</button>
+        <span id="pulpitTimer" style="font-size:26px;font-weight:800;font-family:monospace;color:#fbbf24;">30:00</span>
+        <button id="btnTimerToggle" type="button" class="btn btn-sm">일시정지</button>
+        <button id="btnPulpitClose" type="button" class="btn btn-accent btn-sm">강단 화면 닫기</button>
+      </div>
+    </div>
+    <div class="pulpit-stage">
+      <div class="pulpit-zones">
+        <div id="pulpitPrevZone" class="pulpit-zone" title="이전 페이지"></div>
+        <div id="pulpitNextZone" class="pulpit-zone" title="다음 페이지"></div>
+      </div>
+      <div class="pulpit-content">
+        <h1 id="pulpitTitle" class="pulpit-title"></h1>
+        <div id="pulpitBody" class="pulpit-body"></div>
+      </div>
+    </div>
+    <div class="pulpit-footer">
+      <button id="btnPulpitPrev" type="button" class="btn">◀ 이전 대지</button>
+      <button id="btnPulpitNext" type="button" class="btn btn-accent">다음 대지 ▶</button>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script type="module" src="./js/app.js"></script>
+</body>
+</html>

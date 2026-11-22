@@ -1,45 +1,35 @@
-# 성경주혜주석 (Biblical Exegesis & Commentary Pastoral Workstation)
+# 성경주혜주석 v2.0 (Bible Commentary Station)
 
-> 박우호 목사님의 성경 연구, 주석 비교, 심층 관주 탐색, 설교 준비를 위한 전용 워크스테이션 (차후 다수 목회자 확장형 아키텍처)
+> **오프라인-퍼스트(Offline-First) 성경 66권(31,102절) · 8대 주석 비교 · 심층/연쇄 관주 · 다중 설교 스튜디오 · 강단 프롬프터 워크스테이션**  
+> **Zero-Cost ($0.00) 아키텍처**: 유료 종량제 클라우드 없이 로컬 SQLite Dual-FTS5 + 정적 PWA + GitHub Releases/Google Drive 연동으로 동작합니다.
 
----
+## 주요 아키텍처 (v2.0 전면 개편)
 
-## 🌐 실시간 공개 웹앱 접속 (Live URL - $0.00 무과금 배포)
+1. **SSOT(단일 진실 원천) 코어 패키지 (`bible_station/`)**
+   - `canon.py`: 성경 66권 정경 메타데이터(구약 39 + 신약 27 = 31,102절), 8대 주석(교파 중립적 학술 설명), 구절 ID 공식.
+   - `schema.py`: **External-Content Dual FTS5 (`unicode61` + `trigram`) + SQLite 자동 동기화 트리거** 및 Flutter Drift 스키마 자동 생성기(`sync-drift`).
+   - `search.py`: 2글자 한글 어근(`사랑`)과 3글자 이상 부분 문자열(`독생자`, `모리아`)을 모두 0.1~5ms 이내로 검색하고 FTS5 구문 인젝션을 차단하는 하이브리드 검색 엔진.
+   - `builder.py` & `cli.py`: 100% 멱등(Idempotent) DB 빌더, 66권 지연 로딩 웹 청크 생성기(초기 로딩 4.3MB -> 평균 68KB, 98.4% 절감), 실측 통계 기반 SHA-256 Zero-Cost 번들러.
+2. **모듈형 오프라인 PWA (`web/`)**
+   - 2,798줄 단일 `index.html` 모놀리스를 `index.html` + `css/workstation.css` + ES Modules(`storage.js`, `bibleService.js`, `app.js`) + 오프라인-퍼스트 `sw.js`로 완전 분해.
+   - IndexedDB 다중 설교 아카이브(기존 `localStorage` 자동 마이그레이션, Markdown/JSON 백업), 8대 주석 **2종 나란히 비교 모드**, XSS-safe DOM 렌더링, 설교 스튜디오와 **실시간 연동되는 WCAG AAA 21:1 강단 프롬프터**.
+3. **Flutter Clean Architecture (`lib/`)**
+   - `Colors.emerald` 컴파일 오류 및 `gdrive_service.dart` UTF-8 바이트 길이 버그 수정.
+   - `BibleRepository` 인터페이스 + `SqliteBibleRepository` 실구현 + `WorkstationController` 상태관리 + 스트리밍·SHA-256·원자적 교체(Atomic Swap) `ArtifactSyncService`.
+4. **실측 기반 검증 하네스 (`tests/`) & CI (`.github/workflows/ci.yml`)**
+   - 하드코딩 `PASS`와 동어반복 테스트를 제거하고 31,102절 DB·FTS5 멱등성·웹 청크·Flutter 정적 회귀를 실제 검증합니다.
 
-- GitHub Pages was retired on 2026-09-26: its deployment workflow and hosted URL were removed; the former URL returns HTTP 404. The Cloudflare Pages site is separate.
+## 빠른 시작 (Quick Start)
 
-- **무설치 즉시 사용**: Tailscale VPN이나 별도 환경 설정 없이 외부 일반 PC, 맥북, 아이패드, 갤럭시 탭, 스마트폰 브라우저에서 즉시 실행됩니다.
-- **PWA (프로그레시브 웹앱) 지원**: Safari(iOS/iPadOS) 또는 Chrome/Edge(Android/PC)에서 **"홈 화면에 추가"** 또는 **"앱으로 설치"**를 누르면 전체화면 네이티브 앱 모드로 사용하실 수 있습니다.
+```bash
+# 1. SQLite Dual-FTS5 마스터 DB + 66권 웹 청크 + Zero-Cost 번들 일괄 빌드
+python3 -m bible_station.cli build --export-web --export-bundle
+python3 -m bible_station.cli sync-drift
 
----
+# 2. 전체 엔지니어링 하네스 실행 (docs/HARNESS_REPORT.md 실측 갱신)
+python3 tests/run_harness.py
 
-## 📌 주요 기능 요약
-
-1. **8종 대표 성경 주석 비교**:
-   - 옥스포드 원어성경대전, 웨슬리 주석, 호크마 종합주석, 그랜드 종합주석, 카리스마 주석, 매튜 헨리 주석, 베이커 성경배경주석, ESV 성경해설주석
-2. **성경 관주(串珠, Cross-References) & 인물 연쇄 관주(Chain-Ref)**:
-   - 본문 구절과 짝을 이루는 관주 성구의 **실제 성경 본문 전문(Full Text)** 즉시 확인
-   - **이삭(Isaac)**, 아브라함 등 인물 클릭 시 성경 전체를 관통하는 생애 구속사 사슬망 및 설교 포인트 제공
-3. **원어 형태론 분해 & 스트롱코드**:
-   - 히브리어/헬라어 스트롱 번호 칩 및 렉시콘 팝업
-4. **설교 스튜디오 & 원클릭 인용**:
-   - 주석 및 관주 구절에서 클릭 한 번으로 설교 대지 카드로 스크랩 및 편집
-5. **강단 설교 프롬프터 모드 (Pulpit Mode)**:
-   - 성구대 거치 전용 대형 폰트, 실시간 타이머, 무소음 75%/25% 터치 탭 페이징
-6. **디바이스 최적화**:
-   - Galaxy Z Fold 6 (접힘 1열 & 펼침 3패널), iPad (11인치), PC 데스크톱 반응형 지원
-
----
-
-## 🚀 빠른 시작 (Quick Start)
-
-### 1. 인터랙티브 웹 프로토타입 실행
-```powershell
-python -m http.server 8080 --directory "C:\Users\packr\Desktop\성경주혜주석\prototype"
-# 브라우저에서 http://localhost:8080 접속
-```
-
-### 2. SQLite FTS5 데이터베이스 빌드 및 GCP 패키징
-```powershell
-python "C:\Users\packr\Desktop\성경주혜주석\scripts\data_pipeline\build_bible_db.py" --sample --export-gcp
+# 3. 오프라인-퍼스트 웹 워크스테이션 로컬 실행
+python3 -m http.server 8090 --directory web
+# 브라우저에서 http://localhost:8090 접속
 ```

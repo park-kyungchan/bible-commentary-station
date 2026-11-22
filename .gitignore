@@ -47,3 +47,11 @@ Thumbs.db
 .flutter-plugins
 .flutter-plugins-dependencies
 .packages
+
+# v2.0 generated build artifacts
+data/bible_pastoral_core.db
+data/bible_pastoral_core.db-wal
+data/bible_pastoral_core.db-shm
+dist/*.gz
+__pycache__/
+*.pyc

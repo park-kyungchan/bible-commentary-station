@@ -1,0 +1,388 @@
+"""
+Unified SQLite Schema (v2.0) with:
+- External-content FTS5 tables + automatic INSERT/UPDATE/DELETE triggers (zero duplication, zero drift)
+- Dual Korean FTS5 indexing: unicode61 (exact/prefix) + trigram (3+ char arbitrary substring)
+- Explicit provenance & rights tracking (replaces self-bricking hard-false gate)
+- Automatic Drift (.drift) schema generator so Flutter and Python never diverge
+"""
+
+from __future__ import annotations
+
+from pathlib import Path
+from typing import List
+
+SCHEMA_VERSION = 2
+
+CORE_TABLES_DDL: List[str] = [
+    """
+    CREATE TABLE IF NOT EXISTS schema_migrations (
+        version INTEGER PRIMARY KEY,
+        applied_at TEXT NOT NULL DEFAULT (datetime('now')),
+        description TEXT NOT NULL
+    );
+    """,
+    """
+    CREATE TABLE IF NOT EXISTS source_provenance (
+        source_id TEXT PRIMARY KEY,
+        category TEXT NOT NULL CHECK(category IN ('BIBLE', 'COMMENTARY', 'LEXICON', 'CROSS_REF', 'CHAIN_REF')),
+        title TEXT NOT NULL,
+        rights_status TEXT NOT NULL CHECK(rights_status IN ('PUBLIC_DOMAIN', 'LICENSED_LOCAL', 'SAMPLE_EXEGESIS', 'USER_AUTHORED')),
+        attribution TEXT NOT NULL,
+        source_url TEXT,
+        verified_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    """,
+    """
+    CREATE TABLE IF NOT EXISTS bible_books (
+        book_id INTEGER PRIMARY KEY,
+        osis_code TEXT NOT NULL UNIQUE,
+        name_kr TEXT NOT NULL,
+        name_kr_abbr TEXT NOT NULL,
+        name_en TEXT NOT NULL,
+        testament TEXT NOT NULL CHECK(testament IN ('OT', 'NT')),
+        category TEXT NOT NULL,
+        total_chapters INTEGER NOT NULL,
+        total_verses INTEGER NOT NULL
+    );
+    """,
+    """
+    CREATE TABLE IF NOT EXISTS bible_versions (
+        version_code TEXT PRIMARY KEY,
+        name_kr TEXT NOT NULL,
+        name_en TEXT NOT NULL,
+        language TEXT NOT NULL,
+        is_original_lang INTEGER NOT NULL DEFAULT 0,
+        is_default INTEGER NOT NULL DEFAULT 0,
+        copyright_notice TEXT
+    );
+    """,
+    """
+    CREATE TABLE IF NOT EXISTS bible_verses (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        verse_id INTEGER NOT NULL,
+        book_id INTEGER NOT NULL,
+        chapter INTEGER NOT NULL,
+        verse INTEGER NOT NULL,
+        version_code TEXT NOT NULL,
+        text TEXT NOT NULL,
+        text_with_strong TEXT,
+        provenance_id TEXT REFERENCES source_provenance(source_id),
+        created_at TEXT DEFAULT (datetime('now')),
+        UNIQUE (version_code, verse_id),
+        FOREIGN KEY (book_id) REFERENCES bible_books(book_id),
+        FOREIGN KEY (version_code) REFERENCES bible_versions(version_code)
+    );
+    """,
+    "CREATE INDEX IF NOT EXISTS idx_bible_verses_nav ON bible_verses(version_code, book_id, chapter, verse);",
+    "CREATE INDEX IF NOT EXISTS idx_bible_verses_range ON bible_verses(version_code, verse_id);",
+    """
+    CREATE TABLE IF NOT EXISTS commentary_sources (
+        source_code TEXT PRIMARY KEY,
+        name_kr TEXT NOT NULL,
+        name_en TEXT NOT NULL,
+        author TEXT,
+        description TEXT,
+        theological_stance TEXT,
+        is_public_domain INTEGER NOT NULL DEFAULT 0,
+        access_type TEXT NOT NULL,
+        sort_order INTEGER NOT NULL DEFAULT 99
+    );
+    """,
+    """
+    CREATE TABLE IF NOT EXISTS commentaries (
+        commentary_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        source_code TEXT NOT NULL,
+        book_id INTEGER NOT NULL,
+        chapter_start INTEGER NOT NULL,
+        verse_start INTEGER NOT NULL,
+        chapter_end INTEGER NOT NULL,
+        verse_end INTEGER NOT NULL,
+        verse_start_id INTEGER NOT NULL,
+        verse_end_id INTEGER NOT NULL,
+        passage_display TEXT NOT NULL,
+        title TEXT NOT NULL DEFAULT '',
+        content_markdown TEXT NOT NULL,
+        content_html TEXT,
+        theological_tags TEXT,
+        practical_points TEXT,
+        provenance_id TEXT REFERENCES source_provenance(source_id),
+        created_at TEXT DEFAULT (datetime('now')),
+        UNIQUE (source_code, verse_start_id, verse_end_id, title),
+        FOREIGN KEY (source_code) REFERENCES commentary_sources(source_code),
+        FOREIGN KEY (book_id) REFERENCES bible_books(book_id),
+        CHECK (verse_start_id <= verse_end_id)
+    );
+    """,
+    "CREATE INDEX IF NOT EXISTS idx_commentary_lookup ON commentaries(source_code, verse_start_id, verse_end_id);",
+    "CREATE INDEX IF NOT EXISTS idx_commentary_span ON commentaries(verse_start_id, verse_end_id);",
+    "CREATE INDEX IF NOT EXISTS idx_commentary_book_chap ON commentaries(source_code, book_id, chapter_start);",
+    """
+    CREATE TABLE IF NOT EXISTS strong_lexicon (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        strong_id TEXT NOT NULL UNIQUE,
+        language TEXT NOT NULL CHECK(language IN ('HEBREW', 'GREEK', 'ARAMAIC')),
+        lemma TEXT NOT NULL,
+        transliteration TEXT,
+        pronunciation TEXT,
+        part_of_speech TEXT,
+        definition_kr TEXT NOT NULL,
+        definition_en TEXT,
+        root_id TEXT,
+        derivation TEXT,
+        occurrence_count INTEGER DEFAULT 0
+    );
+    """,
+    "CREATE INDEX IF NOT EXISTS idx_strong_lang ON strong_lexicon(language);",
+    """
+    CREATE TABLE IF NOT EXISTS cross_references (
+        ref_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        from_verse_id INTEGER NOT NULL,
+        to_verse_id INTEGER NOT NULL,
+        score REAL DEFAULT 1.0,
+        relationship_type TEXT DEFAULT 'THEMATIC' CHECK(
+            relationship_type IN ('QUOTATION', 'PARALLEL', 'THEMATIC', 'PROPHECY_FULFILLMENT', 'EXPLANATORY')
+        ),
+        note TEXT,
+        UNIQUE (from_verse_id, to_verse_id, relationship_type)
+    );
+    """,
+    "CREATE INDEX IF NOT EXISTS idx_cross_ref_from ON cross_references(from_verse_id, score DESC);",
+    "CREATE INDEX IF NOT EXISTS idx_cross_ref_to ON cross_references(to_verse_id);",
+    """
+    CREATE TABLE IF NOT EXISTS chain_topics (
+        topic_key TEXT PRIMARY KEY,
+        title TEXT NOT NULL,
+        meaning TEXT NOT NULL,
+        summary TEXT NOT NULL
+    );
+    """,
+    """
+    CREATE TABLE IF NOT EXISTS chain_links (
+        link_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        topic_key TEXT NOT NULL REFERENCES chain_topics(topic_key) ON DELETE CASCADE,
+        verse_id INTEGER NOT NULL,
+        passage_display TEXT NOT NULL,
+        stage_label TEXT NOT NULL,
+        sermon_point TEXT NOT NULL,
+        sort_order INTEGER NOT NULL DEFAULT 0,
+        UNIQUE (topic_key, verse_id)
+    );
+    """,
+    "CREATE INDEX IF NOT EXISTS idx_chain_links_topic ON chain_links(topic_key, sort_order);",
+    """
+    CREATE TABLE IF NOT EXISTS sermons (
+        sermon_id TEXT PRIMARY KEY,
+        title TEXT NOT NULL,
+        preacher TEXT NOT NULL DEFAULT '목회자',
+        sermon_date TEXT NOT NULL,
+        service_type TEXT NOT NULL DEFAULT '주일대예배',
+        scripture_ref TEXT NOT NULL,
+        passage_start_id INTEGER,
+        passage_end_id INTEGER,
+        series_title TEXT,
+        target_duration_mins INTEGER DEFAULT 30,
+        outline_json TEXT NOT NULL DEFAULT '[]',
+        full_text_markdown TEXT,
+        pulpit_slides_json TEXT,
+        tags TEXT,
+        gdrive_file_id TEXT,
+        sync_status TEXT DEFAULT 'LOCAL_ONLY' CHECK(
+            sync_status IN ('LOCAL_ONLY', 'SYNCED', 'PENDING_UPLOAD', 'PENDING_DOWNLOAD', 'CONFLICT')
+        ),
+        local_updated_at TEXT DEFAULT (datetime('now')),
+        gdrive_synced_at TEXT
+    );
+    """,
+    "CREATE INDEX IF NOT EXISTS idx_sermons_date ON sermons(sermon_date DESC);",
+    """
+    CREATE TABLE IF NOT EXISTS sermon_clips (
+        clip_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        sermon_id TEXT NOT NULL REFERENCES sermons(sermon_id) ON DELETE CASCADE,
+        source_type TEXT NOT NULL CHECK(source_type IN ('COMMENTARY', 'BIBLE', 'STRONG', 'CROSS_REF', 'CHAIN_REF')),
+        source_code TEXT,
+        quote_text TEXT NOT NULL,
+        commentary_title TEXT,
+        pastor_note TEXT,
+        target_outline_section TEXT,
+        order_index INTEGER DEFAULT 0,
+        created_at TEXT DEFAULT (datetime('now'))
+    );
+    """,
+    "CREATE INDEX IF NOT EXISTS idx_sermon_clips ON sermon_clips(sermon_id, order_index);",
+]
+
+# External-content FTS5 virtual tables + triggers for zero-duplication, automatic sync
+FTS5_AND_TRIGGERS_DDL: List[str] = [
+    # 1. Bible Verses: Dual FTS5 (unicode61 for prefix/exact + trigram for 3+ char Korean substring)
+    """
+    CREATE VIRTUAL TABLE IF NOT EXISTS fts_bible_verses_unicode USING fts5(
+        text,
+        content='bible_verses',
+        content_rowid='id',
+        tokenize='unicode61 remove_diacritics 2'
+    );
+    """,
+    """
+    CREATE VIRTUAL TABLE IF NOT EXISTS fts_bible_verses_trigram USING fts5(
+        text,
+        content='bible_verses',
+        content_rowid='id',
+        tokenize='trigram'
+    );
+    """,
+    """
+    CREATE TRIGGER IF NOT EXISTS trg_bible_verses_ai AFTER INSERT ON bible_verses BEGIN
+        INSERT INTO fts_bible_verses_unicode(rowid, text) VALUES (new.id, new.text);
+        INSERT INTO fts_bible_verses_trigram(rowid, text) VALUES (new.id, new.text);
+    END;
+    """,
+    """
+    CREATE TRIGGER IF NOT EXISTS trg_bible_verses_ad AFTER DELETE ON bible_verses BEGIN
+        INSERT INTO fts_bible_verses_unicode(fts_bible_verses_unicode, rowid, text) VALUES('delete', old.id, old.text);
+        INSERT INTO fts_bible_verses_trigram(fts_bible_verses_trigram, rowid, text) VALUES('delete', old.id, old.text);
+    END;
+    """,
+    """
+    CREATE TRIGGER IF NOT EXISTS trg_bible_verses_au AFTER UPDATE ON bible_verses BEGIN
+        INSERT INTO fts_bible_verses_unicode(fts_bible_verses_unicode, rowid, text) VALUES('delete', old.id, old.text);
+        INSERT INTO fts_bible_verses_trigram(fts_bible_verses_trigram, rowid, text) VALUES('delete', old.id, old.text);
+        INSERT INTO fts_bible_verses_unicode(rowid, text) VALUES (new.id, new.text);
+        INSERT INTO fts_bible_verses_trigram(rowid, text) VALUES (new.id, new.text);
+    END;
+    """,
+    # 2. Commentaries: Dual FTS5
+    """
+    CREATE VIRTUAL TABLE IF NOT EXISTS fts_commentaries_unicode USING fts5(
+        passage_display,
+        title,
+        content_markdown,
+        theological_tags,
+        content='commentaries',
+        content_rowid='commentary_id',
+        tokenize='unicode61 remove_diacritics 2'
+    );
+    """,
+    """
+    CREATE VIRTUAL TABLE IF NOT EXISTS fts_commentaries_trigram USING fts5(
+        passage_display,
+        title,
+        content_markdown,
+        theological_tags,
+        content='commentaries',
+        content_rowid='commentary_id',
+        tokenize='trigram'
+    );
+    """,
+    """
+    CREATE TRIGGER IF NOT EXISTS trg_commentaries_ai AFTER INSERT ON commentaries BEGIN
+        INSERT INTO fts_commentaries_unicode(rowid, passage_display, title, content_markdown, theological_tags)
+        VALUES (new.commentary_id, new.passage_display, new.title, new.content_markdown, new.theological_tags);
+        INSERT INTO fts_commentaries_trigram(rowid, passage_display, title, content_markdown, theological_tags)
+        VALUES (new.commentary_id, new.passage_display, new.title, new.content_markdown, new.theological_tags);
+    END;
+    """,
+    """
+    CREATE TRIGGER IF NOT EXISTS trg_commentaries_ad AFTER DELETE ON commentaries BEGIN
+        INSERT INTO fts_commentaries_unicode(fts_commentaries_unicode, rowid, passage_display, title, content_markdown, theological_tags)
+        VALUES('delete', old.commentary_id, old.passage_display, old.title, old.content_markdown, old.theological_tags);
+        INSERT INTO fts_commentaries_trigram(fts_commentaries_trigram, rowid, passage_display, title, content_markdown, theological_tags)
+        VALUES('delete', old.commentary_id, old.passage_display, old.title, old.content_markdown, old.theological_tags);
+    END;
+    """,
+    """
+    CREATE TRIGGER IF NOT EXISTS trg_commentaries_au AFTER UPDATE ON commentaries BEGIN
+        INSERT INTO fts_commentaries_unicode(fts_commentaries_unicode, rowid, passage_display, title, content_markdown, theological_tags)
+        VALUES('delete', old.commentary_id, old.passage_display, old.title, old.content_markdown, old.theological_tags);
+        INSERT INTO fts_commentaries_trigram(fts_commentaries_trigram, rowid, passage_display, title, content_markdown, theological_tags)
+        VALUES('delete', old.commentary_id, old.passage_display, old.title, old.content_markdown, old.theological_tags);
+        INSERT INTO fts_commentaries_unicode(rowid, passage_display, title, content_markdown, theological_tags)
+        VALUES (new.commentary_id, new.passage_display, new.title, new.content_markdown, new.theological_tags);
+        INSERT INTO fts_commentaries_trigram(rowid, passage_display, title, content_markdown, theological_tags)
+        VALUES (new.commentary_id, new.passage_display, new.title, new.content_markdown, new.theological_tags);
+    END;
+    """,
+    # 3. Strong's Lexicon FTS5
+    """
+    CREATE VIRTUAL TABLE IF NOT EXISTS fts_strong_lexicon USING fts5(
+        strong_id,
+        lemma,
+        transliteration,
+        definition_kr,
+        definition_en,
+        content='strong_lexicon',
+        content_rowid='id',
+        tokenize='unicode61 remove_diacritics 2'
+    );
+    """,
+    """
+    CREATE TRIGGER IF NOT EXISTS trg_strong_ai AFTER INSERT ON strong_lexicon BEGIN
+        INSERT INTO fts_strong_lexicon(rowid, strong_id, lemma, transliteration, definition_kr, definition_en)
+        VALUES (new.id, new.strong_id, new.lemma, new.transliteration, new.definition_kr, new.definition_en);
+    END;
+    """,
+    """
+    CREATE TRIGGER IF NOT EXISTS trg_strong_ad AFTER DELETE ON strong_lexicon BEGIN
+        INSERT INTO fts_strong_lexicon(fts_strong_lexicon, rowid, strong_id, lemma, transliteration, definition_kr, definition_en)
+        VALUES('delete', old.id, old.strong_id, old.lemma, old.transliteration, old.definition_kr, old.definition_en);
+    END;
+    """,
+    """
+    CREATE TRIGGER IF NOT EXISTS trg_strong_au AFTER UPDATE ON strong_lexicon BEGIN
+        INSERT INTO fts_strong_lexicon(fts_strong_lexicon, rowid, strong_id, lemma, transliteration, definition_kr, definition_en)
+        VALUES('delete', old.id, old.strong_id, old.lemma, old.transliteration, old.definition_kr, old.definition_en);
+        INSERT INTO fts_strong_lexicon(rowid, strong_id, lemma, transliteration, definition_kr, definition_en)
+        VALUES (new.id, new.strong_id, new.lemma, new.transliteration, new.definition_kr, new.definition_en);
+    END;
+    """,
+]
+
+SQLITE_DDL_STATEMENTS: List[str] = CORE_TABLES_DDL + FTS5_AND_TRIGGERS_DDL
+
+
+DRIFT_QUERIES = """
+-- Type-Safe Drift Queries (Auto-generated alongside SSOT schema)
+getChapterVerses:
+SELECT * FROM bible_verses
+WHERE version_code = :versionCode AND book_id = :bookId AND chapter = :chapter
+ORDER BY verse ASC;
+
+getCommentariesForVerse:
+SELECT c.*, s.name_kr AS source_name, s.theological_stance
+FROM commentaries c
+JOIN commentary_sources s ON c.source_code = s.source_code
+WHERE :verseId BETWEEN c.verse_start_id AND c.verse_end_id
+ORDER BY s.sort_order ASC;
+
+getCrossReferencesForVerse:
+SELECT cr.*, v.text, b.name_kr AS to_book_name, v.chapter AS to_chapter, v.verse AS to_verse
+FROM cross_references cr
+LEFT JOIN bible_verses v ON cr.to_verse_id = v.verse_id AND v.version_code = :versionCode
+JOIN bible_books b ON (cr.to_verse_id / 1000000) = b.book_id
+WHERE cr.from_verse_id = :verseId
+ORDER BY cr.score DESC;
+
+getChainLinksForTopic:
+SELECT cl.*, v.text AS verse_text
+FROM chain_links cl
+LEFT JOIN bible_verses v ON cl.verse_id = v.verse_id AND v.version_code = :versionCode
+WHERE cl.topic_key = :topicKey
+ORDER BY cl.sort_order ASC;
+
+getStrongWord:
+SELECT * FROM strong_lexicon WHERE strong_id = :strongId;
+
+listSermons:
+SELECT * FROM sermons ORDER BY sermon_date DESC, local_updated_at DESC;
+"""
+
+
+def generate_drift_schema(output_path: Path) -> Path:
+    """Emit Drift-compatible SQL schema directly from Python SSOT so both layers stay 100% synced."""
+    header = (
+        "-- AUTO-GENERATED FROM bible_station/schema.py (SSOT v2.0)\n"
+        "-- Do not edit manually; run `python -m bible_station.cli sync-drift`.\n\n"
+    )
+    body = "\n\n".join(stmt.strip() for stmt in SQLITE_DDL_STATEMENTS)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.write_text(header + body + "\n\n" + DRIFT_QUERIES.strip() + "\n", encoding="utf-8")
+    return output_path
