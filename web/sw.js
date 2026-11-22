@@ -1,12 +1,5 @@
-/**
- * Offline-First Service Worker (v2.0)
- * - Precaches App Shell + lightweight manifest & exegesis metadata
- * - Cache-First for immutable per-book KRV chunks (./data/krv/*.json)
- * - Stale-While-Revalidate for app shell assets
- */
-
-const SHELL_CACHE = 'bible-station-shell-v2';
-const CORPUS_CACHE = 'bible-station-corpus-v2';
+const SHELL_CACHE = 'bible-station-shell-v3';
+const CORPUS_CACHE = 'bible-station-corpus-v3';
 
 const SHELL_ASSETS = [
   './',
@@ -19,13 +12,12 @@ const SHELL_ASSETS = [
   './js/app.js',
   './data/manifest.json',
   './data/exegesis.json',
+  './data/worship.json',
 ];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(SHELL_CACHE)
-      .then((cache) => cache.addAll(SHELL_ASSETS))
-      .then(() => self.skipWaiting())
+    caches.open(SHELL_CACHE).then((cache) => cache.addAll(SHELL_ASSETS)).then(() => self.skipWaiting())
   );
 });
 
@@ -43,7 +35,6 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
   if (url.origin !== self.location.origin) return;
 
-  // Per-book KRV chunks: Cache-First for instant offline reading
   if (url.pathname.includes('/data/krv/')) {
     event.respondWith(
       caches.open(CORPUS_CACHE).then(async (cache) => {
@@ -57,15 +48,12 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // App shell: Stale-While-Revalidate
   event.respondWith(
     caches.open(SHELL_CACHE).then(async (cache) => {
       const cached = await cache.match(event.request);
       const networkPromise = fetch(event.request)
         .then((resp) => {
-          if (resp && resp.ok && resp.type === 'basic') {
-            cache.put(event.request, resp.clone());
-          }
+          if (resp && resp.ok && resp.type === 'basic') cache.put(event.request, resp.clone());
           return resp;
         })
         .catch(() => cached);

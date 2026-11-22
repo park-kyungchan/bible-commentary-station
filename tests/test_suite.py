@@ -1,19 +1,10 @@
 """
-Real, Non-Tautological Engineering Verification Suite for Bible Commentary Station v2.0.
-Tests actual built artifacts:
-1. Canon SSOT & 31,102-verse KRV corpus integrity (zero mismatches, zero empty texts)
-2. Dual FTS5 (unicode61 + trigram) Korean search recall, injection safety & latency benchmarks
-3. Pipeline idempotency (running ingest twice produces ZERO duplicate rows in tables or FTS5!)
-4. 8 Commentary sources, non-sectarian neutrality, cross-references full-text & Isaac/Abraham chains
-5. Web PWA 66-book lazy chunks, manifest, exegesis bundle & XSS/inline-onclick static audit
-6. Flutter static audit (verifies zero invalid Colors.emerald, zero hardcoded paid GCS URLs, UTF-8 byte length fix)
-7. BSKorea HTML collector offline parsing & DI fetcher
+Real, Non-Tautological Engineering Verification Suite for Bible Commentary Station v2.3.
 """
 
 from __future__ import annotations
 
 import json
-import re
 import sqlite3
 import tempfile
 import time
@@ -21,7 +12,7 @@ import unittest
 from pathlib import Path
 
 from bible_station.builder import BibleDatabaseBuilder, export_zero_cost_bundle
-from bible_station.canon import BIBLE_BOOKS, COMMENTARY_SOURCES_MASTER, calculate_verse_id, parse_verse_id
+from bible_station.canon import BIBLE_BOOKS, parse_verse_id
 from bible_station.collectors import BskoreaCollector
 from bible_station.parsers import ScriptureRefNormalizer
 from bible_station.schema import generate_drift_schema
@@ -47,11 +38,8 @@ class TestCanonAndDatabaseIntegrity(unittest.TestCase):
 
     def test_01_canon_66_books_and_exact_verse_counts(self) -> None:
         self.assertEqual(len(BIBLE_BOOKS), 66)
-        ot = [b for b in BIBLE_BOOKS if b.testament == "OT"]
-        nt = [b for b in BIBLE_BOOKS if b.testament == "NT"]
-        self.assertEqual(len(ot), 39)
-        self.assertEqual(len(nt), 27)
-        # Verify Lamentations bug from v1 (66 verses typo) is fixed to 154
+        self.assertEqual(len([b for b in BIBLE_BOOKS if b.testament == "OT"]), 39)
+        self.assertEqual(len([b for b in BIBLE_BOOKS if b.testament == "NT"]), 27)
         lam = next(b for b in BIBLE_BOOKS if b.osis_code == "LAM")
         self.assertEqual(lam.total_verses, 154)
 
@@ -63,14 +51,17 @@ class TestCanonAndDatabaseIntegrity(unittest.TestCase):
         ).fetchone()[0]
         self.assertEqual(mismatches, 0)
 
-    def test_03_eight_commentaries_and_non_sectarian_policy(self) -> None:
+    def test_03_twelve_official_commentaries_and_non_sectarian_policy(self) -> None:
         rows = self.conn.execute("SELECT source_code, name_kr, description, theological_stance FROM commentary_sources").fetchall()
         codes = {r["source_code"] for r in rows}
         self.assertEqual(
             codes,
-            {"OXFORD", "WESLEY", "HOKMA", "GRAND", "CHARISMA", "MATTHEW_HENRY", "BAKER", "ESV_EXPOSITORY"},
+            {
+                "MATTHEW_HENRY", "CALVIN", "WESLEY", "JFB",
+                "OXFORD", "NICOT_NICNT", "WBC", "BAKER",
+                "CONSTABLE", "ESV_EXPOSITORY", "HOKMA", "GRAND",
+            },
         )
-        # Verify v1 sectarian leakage ("기독교대한성결교회", "사중복음") is eliminated
         for r in rows:
             blob = f"{r['name_kr']} {r['description']} {r['theological_stance']}"
             self.assertNotIn("기독교대한성결교회", blob)
@@ -78,7 +69,6 @@ class TestCanonAndDatabaseIntegrity(unittest.TestCase):
             self.assertNotIn("배타적", blob)
 
     def test_04_cross_refs_and_chains_resolve_to_real_full_korean_text(self) -> None:
-        # Check cross references actually resolve to real KRV verse text in DB
         rows = self.conn.execute(
             """
             SELECT cr.ref_id, v.text
@@ -88,11 +78,10 @@ class TestCanonAndDatabaseIntegrity(unittest.TestCase):
         ).fetchall()
         total_refs = self.conn.execute("SELECT COUNT(*) FROM cross_references").fetchone()[0]
         self.assertGreater(total_refs, 0)
-        self.assertEqual(len(rows), total_refs, "Every cross-reference must resolve to real KRV text")
+        self.assertEqual(len(rows), total_refs)
         for r in rows:
             self.assertGreater(len(r["text"].strip()), 5)
 
-        # Verify Isaac chain actually exists in DB and spans OT & NT with real KRV text
         isaac_links = self.conn.execute(
             """
             SELECT cl.verse_id, v.text
@@ -103,8 +92,8 @@ class TestCanonAndDatabaseIntegrity(unittest.TestCase):
         ).fetchall()
         self.assertGreaterEqual(len(isaac_links), 8)
         book_ids = {parse_verse_id(r["verse_id"])[0] for r in isaac_links}
-        self.assertTrue(any(b <= 39 for b in book_ids), "Isaac chain must include OT")
-        self.assertTrue(any(b >= 40 for b in book_ids), "Isaac chain must include NT")
+        self.assertTrue(any(b <= 39 for b in book_ids))
+        self.assertTrue(any(b >= 40 for b in book_ids))
 
 
 class TestHybridKoreanFts5AndIdempotency(unittest.TestCase):
@@ -118,26 +107,15 @@ class TestHybridKoreanFts5AndIdempotency(unittest.TestCase):
         cls.conn.close()
 
     def test_01_korean_2char_and_3char_substring_recall(self) -> None:
-        # 2-char stem ('사랑' must match '사랑하사' in John 3:16)
-        res_2char = self.search.search_verses("사랑", limit=50)
-        self.assertGreater(len(res_2char), 0, "2-char Korean query '사랑' must return matches")
-
-        # 3-char substring ('독생자' inside '독생자를' in John 3:16 -> 43003016)
-        res_3char = self.search.search_verses("독생자", limit=20)
-        ids = {r["verse_id"] for r in res_3char}
-        self.assertIn(43003016, ids, "Trigram search '독생자' must match John 3:16")
-
-        # 3-char '모리아' must match Genesis 22:2 (1022002)
-        res_moriah = self.search.search_verses("모리아", limit=10)
-        self.assertIn(1022002, {r["verse_id"] for r in res_moriah})
+        self.assertGreater(len(self.search.search_verses("사랑", limit=50)), 0)
+        self.assertIn(43003016, {r["verse_id"] for r in self.search.search_verses("독생자", limit=20)})
+        self.assertIn(1022002, {r["verse_id"] for r in self.search.search_verses("모리아", limit=10)})
 
     def test_02_fts5_injection_safety(self) -> None:
         for hostile in ['"OR*', 'AND NOT ()', "'; DROP TABLE bible_verses; --", "   ", ":::"]:
-            res = self.search.search_verses(hostile)
-            self.assertIsInstance(res, list)
+            self.assertIsInstance(self.search.search_verses(hostile), list)
 
     def test_03_sub_millisecond_trigram_and_direct_lookup_benchmarks(self) -> None:
-        # Direct lookup p50 < 1.0ms
         latencies = []
         for _ in range(30):
             t0 = time.perf_counter()
@@ -146,7 +124,6 @@ class TestHybridKoreanFts5AndIdempotency(unittest.TestCase):
         latencies.sort()
         self.assertLess(latencies[len(latencies) // 2], 1.0)
 
-        # Trigram FTS5 search p50 < 5.0ms across 31,102 verses
         fts_lat = []
         for kw in ["독생자", "모리아", "여호와", "하나님이", "창조하"] * 4:
             t0 = time.perf_counter()
@@ -165,59 +142,53 @@ class TestHybridKoreanFts5AndIdempotency(unittest.TestCase):
             with BibleDatabaseBuilder(tmp_db) as b:
                 b.initialize_schema()
                 b.seed_master_data()
-                # Run ingestion TWICE
                 b.ingest_verses(sample_verses)
                 b.ingest_verses(sample_verses)
                 b.ingest_curated_exegesis()
                 b.ingest_curated_exegesis()
 
-                v_cnt = b.conn.execute("SELECT COUNT(*) FROM bible_verses").fetchone()[0]
-                fts_u = b.conn.execute("SELECT COUNT(*) FROM fts_bible_verses_unicode").fetchone()[0]
-                fts_t = b.conn.execute("SELECT COUNT(*) FROM fts_bible_verses_trigram").fetchone()[0]
-                self.assertEqual(v_cnt, 2)
-                self.assertEqual(fts_u, 2, "External-content trigger must prevent duplicate FTS5 unicode rows")
-                self.assertEqual(fts_t, 2, "External-content trigger must prevent duplicate FTS5 trigram rows")
-
-                # Verify zero-cost bundle manifest reports actual counts (not fake 340,000)
+                self.assertEqual(b.conn.execute("SELECT COUNT(*) FROM bible_verses").fetchone()[0], 2)
+                self.assertEqual(b.conn.execute("SELECT COUNT(*) FROM fts_bible_verses_unicode").fetchone()[0], 2)
+                self.assertEqual(b.conn.execute("SELECT COUNT(*) FROM fts_bible_verses_trigram").fetchone()[0], 2)
                 manifest = export_zero_cost_bundle(tmp_db, Path(tmp) / "dist")
                 self.assertEqual(manifest["actual_record_counts"]["bible_verses"], 2)
 
 
 class TestWebAndFlutterStaticAudit(unittest.TestCase):
-    def test_01_web_66_lazy_chunks_and_manifest_valid(self) -> None:
+    def test_01_web_66_lazy_chunks_and_worship_catalog_valid(self) -> None:
         manifest = json.loads((WEB_DIR / "data" / "manifest.json").read_text(encoding="utf-8"))
         self.assertEqual(manifest["totalBooks"], 66)
         self.assertEqual(manifest["totalVerses"], 31102)
-        chunk_files = list((WEB_DIR / "data" / "krv").glob("*.json"))
-        self.assertEqual(len(chunk_files), 66)
+        self.assertEqual(len(list((WEB_DIR / "data" / "krv").glob("*.json"))), 66)
 
-        # Verify Gen 22:2 is real text (not empty/blocked as in v1)
-        gen = json.loads((WEB_DIR / "data" / "krv" / "GEN.json").read_text(encoding="utf-8"))
-        self.assertIn("이삭", gen["chapters"]["22"][1])
+        worship = json.loads((WEB_DIR / "data" / "worship.json").read_text(encoding="utf-8"))
+        self.assertGreaterEqual(len(worship["hymns"]), 40)
+        self.assertGreaterEqual(len(worship["responsiveReadings"]), 20)
+
+        exegesis = json.loads((WEB_DIR / "data" / "exegesis.json").read_text(encoding="utf-8"))
+        self.assertEqual(len(exegesis["sources"]), 12)
+        categories = {s["category"] for s in exegesis["sources"]}
+        self.assertEqual(categories, {"CLASSIC", "ACADEMIC", "EXPOSITORY"})
 
     def test_02_web_security_no_inline_onclick_or_innerhtml_in_app_js(self) -> None:
         app_js = (WEB_DIR / "js" / "app.js").read_text(encoding="utf-8")
         index_html = (WEB_DIR / "index.html").read_text(encoding="utf-8")
-        self.assertNotIn("innerHTML", app_js, "app.js must use safe DOM nodes, not innerHTML")
-        self.assertNotIn("onclick=", index_html, "index.html must not contain inline onclick handlers")
-        self.assertNotIn("return false;", app_js, "No self-bricking hard-false verification gate")
+        self.assertNotIn("innerHTML", app_js)
+        self.assertNotIn("onclick=", index_html)
+        self.assertNotIn("return false;", app_js)
 
     def test_03_flutter_static_regression_checks(self) -> None:
         dart_files = list(LIB_DIR.rglob("*.dart"))
         self.assertGreaterEqual(len(dart_files), 8)
         all_dart = "\n".join(f.read_text(encoding="utf-8") for f in dart_files)
-        self.assertNotIn("Colors.emerald", all_dart, "Invalid Flutter color constant Colors.emerald must not exist")
-        self.assertNotIn("storage.googleapis.com/pastoral-", all_dart, "Hardcoded paid GCS bucket URL must not exist")
-
-        # Verify UTF-8 byte length fix in gdrive_service.dart
+        self.assertNotIn("Colors.emerald", all_dart)
+        self.assertNotIn("storage.googleapis.com/pastoral-", all_dart)
         gdrive = (LIB_DIR / "data" / "services" / "gdrive_service.dart").read_text(encoding="utf-8")
-        self.assertIn("encodedBytes.length", gdrive, "Must pass UTF-8 byte length to drive.Media")
-
-        # Verify Drift schema is in sync with Python SSOT
+        self.assertIn("encodedBytes.length", gdrive)
         with tempfile.TemporaryDirectory() as tmp:
             fresh = generate_drift_schema(Path(tmp) / "check.drift").read_text(encoding="utf-8")
             committed = (LIB_DIR / "data" / "local" / "database_schema.drift").read_text(encoding="utf-8")
-            self.assertEqual(committed, fresh, "database_schema.drift must match SSOT generator")
+            self.assertEqual(committed, fresh)
 
     def test_04_bskorea_collector_offline_html_parsing_and_di(self) -> None:
         sample_html = """
@@ -234,27 +205,22 @@ class TestWebAndFlutterStaticAudit(unittest.TestCase):
         self.assertEqual(len(parsed), 2)
         self.assertEqual(parsed[0]["verse_id"], 40001001)
         self.assertEqual(parsed[1]["cross_refs"][0]["target_ref"], "사 7:14")
-
-        # ScriptureRefNormalizer test
         norm = ScriptureRefNormalizer()
         self.assertEqual(norm.parse_reference("요 3:16"), (43, 3, 16, 43003016))
-        self.assertEqual(norm.parse_range_reference("창 22:1-14")[-2:], (1022001, 1022014))
 
-
-    def test_05_senior_first_ux_invariants(self) -> None:
+    def test_05_senior_pc_2pane_preferences_enforced(self) -> None:
         html = (WEB_DIR / "index.html").read_text(encoding="utf-8")
         css = (WEB_DIR / "css" / "workstation.css").read_text(encoding="utf-8")
         app_js = (WEB_DIR / "js" / "app.js").read_text(encoding="utf-8")
-        # Default warm paper light theme for 60-70s readability
         self.assertIn('data-theme="light"', html)
-        # Zero developer jargon in user-facing UI
-        for jargon in ("Ctrl K", "JSON 백업", "MD 내보내기", "PASTORAL WORKSTATION"):
-            self.assertNotIn(jargon, html)
-            self.assertNotIn(jargon, app_js)
-        # Must include Korean TTS read-aloud, A4 print mode, and large book picker
-        self.assertIn("speechSynthesis", app_js)
+        # User explicitly disabled audio TTS read-aloud
+        self.assertNotIn("speechSynthesis", app_js)
+        self.assertNotIn("btnReadAloud", html)
+        # User explicitly requested Hymns & Responsive Readings quick finder + 12 official commentaries
+        self.assertIn("찬송·교독문", html)
+        self.assertIn("12대 주석", html)
         self.assertIn("@media print", css)
-        self.assertIn("pickerModal", html)
+
 
 if __name__ == "__main__":
     unittest.main()

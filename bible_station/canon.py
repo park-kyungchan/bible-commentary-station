@@ -1,6 +1,7 @@
 """
 Single Source of Truth (SSOT) for the 66-Book Protestant Canon,
-8 Commentary Sources (strictly non-sectarian), Bible Versions, and Verse ID Math.
+12 Official Authoritative Commentary Sources (grouped into 3 clear categories),
+Bible Versions, and Verse ID Math.
 """
 
 from __future__ import annotations
@@ -36,7 +37,6 @@ class BibleBookMeta:
         )
 
 
-# Verified 66-book Protestant Canon (39 OT + 27 NT = 66 books, 1,189 chapters, 31,102 verses)
 BIBLE_BOOKS: Tuple[BibleBookMeta, ...] = (
     # Old Testament (39)
     BibleBookMeta(1, "GEN", "창세기", "창", "Genesis", "OT", "율법서", 50, 1533, "gen"),
@@ -112,95 +112,181 @@ BOOKS_BY_ID: Dict[int, BibleBookMeta] = {b.book_id: b for b in BIBLE_BOOKS}
 BOOKS_BY_OSIS: Dict[str, BibleBookMeta] = {b.osis_code: b for b in BIBLE_BOOKS}
 BOOKS_BY_CLEAN_EN: Dict[str, BibleBookMeta] = {b.name_en.replace(" ", ""): b for b in BIBLE_BOOKS}
 
-# 8 Commentary Sources — strictly scholarly & non-sectarian descriptions
+# 12 Official Authoritative Commentary Sources across 3 clear categories:
+# - CLASSIC (고전·경건 주석)
+# - ACADEMIC (원어·역사·학술 주석)
+# - EXPOSITORY (강해·설교·종합 주석)
 COMMENTARY_SOURCES_MASTER: List[Dict[str, object]] = [
+    # 1. 고전·경건 주석 (Public Domain Official Classics)
     {
-        "code": "OXFORD",
-        "name_kr": "옥스포드 원어성경대전",
-        "name_en": "Oxford Original Language Commentary",
-        "author": "제자원",
-        "description": "구절별 히브리어·헬라어 원어 정밀 분해, 어근, 문법 분석 및 원어 강해",
-        "theological_stance": "원어 문법·역사 강해",
-        "is_public_domain": False,
-        "access_type": "LICENSED_LOCAL",
+        "code": "MATTHEW_HENRY",
+        "category": "CLASSIC",
+        "category_kr": "고전·경건",
+        "name_kr": "매튜 헨리 완역 주석",
+        "name_en": "Matthew Henry's Complete Commentary (1706)",
+        "author": "매튜 헨리 (Matthew Henry)",
+        "description": "300년 넘게 전 세계 목회자와 성도가 사랑한 경건·묵상 주석의 고전 (CCEL 공공도메인)",
+        "theological_stance": "청교도 경건·묵상 주해",
+        "official_url": "https://www.ccel.org/ccel/henry/mhc",
+        "is_public_domain": True,
+        "access_type": "PUBLIC_DOMAIN",
         "sort_order": 1,
     },
     {
-        "code": "WESLEY",
-        "name_kr": "존 웨슬리 성경 주석",
-        "name_en": "John Wesley's Explanatory Notes",
-        "author": "존 웨슬리 (John Wesley)",
-        "description": "18세기 복음주의 부흥운동의 관점에서 본문의 성화, 은혜, 실천적 경건을 간결하게 해설",
-        "theological_stance": "웨슬리안 / 실천적 성화",
+        "code": "CALVIN",
+        "category": "CLASSIC",
+        "category_kr": "고전·경건",
+        "name_kr": "존 칼빈 성경 주석",
+        "name_en": "John Calvin's Commentaries (45 Vols)",
+        "author": "존 칼빈 (John Calvin)",
+        "description": "성경 본문의 간결하고 명료한 역사-문법적 해석의 기준을 세운 종교개혁 고전 주석 (CCEL 공공도메인)",
+        "theological_stance": "종교개혁·성경신학 고전",
+        "official_url": "https://www.ccel.org/ccel/calvin",
         "is_public_domain": True,
         "access_type": "PUBLIC_DOMAIN",
         "sort_order": 2,
     },
     {
-        "code": "HOKMA",
-        "name_kr": "호크마 종합주석",
-        "name_en": "Hokma Comprehensive Commentary",
-        "author": "호크마 편집위원회",
-        "description": "구절별 문맥, 원어 참고, 신구약 병행 구절을 종합적으로 정리한 주석",
-        "theological_stance": "복음주의 종합 주해",
-        "is_public_domain": False,
-        "access_type": "LICENSED_LOCAL",
+        "code": "WESLEY",
+        "category": "CLASSIC",
+        "category_kr": "고전·경건",
+        "name_kr": "존 웨슬리 성경 주석",
+        "name_en": "John Wesley's Explanatory Notes (1765)",
+        "author": "존 웨슬리 (John Wesley)",
+        "description": "은혜와 거룩한 삶, 실천적 성화를 명쾌하게 풀어낸 복음주의 고전 주석 (CCEL 공공도메인)",
+        "theological_stance": "웨슬리안·실천적 성화",
+        "official_url": "https://www.ccel.org/ccel/wesley/notes",
+        "is_public_domain": True,
+        "access_type": "PUBLIC_DOMAIN",
         "sort_order": 3,
     },
     {
-        "code": "GRAND",
-        "name_kr": "그랜드 종합주석",
-        "name_en": "Grand Expository Commentary",
-        "author": "그랜드 편찬위원회",
-        "description": "강해 설교 대지 구성(서론-본론-결론)과 목회적 적용에 초점을 맞춘 주석",
-        "theological_stance": "강해 설교학 / 목회 적용",
-        "is_public_domain": False,
-        "access_type": "LICENSED_LOCAL",
+        "code": "JFB",
+        "category": "CLASSIC",
+        "category_kr": "고전·경건",
+        "name_kr": "제이미슨-포셋-브라운 주석 (JFB)",
+        "name_en": "Jamieson-Fausset-Brown Commentary (1871)",
+        "author": "R. Jamieson, A.R. Fausset, D. Brown",
+        "description": "군더더기 없이 구절의 핵심 뜻과 병행 구절을 짚어주는 19세기 대표 간결 주석 (공공도메인)",
+        "theological_stance": "보수 복음주의 간결 주해",
+        "official_url": "https://biblehub.com/commentaries/jfb/",
+        "is_public_domain": True,
+        "access_type": "PUBLIC_DOMAIN",
         "sort_order": 4,
     },
+    # 2. 원어·역사·학술 주석 (Exegetical & Historical Academic Series)
     {
-        "code": "CHARISMA",
-        "name_kr": "카리스마 성경 주석",
-        "name_en": "Charisma Study Commentary",
-        "author": "카리스마 편집부",
-        "description": "성령의 사역, 기도와 영적 분별, 공동체 세움의 관점에서 본문을 조명하는 주석",
-        "theological_stance": "성령론 / 실천 목회",
+        "code": "OXFORD",
+        "category": "ACADEMIC",
+        "category_kr": "원어·학술",
+        "name_kr": "옥스포드 원어성경대전",
+        "name_en": "Oxford Original Language Commentary",
+        "author": "제자원 편찬",
+        "description": "히브리어·헬라어 원어 어근, 문법 형태론 분해 및 구문 강해",
+        "theological_stance": "원어 문법·어근 강해",
+        "official_url": "https://www.ccel.org/",
         "is_public_domain": False,
         "access_type": "LICENSED_LOCAL",
         "sort_order": 5,
     },
     {
-        "code": "MATTHEW_HENRY",
-        "name_kr": "매튜 헨리 신구약 주석",
-        "name_en": "Matthew Henry's Complete Commentary",
-        "author": "매튜 헨리 (Matthew Henry)",
-        "description": "경건과 묵상, 설교적 적용이 풍부한 18세기 고전 완역 주석",
-        "theological_stance": "청교도 경건·묵상 주해",
-        "is_public_domain": True,
-        "access_type": "PUBLIC_DOMAIN",
+        "code": "NICOT_NICNT",
+        "category": "ACADEMIC",
+        "category_kr": "원어·학술",
+        "name_kr": "NICOT / NICNT 신국제 주석",
+        "name_en": "New International Commentary (OT/NT, Eerdmans)",
+        "author": "Eerdmans 국제 신학자 공저",
+        "description": "세계 복음주의권에서 가장 신뢰받는 표준 학술·목회 균형 주석 시리즈",
+        "theological_stance": "국제 복음주의 표준 주해",
+        "official_url": "https://bestcommentaries.com/series/new-international-commentary-on-the-new-testament-nicnt/",
+        "is_public_domain": False,
+        "access_type": "LICENSED_LOCAL",
         "sort_order": 6,
     },
     {
-        "code": "BAKER",
-        "name_kr": "베이커 성경배경주석",
-        "name_en": "Baker Illustrated Bible Background Commentary",
-        "author": "Baker Academic",
-        "description": "고대 근동(ANE) 문화, 제2성전기 유대교 풍습, 로마-그리스 고고학 및 지리 배경",
-        "theological_stance": "역사·문화·고고학 배경",
+        "code": "WBC",
+        "category": "ACADEMIC",
+        "category_kr": "원어·학술",
+        "name_kr": "WBC 워드 성경주석",
+        "name_en": "Word Biblical Commentary (Zondervan)",
+        "author": "Zondervan 국제 학자 공저",
+        "description": "번역·본문비평·문학구조·구절주해·신학설명을 체계적으로 제시하는 최고급 학술 주석",
+        "theological_stance": "원어·구조·본문비평 학술",
+        "official_url": "https://bestcommentaries.com/series/word-biblical-commentary-wbc/",
         "is_public_domain": False,
         "access_type": "LICENSED_LOCAL",
         "sort_order": 7,
     },
     {
-        "code": "ESV_EXPOSITORY",
-        "name_kr": "ESV 성경해설주석",
-        "name_en": "ESV Expository Commentary",
-        "author": "Crossway / 복음주의 신학자 공저",
-        "description": "성경신학적·구속사적 흐름 속에서 각 책의 구조와 본문을 명쾌하게 해설",
-        "theological_stance": "구속사적 성경신학",
+        "code": "BAKER",
+        "category": "ACADEMIC",
+        "category_kr": "원어·학술",
+        "name_kr": "베이커 성경배경주석",
+        "name_en": "Baker Illustrated Bible Background Commentary",
+        "author": "Baker Academic",
+        "description": "고대 근동 풍습, 제2성전기 유대교, 로마-그리스 역사·지리·고고학 배경 해설",
+        "theological_stance": "역사·문화·고고학 배경",
+        "official_url": "https://bakerpublishinggroup.com/",
         "is_public_domain": False,
         "access_type": "LICENSED_LOCAL",
         "sort_order": 8,
+    },
+    # 3. 강해·설교·종합 주석 (Expository & Pastoral Series)
+    {
+        "code": "CONSTABLE",
+        "category": "EXPOSITORY",
+        "category_kr": "강해·설교",
+        "name_kr": "컨스터블 성경 강해 노트",
+        "name_en": "Dr. Thomas Constable's Expository Notes (SonicLight)",
+        "author": "토마스 컨스터블 (달라스 신학교)",
+        "description": "전 66권의 문맥 흐름과 강해 대지를 쉽고 명쾌하게 정리한 공식 무료 공개 강해 주석",
+        "theological_stance": "문맥 중심 강해 설교",
+        "official_url": "https://planobiblechapel.org/soniclight/",
+        "is_public_domain": True,
+        "access_type": "PUBLIC_DOMAIN",
+        "sort_order": 9,
+    },
+    {
+        "code": "ESV_EXPOSITORY",
+        "category": "EXPOSITORY",
+        "category_kr": "강해·설교",
+        "name_kr": "ESV 성경해설주석",
+        "name_en": "ESV Expository Commentary (Crossway)",
+        "author": "Crossway 복음주의 학자 공저",
+        "description": "구약에서 신약으로 이어지는 구속사적 성경신학 흐름 속에서 본문을 명쾌하게 해설",
+        "theological_stance": "구속사적 성경신학 강해",
+        "official_url": "https://www.crossway.org/",
+        "is_public_domain": False,
+        "access_type": "LICENSED_LOCAL",
+        "sort_order": 10,
+    },
+    {
+        "code": "HOKMA",
+        "category": "EXPOSITORY",
+        "category_kr": "강해·설교",
+        "name_kr": "호크마 종합주석",
+        "name_en": "Hokma Comprehensive Commentary",
+        "author": "호크마 편집위원회",
+        "description": "한국 교회에서 널리 쓰이는 구절별 종합 해설, 원어 참고 및 병행 구절 정리",
+        "theological_stance": "한국 목회 종합 주해",
+        "official_url": "https://biblehub.com/",
+        "is_public_domain": False,
+        "access_type": "LICENSED_LOCAL",
+        "sort_order": 11,
+    },
+    {
+        "code": "GRAND",
+        "category": "EXPOSITORY",
+        "category_kr": "강해·설교",
+        "name_kr": "그랜드 종합주석",
+        "name_en": "Grand Expository Commentary",
+        "author": "그랜드 편찬위원회",
+        "description": "서론-본론-결론 3대지 설교 구성과 목회 현장 적용에 특화된 설교자용 주석",
+        "theological_stance": "강해 설교 3대지·적용",
+        "official_url": "https://biblehub.com/",
+        "is_public_domain": False,
+        "access_type": "LICENSED_LOCAL",
+        "sort_order": 12,
     },
 ]
 
@@ -215,7 +301,6 @@ BIBLE_VERSIONS_MASTER: List[Tuple[str, str, str, str, int, int, str]] = [
 
 
 def calculate_verse_id(book_id: int, chapter: int, verse: int) -> int:
-    """Calculate canonical 7-8 digit integer Verse ID: book*1,000,000 + chapter*1,000 + verse."""
     if not (1 <= book_id <= 66):
         raise ValueError(f"book_id out of range (1..66): {book_id}")
     if not (1 <= chapter <= 150):
@@ -226,7 +311,6 @@ def calculate_verse_id(book_id: int, chapter: int, verse: int) -> int:
 
 
 def parse_verse_id(verse_id: int) -> Tuple[int, int, int]:
-    """Decode canonical integer Verse ID into (book_id, chapter, verse)."""
     book_id = verse_id // 1_000_000
     chapter = (verse_id % 1_000_000) // 1_000
     verse = verse_id % 1_000
@@ -234,7 +318,6 @@ def parse_verse_id(verse_id: int) -> Tuple[int, int, int]:
 
 
 def resolve_book(identifier: int | str) -> Optional[BibleBookMeta]:
-    """Resolve a book by book_id, OSIS, Korean full/abbr name, English name, or BSKorea code."""
     if isinstance(identifier, int):
         return BOOKS_BY_ID.get(identifier)
     raw = str(identifier).strip()

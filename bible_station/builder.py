@@ -1,6 +1,5 @@
 """
-Unified, Idempotent Database Builder, Web Chunk Exporter, and Zero-Cost Bundle Packager.
-Replaces the duplicated build_bible_db.py + ingest_full_krv_to_db.py + generate_web_krv.py scripts.
+Unified, Idempotent Database Builder, Web Chunk Exporter, Worship Exporter, and Zero-Cost Packager.
 """
 
 from __future__ import annotations
@@ -16,17 +15,14 @@ from typing import Any, Dict, List, Optional
 from .canon import (
     BIBLE_BOOKS,
     BIBLE_VERSIONS_MASTER,
-    BOOKS_BY_ID,
     COMMENTARY_SOURCES_MASTER,
 )
-from .collectors import get_curated_exegesis_dataset
+from .collectors import get_curated_exegesis_dataset, get_worship_catalog
 from .parsers import parse_krv_corpus_json
 from .schema import SCHEMA_VERSION, SQLITE_DDL_STATEMENTS
 
 
 class BibleDatabaseBuilder:
-    """Idempotent SQLite FTS5 (Unicode61 + Trigram) builder with automatic trigger sync."""
-
     def __init__(self, db_path: Path):
         self.db_path = Path(db_path)
         self.conn: Optional[sqlite3.Connection] = None
@@ -59,11 +55,8 @@ class BibleDatabaseBuilder:
             for ddl in SQLITE_DDL_STATEMENTS:
                 self.conn.execute(ddl)
             self.conn.execute(
-                """
-                INSERT OR IGNORE INTO schema_migrations (version, description)
-                VALUES (?, ?);
-                """,
-                (SCHEMA_VERSION, "SSOT v2.0 with Dual FTS5 (unicode61+trigram) external-content triggers & provenance"),
+                "INSERT OR IGNORE INTO schema_migrations (version, description) VALUES (?, ?);",
+                (SCHEMA_VERSION, "SSOT v2.3 with Dual FTS5 (unicode61+trigram), 12 Official Commentaries & Worship Catalog"),
             )
 
     def seed_master_data(self) -> None:
@@ -75,14 +68,10 @@ class BibleDatabaseBuilder:
                 (book_id, osis_code, name_kr, name_kr_abbr, name_en, testament, category, total_chapters, total_verses)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(book_id) DO UPDATE SET
-                    osis_code=excluded.osis_code,
-                    name_kr=excluded.name_kr,
-                    name_kr_abbr=excluded.name_kr_abbr,
-                    name_en=excluded.name_en,
-                    testament=excluded.testament,
-                    category=excluded.category,
-                    total_chapters=excluded.total_chapters,
-                    total_verses=excluded.total_verses;
+                    osis_code=excluded.osis_code, name_kr=excluded.name_kr,
+                    name_kr_abbr=excluded.name_kr_abbr, name_en=excluded.name_en,
+                    testament=excluded.testament, category=excluded.category,
+                    total_chapters=excluded.total_chapters, total_verses=excluded.total_verses;
                 """,
                 [b.as_db_tuple() for b in BIBLE_BOOKS],
             )
@@ -92,9 +81,7 @@ class BibleDatabaseBuilder:
                 (version_code, name_kr, name_en, language, is_original_lang, is_default, copyright_notice)
                 VALUES (?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(version_code) DO UPDATE SET
-                    name_kr=excluded.name_kr,
-                    name_en=excluded.name_en,
-                    copyright_notice=excluded.copyright_notice;
+                    name_kr=excluded.name_kr, name_en=excluded.name_en, copyright_notice=excluded.copyright_notice;
                 """,
                 BIBLE_VERSIONS_MASTER,
             )
@@ -104,12 +91,9 @@ class BibleDatabaseBuilder:
                 (source_code, name_kr, name_en, author, description, theological_stance, is_public_domain, access_type, sort_order)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(source_code) DO UPDATE SET
-                    name_kr=excluded.name_kr,
-                    description=excluded.description,
-                    theological_stance=excluded.theological_stance,
-                    is_public_domain=excluded.is_public_domain,
-                    access_type=excluded.access_type,
-                    sort_order=excluded.sort_order;
+                    name_kr=excluded.name_kr, description=excluded.description,
+                    theological_stance=excluded.theological_stance, is_public_domain=excluded.is_public_domain,
+                    access_type=excluded.access_type, sort_order=excluded.sort_order;
                 """,
                 [
                     (
@@ -130,16 +114,13 @@ class BibleDatabaseBuilder:
                 INSERT INTO source_provenance (source_id, category, title, rights_status, attribution, source_url)
                 VALUES (:source_id, :category, :title, :rights_status, :attribution, :source_url)
                 ON CONFLICT(source_id) DO UPDATE SET
-                    title=excluded.title,
-                    rights_status=excluded.rights_status,
-                    attribution=excluded.attribution,
-                    source_url=excluded.source_url;
+                    title=excluded.title, rights_status=excluded.rights_status,
+                    attribution=excluded.attribution, source_url=excluded.source_url;
                 """,
                 records,
             )
 
     def ingest_verses(self, verses: List[Dict[str, Any]]) -> int:
-        """Idempotent upsert; SQLite triggers automatically maintain both FTS5 tables."""
         assert self.conn is not None
         with self.conn:
             self.conn.executemany(
@@ -154,14 +135,9 @@ class BibleDatabaseBuilder:
                 """,
                 [
                     {
-                        "verse_id": v["verse_id"],
-                        "book_id": v["book_id"],
-                        "chapter": v["chapter"],
-                        "verse": v["verse"],
-                        "version_code": v["version_code"],
-                        "text": v["text"],
-                        "text_with_strong": v.get("text_with_strong"),
-                        "provenance_id": v.get("provenance_id"),
+                        "verse_id": v["verse_id"], "book_id": v["book_id"], "chapter": v["chapter"],
+                        "verse": v["verse"], "version_code": v["version_code"], "text": v["text"],
+                        "text_with_strong": v.get("text_with_strong"), "provenance_id": v.get("provenance_id"),
                     }
                     for v in verses
                 ],
@@ -172,7 +148,6 @@ class BibleDatabaseBuilder:
         assert self.conn is not None
         ds = get_curated_exegesis_dataset()
         self.ingest_provenance(ds["provenance"])
-
         with self.conn:
             self.conn.executemany(
                 """
@@ -209,8 +184,7 @@ class BibleDatabaseBuilder:
                 INSERT INTO cross_references (from_verse_id, to_verse_id, score, relationship_type, note)
                 VALUES (:from_verse_id, :to_verse_id, :score, :relationship_type, :note)
                 ON CONFLICT(from_verse_id, to_verse_id, relationship_type) DO UPDATE SET
-                    score=excluded.score,
-                    note=excluded.note;
+                    score=excluded.score, note=excluded.note;
                 """,
                 ds["cross_refs"],
             )
@@ -230,13 +204,10 @@ class BibleDatabaseBuilder:
                         INSERT INTO chain_links (topic_key, verse_id, passage_display, stage_label, sermon_point, sort_order)
                         VALUES (?, ?, ?, ?, ?, ?)
                         ON CONFLICT(topic_key, verse_id) DO UPDATE SET
-                            stage_label=excluded.stage_label,
-                            sermon_point=excluded.sermon_point,
-                            sort_order=excluded.sort_order;
+                            stage_label=excluded.stage_label, sermon_point=excluded.sermon_point, sort_order=excluded.sort_order;
                         """,
                         (topic["topic_key"], v_id, disp, stage, pt, idx),
                     )
-
         return {
             "commentaries": len(ds["commentaries"]),
             "strongs": len(ds["strongs"]),
@@ -270,17 +241,9 @@ class BibleDatabaseBuilder:
             "commentaries", "strong_lexicon", "cross_references", "chain_topics",
             "chain_links", "source_provenance",
         ]
-        return {
-            t: self.conn.execute(f"SELECT COUNT(*) FROM {t}").fetchone()[0]
-            for t in tables
-        }
+        return {t: self.conn.execute(f"SELECT COUNT(*) FROM {t}").fetchone()[0] for t in tables}
 
     def export_web_chunks(self, web_data_dir: Path) -> Dict[str, Any]:
-        """
-        Split the 4.3MB monolithic KRV corpus into 66 per-book lazy-loadable JSON chunks
-        (web/data/krv/GEN.json ... REV.json) + lightweight manifest.json + exegesis.json.
-        Cuts initial web page data load from 4.3MB down to ~60KB (>95% reduction).
-        """
         assert self.conn is not None
         krv_dir = web_data_dir / "krv"
         krv_dir.mkdir(parents=True, exist_ok=True)
@@ -291,64 +254,47 @@ class BibleDatabaseBuilder:
 
         for b in BIBLE_BOOKS:
             rows = self.conn.execute(
-                """
-                SELECT chapter, verse, text
-                FROM bible_verses
-                WHERE version_code = 'KRV' AND book_id = ?
-                ORDER BY chapter ASC, verse ASC;
-                """,
+                "SELECT chapter, verse, text FROM bible_verses WHERE version_code='KRV' AND book_id=? ORDER BY chapter, verse;",
                 (b.book_id,),
             ).fetchall()
-
             chapters: Dict[str, List[str]] = {}
             for r in rows:
-                ch_key = str(r["chapter"])
-                chapters.setdefault(ch_key, []).append(r["text"])
+                chapters.setdefault(str(r["chapter"]), []).append(r["text"])
                 total_verses += 1
-
             chunk_payload = {
-                "bookId": b.book_id,
-                "osis": b.osis_code,
-                "nameKr": b.name_kr,
-                "nameEn": b.name_en,
-                "version": "KRV",
-                "chapters": chapters,
+                "bookId": b.book_id, "osis": b.osis_code, "nameKr": b.name_kr,
+                "nameEn": b.name_en, "version": "KRV", "chapters": chapters,
             }
-            chunk_path = krv_dir / f"{b.osis_code}.json"
             encoded = json.dumps(chunk_payload, ensure_ascii=False, separators=(",", ":"))
-            chunk_path.write_text(encoded, encoding="utf-8")
+            (krv_dir / f"{b.osis_code}.json").write_text(encoded, encoding="utf-8")
             chunk_sizes[b.osis_code] = len(encoded.encode("utf-8"))
-
             book_manifest.append({
-                "bookId": b.book_id,
-                "id": b.osis_code,
-                "name": b.name_kr,
-                "abbr": b.name_kr_abbr,
-                "nameEn": b.name_en,
-                "testament": b.testament,
-                "category": b.category,
+                "bookId": b.book_id, "id": b.osis_code, "name": b.name_kr, "abbr": b.name_kr_abbr,
+                "nameEn": b.name_en, "testament": b.testament, "category": b.category,
                 "totalChapters": len(chapters) or b.total_chapters,
                 "totalVerses": sum(len(v) for v in chapters.values()),
             })
 
-        # Export exegesis bundle (8 commentary sources, commentaries, strongs, cross-refs with full KRV text, chains)
-        sources = [dict(r) for r in self.conn.execute("SELECT * FROM commentary_sources ORDER BY sort_order").fetchall()]
-        provenance = {
-            r["source_id"]: dict(r)
-            for r in self.conn.execute("SELECT * FROM source_provenance").fetchall()
-        }
+        # Enrich commentary sources with category & official_url from SSOT
+        extra_meta = {s["code"]: s for s in COMMENTARY_SOURCES_MASTER}
+        sources = []
+        for r in self.conn.execute("SELECT * FROM commentary_sources ORDER BY sort_order").fetchall():
+            d = dict(r)
+            meta = extra_meta.get(d["source_code"], {})
+            d["category"] = meta.get("category", "EXPOSITORY")
+            d["category_kr"] = meta.get("category_kr", "강해·설교")
+            d["official_url"] = meta.get("official_url", "")
+            sources.append(d)
+
+        provenance = {r["source_id"]: dict(r) for r in self.conn.execute("SELECT * FROM source_provenance").fetchall()}
         commentaries = [dict(r) for r in self.conn.execute("SELECT * FROM commentaries ORDER BY verse_start_id, source_code").fetchall()]
-        strongs = {
-            r["strong_id"]: dict(r)
-            for r in self.conn.execute("SELECT * FROM strong_lexicon").fetchall()
-        }
+        strongs = {r["strong_id"]: dict(r) for r in self.conn.execute("SELECT * FROM strong_lexicon").fetchall()}
         cross_refs_rows = self.conn.execute(
             """
             SELECT cr.from_verse_id, cr.to_verse_id, cr.score, cr.relationship_type, cr.note,
                    b.osis_code AS to_osis, b.name_kr AS to_book_name,
                    (cr.to_verse_id % 1000000) / 1000 AS to_chapter,
-                   cr.to_verse_id % 1000 AS to_verse,
-                   v.text AS to_text
+                   cr.to_verse_id % 1000 AS to_verse, v.text AS to_text
             FROM cross_references cr
             JOIN bible_books b ON (cr.to_verse_id / 1000000) = b.book_id
             LEFT JOIN bible_verses v ON cr.to_verse_id = v.verse_id AND v.version_code = 'KRV'
@@ -358,8 +304,7 @@ class BibleDatabaseBuilder:
         cross_refs_by_verse: Dict[str, List[Dict[str, Any]]] = {}
         for r in cross_refs_rows:
             d = dict(r)
-            key = str(d["from_verse_id"])
-            cross_refs_by_verse.setdefault(key, []).append(d)
+            cross_refs_by_verse.setdefault(str(d["from_verse_id"]), []).append(d)
 
         chains: Dict[str, Any] = {}
         for t in self.conn.execute("SELECT * FROM chain_topics").fetchall():
@@ -371,38 +316,42 @@ class BibleDatabaseBuilder:
                 FROM chain_links cl
                 JOIN bible_books b ON (cl.verse_id / 1000000) = b.book_id
                 LEFT JOIN bible_verses v ON cl.verse_id = v.verse_id AND v.version_code = 'KRV'
-                WHERE cl.topic_key = ?
-                ORDER BY cl.sort_order ASC;
+                WHERE cl.topic_key = ? ORDER BY cl.sort_order ASC;
                 """,
                 (t["topic_key"],),
             ).fetchall()
             chains[t["topic_key"]] = {**dict(t), "links": [dict(l) for l in links]}
 
-        manifest_payload = {
-            "schemaVersion": SCHEMA_VERSION,
-            "generatedAt": datetime.now(timezone.utc).isoformat(),
-            "versionCode": "KRV",
-            "totalBooks": len(book_manifest),
-            "totalVerses": total_verses,
-            "attribution": "Korean Revised Version © Korean Bible Society 1961 (저작권 보호기간 만료)",
-            "books": book_manifest,
-        }
         (web_data_dir / "manifest.json").write_text(
-            json.dumps(manifest_payload, ensure_ascii=False, separators=(",", ":")),
+            json.dumps({
+                "schemaVersion": SCHEMA_VERSION,
+                "generatedAt": datetime.now(timezone.utc).isoformat(),
+                "versionCode": "KRV",
+                "totalBooks": len(book_manifest),
+                "totalVerses": total_verses,
+                "attribution": "Korean Revised Version © Korean Bible Society 1961 (저작권 보호기간 만료)",
+                "books": book_manifest,
+            }, ensure_ascii=False, separators=(",", ":")),
             encoding="utf-8",
         )
 
-        exegesis_payload = {
-            "schemaVersion": SCHEMA_VERSION,
-            "provenance": provenance,
-            "sources": sources,
-            "commentaries": commentaries,
-            "strongs": strongs,
-            "crossReferences": cross_refs_by_verse,
-            "chains": chains,
-        }
         (web_data_dir / "exegesis.json").write_text(
-            json.dumps(exegesis_payload, ensure_ascii=False, separators=(",", ":")),
+            json.dumps({
+                "schemaVersion": SCHEMA_VERSION,
+                "provenance": provenance,
+                "sources": sources,
+                "commentaries": commentaries,
+                "strongs": strongs,
+                "crossReferences": cross_refs_by_verse,
+                "chains": chains,
+            }, ensure_ascii=False, separators=(",", ":")),
+            encoding="utf-8",
+        )
+
+        # Export Korean Hymn & Responsive Reading (새찬송가 · 교독문) catalog
+        worship = get_worship_catalog()
+        (web_data_dir / "worship.json").write_text(
+            json.dumps(worship, ensure_ascii=False, separators=(",", ":")),
             encoding="utf-8",
         )
 
@@ -410,7 +359,8 @@ class BibleDatabaseBuilder:
             "total_verses": total_verses,
             "chunk_count": len(chunk_sizes),
             "avg_chunk_bytes": sum(chunk_sizes.values()) // max(len(chunk_sizes), 1),
-            "max_chunk_bytes": max(chunk_sizes.values()) if chunk_sizes else 0,
+            "hymns": len(worship["hymns"]),
+            "responsive_readings": len(worship["responsiveReadings"]),
         }
 
 
@@ -422,12 +372,7 @@ def sha256_file(path: Path) -> str:
     return h.hexdigest()
 
 
-def export_zero_cost_bundle(db_path: Path, out_dir: Path, version: str = "2.0.0") -> Dict[str, Any]:
-    """
-    Create a Zero-Cost ($0.00) Gzip SQLite distribution bundle & verifiable SHA-256 manifest
-    suitable for GitHub Releases, Cloudflare Pages, or Google Drive direct links.
-    All statistics in the manifest are computed directly from the actual SQLite DB (zero fake claims).
-    """
+def export_zero_cost_bundle(db_path: Path, out_dir: Path, version: str = "2.3.0") -> Dict[str, Any]:
     out_dir.mkdir(parents=True, exist_ok=True)
     gz_path = out_dir / f"{db_path.name}.gz"
     with db_path.open("rb") as f_in, gzip.open(gz_path, "wb", compresslevel=9) as f_out:
@@ -457,6 +402,5 @@ def export_zero_cost_bundle(db_path: Path, out_dir: Path, version: str = "2.0.0"
         "compression_ratio_pct": round((1.0 - compressed_size / max(uncompressed_size, 1)) * 100.0, 2),
         "actual_record_counts": counts,
     }
-    manifest_path = out_dir / "release_manifest.json"
-    manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
+    (out_dir / "release_manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
     return manifest

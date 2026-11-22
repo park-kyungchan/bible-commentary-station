@@ -1,10 +1,3 @@
-/**
- * Lazy-Loading 66-Book Bible & Exegesis Data Service
- * - Loads lightweight manifest.json + exegesis.json upfront (~35KB total)
- * - Fetches individual book chunks (./data/krv/{OSIS}.json, ~68KB avg) on demand with LRU caching
- * - Eliminates the 4.3MB initial blocking JSON load while providing full 31,102-verse offline search
- */
-
 export function calculateVerseId(bookId, chapter, verse) {
   return bookId * 1_000_000 + chapter * 1_000 + verse;
 }
@@ -15,20 +8,23 @@ export class BibleDataService {
     this.fetcher = fetcher;
     this.manifest = null;
     this.exegesis = null;
+    this.worship = null;
     this.bookCache = new Map();
     this.maxCachedBooks = 16;
   }
 
   async init() {
-    const [manifestResp, exegesisResp] = await Promise.all([
+    const [manifestResp, exegesisResp, worshipResp] = await Promise.all([
       this.fetcher(`${this.baseUrl}/manifest.json`),
       this.fetcher(`${this.baseUrl}/exegesis.json`),
+      this.fetcher(`${this.baseUrl}/worship.json`),
     ]);
-    if (!manifestResp.ok) throw new Error(`Failed to load manifest: HTTP ${manifestResp.status}`);
-    if (!exegesisResp.ok) throw new Error(`Failed to load exegesis: HTTP ${exegesisResp.status}`);
+    if (!manifestResp.ok) throw new Error(`manifest HTTP ${manifestResp.status}`);
+    if (!exegesisResp.ok) throw new Error(`exegesis HTTP ${exegesisResp.status}`);
     this.manifest = await manifestResp.json();
     this.exegesis = await exegesisResp.json();
-    return { manifest: this.manifest, exegesis: this.exegesis };
+    this.worship = worshipResp.ok ? await worshipResp.json() : { hymns: [], responsiveReadings: [] };
+    return { manifest: this.manifest, exegesis: this.exegesis, worship: this.worship };
   }
 
   getBooks() {
@@ -42,17 +38,15 @@ export class BibleDataService {
   async loadBook(osis) {
     if (this.bookCache.has(osis)) {
       const val = this.bookCache.get(osis);
-      // Refresh LRU order
       this.bookCache.delete(osis);
       this.bookCache.set(osis, val);
       return val;
     }
     const resp = await this.fetcher(`${this.baseUrl}/krv/${osis}.json`);
-    if (!resp.ok) throw new Error(`Failed to load book ${osis}: HTTP ${resp.status}`);
+    if (!resp.ok) throw new Error(`book ${osis} HTTP ${resp.status}`);
     const data = await resp.json();
     if (this.bookCache.size >= this.maxCachedBooks) {
-      const oldestKey = this.bookCache.keys().next().value;
-      this.bookCache.delete(oldestKey);
+      this.bookCache.delete(this.bookCache.keys().next().value);
     }
     this.bookCache.set(osis, data);
     return data;
@@ -92,20 +86,19 @@ export class BibleDataService {
     return this.exegesis ? Object.values(this.exegesis.strongs) : [];
   }
 
-  getProvenance(sourceId) {
-    return this.exegesis?.provenance?.[sourceId] || null;
+  getHymns() {
+    return this.worship?.hymns || [];
   }
 
-  /**
-   * Search across currently loaded books or prioritized books in batches without blocking UI.
-   */
+  getResponsiveReadings() {
+    return this.worship?.responsiveReadings || [];
+  }
+
   async searchKoreanText(query, scopeOsis = null, limit = 30) {
     const q = (query || '').trim();
     if (!q) return [];
     const results = [];
-    const targets = scopeOsis
-      ? [this.getBookMeta(scopeOsis)].filter(Boolean)
-      : this.getBooks();
+    const targets = scopeOsis ? [this.getBookMeta(scopeOsis)].filter(Boolean) : this.getBooks();
 
     for (const meta of targets) {
       const book = await this.loadBook(meta.id);

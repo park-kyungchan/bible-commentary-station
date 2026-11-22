@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>큰글씨 성경주혜주석 — 누구나 쉽게 쓰는 성경 읽기 · 주석 · 설교 노트</title>
+  <title>큰글씨 성경주혜주석 — 성경 읽기 · 12대 공식 주석 · 찬송/교독문 · 설교 노트</title>
   <link rel="manifest" href="./manifest.json" />
   <link rel="icon" href="./icon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="./css/workstation.css" />
 </head>
 <body>
   <div class="app-shell">
-    <!-- 1. 상단 안내 바 -->
+    <!-- 1. 상단 안내 바 (PC 최적화) -->
     <header class="topbar">
       <div class="brand">
         <span class="brand-icon">📖</span>
@@ -18,7 +18,7 @@
       </div>
 
       <div class="search-bar">
-        <input id="searchInput" type="search" placeholder="성경 말씀 찾기 (예: 요한복음 3장, 사랑, 독생자)" aria-label="성경 말씀 찾기" />
+        <input id="searchInput" type="search" placeholder="성경 찾기 (예: 요한복음 3장, 시편 23장, 독생자)" aria-label="성경 말씀 찾기" />
         <button id="btnSearch" type="button" class="btn btn-primary">찾기</button>
       </div>
 
@@ -34,7 +34,7 @@
       </div>
     </header>
 
-    <!-- 2. 현재 성경 위치 & 오디오 낭독 바 -->
+    <!-- 2. 현재 성경 위치 & 빠른 이동 바 (듣기 제거, 찬송·교독문 바로가기 추가) -->
     <div class="location-strip">
       <button id="btnOpenPicker" type="button" class="current-place-btn">
         <span id="currentPlaceText">창세기 22장</span>
@@ -42,21 +42,22 @@
       </button>
       <button id="btnPrevChap" type="button" class="btn">◀ 이전 장</button>
       <button id="btnNextChap" type="button" class="btn">다음 장 ▶</button>
-      <button id="btnReadAloud" type="button" class="btn btn-soft">🔊 이 장 읽어주기</button>
+      <button id="btnWorshipQuick" type="button" class="btn btn-soft">🎵 찬송가 · 교독문</button>
       <button id="btnBookmarks" type="button" class="btn">📌 표시한 말씀</button>
       <button id="btnResume" type="button" class="resume-pill" style="display:none;">어제 읽던 곳 이어 읽기</button>
     </div>
 
-    <!-- 3. 2단 화면: 왼쪽 성경 읽기 | 오른쪽 주석·연결 말씀·설교 노트 -->
+    <!-- 3. PC 최적화 2단 화면: 왼쪽 성경 읽기 | 오른쪽 12대 주석 · 연결 말씀 · 찬송/교독문 · 설교 노트 -->
     <main class="workspace">
       <section id="paneScripture" class="pane pane-scripture mobile-active" aria-label="성경 본문">
         <div id="verseList" class="pane-scroll"></div>
       </section>
 
-      <section id="paneStudy" class="pane pane-study" aria-label="주석 및 설교 노트">
-        <div class="study-tabs">
-          <button type="button" class="study-tab active" data-study-tab="commentary">📚 8대 주석</button>
+      <section id="paneStudy" class="pane pane-study" aria-label="주석 · 찬송 · 설교 노트">
+        <div class="study-tabs" style="grid-template-columns: repeat(5, 1fr);">
+          <button type="button" class="study-tab active" data-study-tab="commentary">📚 12대 주석</button>
           <button type="button" class="study-tab" data-study-tab="crossref">🔗 연결 말씀</button>
+          <button type="button" class="study-tab" data-study-tab="worship">🎵 찬송·교독문</button>
           <button type="button" class="study-tab" data-study-tab="strongs">🔤 원어 뜻</button>
           <button type="button" class="study-tab" data-study-tab="studio">✍️ 설교 노트</button>
         </div>
@@ -64,10 +65,10 @@
       </section>
     </main>
 
-    <!-- 모바일 전용 큼직한 하단 탭 -->
+    <!-- 모바일 대응 하단 전환 바 -->
     <nav class="mobile-nav" aria-label="화면 전환">
       <button type="button" class="btn btn-primary" data-mobile-pane="paneScripture">📖 성경 읽기</button>
-      <button type="button" class="btn" data-mobile-pane="paneStudy">📚 주석 · 설교 노트</button>
+      <button type="button" class="btn" data-mobile-pane="paneStudy">📚 주석 · 찬송 · 설교</button>
     </nav>
   </div>
 
@@ -89,25 +90,25 @@
     </div>
   </div>
 
-  <!-- 어르신용 쉬운 사용 안내 모달 -->
+  <!-- 쉬운 사용 안내 모달 -->
   <div id="helpModal" class="modal-overlay" role="dialog" aria-modal="true" aria-label="쉬운 사용 안내">
-    <div class="modal-box" style="max-width:620px;">
+    <div class="modal-box" style="max-width:640px;">
       <div class="modal-head">
         <h2>쉬운 사용 안내</h2>
         <button id="btnCloseHelp" type="button" class="btn">닫기 ✕</button>
       </div>
       <div class="modal-body">
         <div class="card">
-          <h3>1. 성경 찾기와 읽기</h3>
-          <p>왼쪽 위의 <strong>[성경 고르기]</strong> 버튼을 누르면 구약·신약 66권을 큰 글씨로 고를 수 있습니다. 위쪽 <strong>[작게 - / 크게 +]</strong> 버튼으로 글자 크기를 편하게 조절하세요.</p>
+          <h3>1. 성경 찾기와 큰 글씨 조절</h3>
+          <p>왼쪽 위의 <strong>[성경 고르기]</strong>를 누르면 구약·신약 66권을 큰 버튼으로 고를 수 있습니다. 위쪽 <strong>[작게 - / 크게 +]</strong>로 글자 크기를 편하게 맞추세요.</p>
         </div>
         <div class="card">
-          <h3>2. 말씀 듣기와 형광펜 표시</h3>
-          <p><strong>[🔊 이 장 읽어주기]</strong>를 누르면 소리로 성경을 읽어드립니다. 마음에 와닿는 절을 누르면 <strong>노랑·초록·분홍 형광펜</strong>으로 밑줄을 긋거나 <strong>[설교 노트에 담기]</strong>를 할 수 있습니다.</p>
+          <h3>2. 12대 공식 주석 종류별 비교</h3>
+          <p>성경 절을 누르면 오른쪽에 <strong>고전·경건(매튜 헨리·칼빈·웨슬리·JFB)</strong>, <strong>원어·학술(옥스포드·NICOT/NICNT·WBC·베이커)</strong>, <strong>강해·설교(컨스터블·ESV·호크마·그랜드)</strong> 주석이 종류별로 나타납니다.</p>
         </div>
         <div class="card">
-          <h3>3. 주석 보기 · 설교 노트 · 강단 큰 화면</h3>
-          <p>성경 절을 하나 누르면 오른쪽에 <strong>8대 주석</strong>과 <strong>연결 말씀(관주)</strong>이 바로 나타납니다. 작성한 설교 노트는 <strong>[큰 글씨 인쇄]</strong>하거나 <strong>[🎤 강단 큰 화면]</strong>으로 바로 띄워 설교하실 수 있습니다.</p>
+          <h3>3. 찬송가 · 교독문 빠른 찾기 &amp; 설교 인쇄</h3>
+          <p><strong>[🎵 찬송·교독문]</strong> 탭에서 장 번호나 제목으로 찬송가를 찾고, 교독문을 누르면 <strong>사회자·회중</strong> 형식으로 바로 크게 보거나 인쇄할 수 있습니다.</p>
         </div>
       </div>
     </div>
