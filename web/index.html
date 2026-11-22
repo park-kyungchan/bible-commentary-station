@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>큰글씨 성경주혜주석 — 성경 읽기 · 12대 공식 주석 · 찬송/교독문 · 설교 노트</title>
+  <title>큰글씨 성경주혜주석 — 다역본 성경 · 전 66권 공식 주석 · 새찬송가 645장 · 설교 노트</title>
   <link rel="manifest" href="./manifest.json" />
   <link rel="icon" href="./icon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="./css/workstation.css" />
@@ -34,7 +34,7 @@
       </div>
     </header>
 
-    <!-- 2. 현재 성경 위치 & 빠른 이동 바 (듣기 제거, 찬송·교독문 바로가기 추가) -->
+    <!-- 2. 현재 성경 위치 · 다역본 대조 · 찬송/교독문 빠른 이동 바 -->
     <div class="location-strip">
       <button id="btnOpenPicker" type="button" class="current-place-btn">
         <span id="currentPlaceText">창세기 22장</span>
@@ -42,12 +42,19 @@
       </button>
       <button id="btnPrevChap" type="button" class="btn">◀ 이전 장</button>
       <button id="btnNextChap" type="button" class="btn">다음 장 ▶</button>
-      <button id="btnWorshipQuick" type="button" class="btn btn-soft">🎵 찬송가 · 교독문</button>
+
+      <div class="version-bar" aria-label="성경 역본 선택 및 대조">
+        <select id="primaryVersionSelect" class="version-select" title="기본 성경 역본"></select>
+        <select id="parallelVersionSelect" class="version-select" title="나란히 비교할 역본"></select>
+        <button id="btnBibleImport" type="button" class="btn btn-sm">📂 내 성경(개역개정) 추가</button>
+      </div>
+
+      <button id="btnWorshipQuick" type="button" class="btn btn-soft">🎵 찬송가 645장 · 교독문</button>
       <button id="btnBookmarks" type="button" class="btn">📌 표시한 말씀</button>
       <button id="btnResume" type="button" class="resume-pill" style="display:none;">어제 읽던 곳 이어 읽기</button>
     </div>
 
-    <!-- 3. PC 최적화 2단 화면: 왼쪽 성경 읽기 | 오른쪽 12대 주석 · 연결 말씀 · 찬송/교독문 · 설교 노트 -->
+    <!-- 3. PC 최적화 2단 화면: 왼쪽 다역본 성경 읽기 | 오른쪽 12대·전66권 주석 · 연결 말씀 · 찬송645장/교독문 · 설교 노트 -->
     <main class="workspace">
       <section id="paneScripture" class="pane pane-scripture mobile-active" aria-label="성경 본문">
         <div id="verseList" class="pane-scroll"></div>
@@ -90,6 +97,47 @@
     </div>
   </div>
 
+  <!-- 내 성경(개역개정 등) 로컬 불러오기 모달 (100% 내 PC 브라우저에만 저장) -->
+  <div id="bibleImportModal" class="modal-overlay" role="dialog" aria-modal="true" aria-label="내 성경 역본 불러오기">
+    <div class="modal-box" style="max-width:680px;">
+      <div class="modal-head">
+        <h2>📂 내 성경 역본 불러오기 (개역개정 · 새번역 등)</h2>
+        <button id="btnCloseBibleImport" type="button" class="btn">닫기 ✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="card" style="background:var(--surface-soft);">
+          <h3 style="margin-top:0;">저작권 안전 안내 (100% 내 PC에만 저장)</h3>
+          <p style="font-size:15.5px;line-height:1.7;">
+            <strong>개역개정(GAE)</strong>·새번역 등은 대한성서공회 저작권 보호 역본이므로 공개 웹에 직접 올리지 않습니다.
+            개인적으로 소장하신 성경 텍스트(<code>.txt</code>) 또는 <code>.json</code> 파일을 아래에서 불러오시면
+            <strong>외부 서버로 전송되지 않고 내 컴퓨터 브라우저에만 안전하게 저장</strong>되어,
+            개역한글·영어·원어 성경과 나란히 대조해 읽으실 수 있습니다.
+          </p>
+        </div>
+
+        <div class="card">
+          <h3>새 역본 파일 불러오기</h3>
+          <label style="display:block;font-weight:700;margin-bottom:6px;">역본 이름 (예: 개역개정, 새번역)</label>
+          <input id="customBibleNameInput" type="text" class="input-lg" value="개역개정 (내 파일)" style="margin-bottom:12px;" />
+          <label style="display:block;font-weight:700;margin-bottom:6px;">성경 파일 선택 (<code>.txt</code> 또는 <code>.json</code>)</label>
+          <p style="font-size:14px;color:var(--text-muted);margin-bottom:10px;">
+            지원 형식: 한 줄에 한 절씩 <code>창1:1 태초에 하나님이 천지를 창조하시니라</code> 또는 <code>창세기 1:1 ...</code> 또는 <code>GEN 1:1 ...</code>, 혹은 JSON 형식
+          </p>
+          <input id="customBibleFileInput" type="file" accept=".txt,.json" style="font-size:16px;margin-bottom:12px;width:100%;" />
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button id="btnDoBibleImport" type="button" class="btn btn-primary">📥 이 파일 불러와 저장하기</button>
+          </div>
+          <p id="bibleImportStatus" style="margin-top:10px;font-weight:700;color:var(--primary);"></p>
+        </div>
+
+        <div class="card">
+          <h3>내 PC에 저장된 역본 목록</h3>
+          <div id="customBibleList"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- 쉬운 사용 안내 모달 -->
   <div id="helpModal" class="modal-overlay" role="dialog" aria-modal="true" aria-label="쉬운 사용 안내">
     <div class="modal-box" style="max-width:640px;">
@@ -99,16 +147,16 @@
       </div>
       <div class="modal-body">
         <div class="card">
-          <h3>1. 성경 찾기와 큰 글씨 조절</h3>
-          <p>왼쪽 위의 <strong>[성경 고르기]</strong>를 누르면 구약·신약 66권을 큰 버튼으로 고를 수 있습니다. 위쪽 <strong>[작게 - / 크게 +]</strong>로 글자 크기를 편하게 맞추세요.</p>
+          <h3>1. 다역본 성경 대조 읽기 &amp; 내 개역개정 추가</h3>
+          <p>상단 역본 선택기에서 <strong>개역한글 · 현대영어(BSB) · 킹제임스(KJV) · 히브리어/헬라어 원문</strong>을 나란히 비교할 수 있습니다. <strong>[📂 내 성경(개역개정) 추가]</strong>로 개인 소장 개역개정 파일을 불러와 바로 읽으실 수 있습니다.</p>
         </div>
         <div class="card">
-          <h3>2. 12대 공식 주석 종류별 비교</h3>
-          <p>성경 절을 누르면 오른쪽에 <strong>고전·경건(매튜 헨리·칼빈·웨슬리·JFB)</strong>, <strong>원어·학술(옥스포드·NICOT/NICNT·WBC·베이커)</strong>, <strong>강해·설교(컨스터블·ESV·호크마·그랜드)</strong> 주석이 종류별로 나타납니다.</p>
+          <h3>2. 12대 한글 주석 + 전 66권 실시간 공식 원문 주석</h3>
+          <p>성경 <strong>31,102절 어느 절을 눌러도</strong> 12대 한글 요약 주석과 함께, 아래쪽 <strong>매튜 헨리·존 칼빈·JFB·아담 클라크·카일&amp;델리취·틴데일·TSK 관주</strong> 공식 원문 주석을 실시간으로 바로 열람하실 수 있습니다.</p>
         </div>
         <div class="card">
-          <h3>3. 찬송가 · 교독문 빠른 찾기 &amp; 설교 인쇄</h3>
-          <p><strong>[🎵 찬송·교독문]</strong> 탭에서 장 번호나 제목으로 찬송가를 찾고, 교독문을 누르면 <strong>사회자·회중</strong> 형식으로 바로 크게 보거나 인쇄할 수 있습니다.</p>
+          <h3>3. 새찬송가 1~645장 전체 &amp; 교독문 큰 화면</h3>
+          <p><strong>[🎵 찬송·교독문]</strong> 탭에서 새찬송가 <strong>1장부터 645장 전곡</strong>을 번호·제목·주제별로 찾고, 개인 찬송가 가사 파일도 불러올 수 있습니다. 교독문은 <strong>사회자·회중</strong> 큰 글씨와 강단 화면을 지원합니다.</p>
         </div>
       </div>
     </div>
