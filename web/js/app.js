@@ -1,5 +1,14 @@
-import { BibleDataService } from './bibleService.js';
-import { SermonArchiveStore, createDefaultSermon } from './storage.js';
+import {
+  BibleDataService,
+  BUILTIN_TRANSLATIONS,
+  LIVE_COMMENTARY_SOURCES,
+} from './bibleService.js';
+import {
+  SermonArchiveStore,
+  createDefaultSermon,
+  parseCustomBibleFile,
+  parseCustomHymnFile,
+} from './storage.js';
 
 const service = new BibleDataService('./data');
 const sermonStore = new SermonArchiveStore();
@@ -39,9 +48,24 @@ const state = {
   compareMode: false,
   compareLeft: 'MATTHEW_HENRY',
   compareRight: 'NICOT_NICNT',
+  primaryVersion: 'krv',
+  parallelVersion: 'none', // 'none' | 'BSB' | 'eng_kjv' | 'hbo_wlc' | 'grc_sbl' | 'custom_...'
+  primaryMap: null,
+  parallelMap: null,
+  parallelError: '',
+  customBibles: [],
+  customHymnLyrics: {},
+  liveCommSource: 'matthew-henry',
+  liveCommData: null,
+  liveCommLoading: false,
+  liveCommError: '',
+  hymnRange: 'FEATURED', // FEATURED | ALL | 1-100 | 101-200 | ... | 601-645
+  expandedHymnNum: null,
   worshipMode: 'hymns', // hymns | responsive
+  worshipGroup: '전체',
   worshipQuery: '',
   selectedResponsive: null,
+  customPulpitSlides: null,
   theme: 'light',
   fontStepIndex: 1,
   highlights: loadJson(HIGHLIGHT_KEY, {}),
@@ -108,10 +132,42 @@ function getCurrentVerseObj() {
   return state.verses.find((v) => v.verse === state.verse) || state.verses[0] || null;
 }
 
-/* ---------- 성경 장 로딩 & 렌더링 ---------- */
+function getAllVersionOptions() {
+  const customOpts = state.customBibles.map((cb) => ({
+    id: cb.id,
+    label: `📂 ${cb.name} (내 파일 · ${cb.verseCount.toLocaleString()}절)`,
+    shortLabel: cb.shortName || cb.name,
+    lang: 'ko',
+    source: 'custom',
+  }));
+  return [...customOpts, ...BUILTIN_TRANSLATIONS];
+}
+
+function getVersionMeta(versionId) {
+  return getAllVersionOptions().find((v) => v.id === versionId) || BUILTIN_TRANSLATIONS[0];
+}
+
+function populateVersionSelectors() {
+  const pSel = document.getElementById('primaryVersionSelect');
+  const sSel = document.getElementById('parallelVersionSelect');
+  if (!pSel || !sSel) return;
+  const opts = getAllVersionOptions();
+
+  pSel.replaceChildren(
+    ...opts.map((o) => el('option', { value: o.id, selected: o.id === state.primaryVersion ? '' : null }, `주 역본: ${o.label}`))
+  );
+  sSel.replaceChildren(
+    el('option', { value: 'none', selected: state.parallelVersion === 'none' ? '' : null }, '비교 역본: 사용 안 함'),
+    ...opts.map((o) => el('option', { value: o.id, selected: o.id === state.parallelVersion ? '' : null }, `비교: ${o.label}`))
+  );
+}
+
+/* ---------- 성경 장 로딩 & 다역본 렌더링 ---------- */
 async function loadChapter(osis, ch, targetVerse = 1) {
   state.osis = osis;
   state.chapter = ch;
+  state.liveCommData = null;
+  state.liveCommError = '';
   const meta = service.getBookMeta(osis);
   document.getElementById('currentPlaceText').textContent = `${meta ? meta.name : osis} ${ch}장`;
 
@@ -121,40 +177,85 @@ async function loadChapter(osis, ch, targetVerse = 1) {
   state.verses = await service.getChapterVerses(osis, ch);
   state.verse = state.verses.some((v) => v.verse === targetVerse) ? targetVerse : 1;
 
+  // Load primary & optional parallel version maps
+  state.parallelError = '';
+  try {
+    state.primaryMap = state.primaryVersion === 'krv'
+      ? null
+      : await service.getVersionChapterMap(state.primaryVersion, osis, ch, state.customBibles);
+  } catch (e) {
+    state.primaryMap = null;
+    showToast(`주 역본 불러오기 실패(${e.message}) — 개역한글로 표시합니다.`);
+  }
+
+  if (state.parallelVersion && state.parallelVersion !== 'none') {
+    try {
+      state.parallelMap = await service.getVersionChapterMap(state.parallelVersion, osis, ch, state.customBibles);
+    } catch (e) {
+      state.parallelMap = null;
+      state.parallelError = `${getVersionMeta(state.parallelVersion).shortLabel} 불러오기 실패 (구·신약 범위 또는 인터넷 연결 확인)`;
+    }
+  } else {
+    state.parallelMap = null;
+  }
+
   saveJson(LAST_PLACE_KEY, { osis, chapter: ch, verse: state.verse, label: `${meta ? meta.name : osis} ${ch}장 ${state.verse}절` });
   renderVerses();
   renderStudyPane();
+  loadLiveCommentaryIfActive();
 }
 
 function renderVerses() {
   const container = document.getElementById('verseList');
   container.replaceChildren();
   const meta = service.getBookMeta(state.osis);
+  const pMeta = getVersionMeta(state.primaryVersion);
+  const sMeta = state.parallelVersion !== 'none' ? getVersionMeta(state.parallelVersion) : null;
 
   container.appendChild(
     el(
       'div',
       { className: 'chapter-heading' },
       el('h1', {}, `${meta ? meta.name : state.osis} ${state.chapter}장`),
-      el('span', { className: 'sub' }, `개역한글 · 총 ${state.verses.length}절`)
+      el('span', { className: 'sub' }, `${pMeta.shortLabel}${sMeta ? ` + ${sMeta.shortLabel} 대조` : ''} · 총 ${state.verses.length}절`)
     )
   );
+
+  if (state.parallelError) {
+    container.appendChild(el('div', { className: 'callout', style: 'margin-bottom:12px;' }, `⚠️ ${state.parallelError}`));
+  }
 
   for (const v of state.verses) {
     const comms = service.getCommentariesForVerse(v.verseId);
     const refs = service.getCrossReferencesForVerse(v.verseId);
     const isSel = v.verse === state.verse;
     const hl = state.highlights[String(v.verseId)]?.color || '';
+    const primaryText = (state.primaryMap && state.primaryMap[v.verse]) ? state.primaryMap[v.verse] : v.text;
+    const parallelText = (state.parallelMap && state.parallelMap[v.verse]) ? state.parallelMap[v.verse] : '';
 
     const topRow = el(
       'div',
       { className: 'verse-top' },
       el('span', { className: 'verse-badge-num' }, v.verse),
-      comms.length ? el('span', { className: 'tag tag-accent' }, `주석 ${comms.length}종`) : null,
+      comms.length ? el('span', { className: 'tag tag-accent' }, `한글 주석 ${comms.length}종`) : null,
       refs.length ? el('span', { className: 'tag' }, `연결 말씀 ${refs.length}`) : null
     );
 
-    const cardChildren = [topRow, el('p', { className: 'verse-text' }, v.text)];
+    const cardChildren = [
+      topRow,
+      el('p', { className: `verse-text ${pMeta.lang === 'he' ? 'rtl-text' : ''}` }, primaryText),
+    ];
+
+    if (sMeta && parallelText) {
+      cardChildren.push(
+        el(
+          'div',
+          { className: `parallel-verse ${sMeta.lang === 'he' ? 'rtl-text' : ''}` },
+          el('div', {}, el('span', { className: 'parallel-badge' }, sMeta.shortLabel)),
+          el('div', {}, parallelText)
+        )
+      );
+    }
 
     if (isSel) {
       const hlOptions = [
@@ -284,6 +385,7 @@ function renderCommentaryTab(body) {
         buildCommentaryCard(entries.find((e) => e.source_code === state.compareRight), state.compareRight, allSources)
       )
     );
+    renderLiveCommentaryBlock(body, v);
     return;
   }
 
@@ -350,16 +452,146 @@ function renderCommentaryTab(body) {
           el('button', { type: 'button', className: 'btn btn-sm', onClick: () => loadChapter('GEN', 22, 2) }, '창세기 22:2 (12종)'),
           el('button', { type: 'button', className: 'btn btn-sm', onClick: () => loadChapter('PSA', 23, 1) }, '시편 23:1'),
           el('button', { type: 'button', className: 'btn btn-sm', onClick: () => loadChapter('JHN', 3, 16) }, '요한복음 3:16'),
-          el('button', { type: 'button', className: 'btn btn-sm', onClick: () => loadChapter('ROM', 8, 28) }, '로마서 8:28')
+          el('button', { type: 'button', className: 'btn btn-sm', onClick: () => loadChapter('ISA', 53, 5) }, '이사야 53:5'),
+          el('button', { type: 'button', className: 'btn btn-sm', onClick: () => loadChapter('MAT', 11, 28) }, '마태복음 11:28'),
+          el('button', { type: 'button', className: 'btn btn-sm', onClick: () => loadChapter('ROM', 8, 28) }, '로마서 8:28'),
+          el('button', { type: 'button', className: 'btn btn-sm', onClick: () => loadChapter('PHP', 4, 6) }, '빌립보서 4:6'),
+          el('button', { type: 'button', className: 'btn btn-sm', onClick: () => loadChapter('HEB', 11, 1) }, '히브리서 11:1'),
+          el('button', { type: 'button', className: 'btn btn-sm', onClick: () => loadChapter('REV', 21, 4) }, '계시록 21:4')
         )
       )
     );
+    renderLiveCommentaryBlock(body, v);
     return;
   }
 
   for (const item of filtered) {
     body.appendChild(buildCommentaryCard(item, item.source_code, allSources));
   }
+  renderLiveCommentaryBlock(body, v);
+}
+
+async function loadLiveCommentaryIfActive() {
+  if (state.studyTab !== 'commentary' || !state.liveCommSource) return;
+  state.liveCommLoading = true;
+  state.liveCommError = '';
+  try {
+    state.liveCommData = await service.fetchLiveCommentaryChapter(state.liveCommSource, state.osis, state.chapter);
+  } catch (e) {
+    state.liveCommData = null;
+    state.liveCommError = e.message;
+  } finally {
+    state.liveCommLoading = false;
+    if (state.studyTab === 'commentary') renderStudyPane();
+  }
+}
+
+function renderLiveCommentaryBlock(body, v) {
+  const sec = el('div', { className: 'live-comm-section' });
+  sec.appendChild(
+    el(
+      'div',
+      { style: 'display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:10px;' },
+      el('strong', { style: 'font-size:17.5px;color:var(--primary);' }, `🌐 전 66권 실시간 공식 원문 주석 (${v.bookName} ${v.chapter}:${v.verse})`),
+      el('span', { className: 'tag' }, 'HelloAO 퍼블릭 도메인 원문')
+    )
+  );
+
+  sec.appendChild(
+    el(
+      'div',
+      { className: 'source-grid', style: 'margin-bottom:12px;' },
+      ...LIVE_COMMENTARY_SOURCES.map((srcItem) =>
+        el(
+          'button',
+          {
+            type: 'button',
+            className: `source-pill ${state.liveCommSource === srcItem.id ? 'active' : ''}`,
+            onClick: () => {
+              state.liveCommSource = srcItem.id;
+              state.liveCommData = null;
+              loadLiveCommentaryIfActive();
+              renderStudyPane();
+            },
+          },
+          `${srcItem.name.split(' (')[0]}`
+        )
+      )
+    )
+  );
+
+  const activeMeta = LIVE_COMMENTARY_SOURCES.find((s) => s.id === state.liveCommSource) || LIVE_COMMENTARY_SOURCES[0];
+
+  if (state.liveCommLoading) {
+    sec.appendChild(el('div', { className: 'card' }, el('p', {}, `${activeMeta.name} 원문을 불러오고 있습니다…`)));
+    body.appendChild(sec);
+    return;
+  }
+  if (state.liveCommError) {
+    sec.appendChild(
+      el('div', { className: 'card' },
+        el('p', {}, `실시간 주석을 불러오지 못했습니다: ${state.liveCommError}`),
+        el('button', { type: 'button', className: 'btn btn-sm btn-primary', style: 'margin-top:8px;', onClick: loadLiveCommentaryIfActive }, '다시 시도')
+      )
+    );
+    body.appendChild(sec);
+    return;
+  }
+  if (!state.liveCommData) {
+    sec.appendChild(
+      el('div', { className: 'card' },
+        el('p', {}, `${activeMeta.name} — ${activeMeta.desc}`),
+        el('button', { type: 'button', className: 'btn btn-sm btn-primary', style: 'margin-top:10px;', onClick: loadLiveCommentaryIfActive }, '📖 이 절의 공식 원문 주석 불러오기')
+      )
+    );
+    body.appendChild(sec);
+    return;
+  }
+
+  if (!state.liveCommData.available) {
+    sec.appendChild(
+      el('div', { className: 'card' },
+        el('h3', {}, activeMeta.name),
+        el('p', {}, '선택하신 주석서에는 이 책/장이 수록되어 있지 않습니다(예: 구약 전용 또는 48권 수록 주석). 위에서 매튜 헨리·JFB·아담 클라크·존 길·TSK 등 66권 전체 주석을 선택해 보세요.')
+      )
+    );
+    body.appendChild(sec);
+    return;
+  }
+
+  const verseText = state.liveCommData.verses[v.verse] || '';
+  const introText = state.liveCommData.introduction || '';
+  const displayBody = verseText || introText || '이 장의 절별 주석은 인접 절(앞뒤 절) 해설에 통합되어 있습니다. 아래에서 장 전체 서론이나 인접 절을 눌러 확인하실 수 있습니다.';
+  const translateUrl = `https://translate.google.com/?sl=en&tl=ko&text=${encodeURIComponent(displayBody.slice(0, 1800))}&op=translate`;
+
+  sec.appendChild(
+    el(
+      'div',
+      { className: 'card' },
+      el('div', { style: 'display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;' },
+        el('span', { className: 'tag tag-accent' }, activeMeta.name),
+        el('span', { className: 'tag' }, activeMeta.badge),
+        el('a', { href: state.liveCommData.url, target: '_blank', rel: 'noopener noreferrer', style: 'margin-left:auto;font-size:13px;color:var(--primary);font-weight:700;' }, '원문 API ↗')
+      ),
+      el('h3', {}, `${v.bookName} ${v.chapter}:${v.verse} 원문 주해`),
+      el('div', { className: 'live-comm-text' }, displayBody),
+      el('div', { style: 'display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;' },
+        el('button', {
+          type: 'button',
+          className: 'btn btn-sm btn-soft',
+          onClick: () => clipToSermon(`${activeMeta.name} (${v.bookName} ${v.chapter}:${v.verse})`, displayBody),
+        }, '✍️ 설교 노트에 담기'),
+        el('a', {
+          className: 'btn btn-sm btn-primary',
+          href: translateUrl,
+          target: '_blank',
+          rel: 'noopener noreferrer',
+          style: 'text-decoration:none;',
+        }, '🇰🇷 구글 번역으로 한국어 보기 ↗')
+      )
+    )
+  );
+  body.appendChild(sec);
 }
 
 function buildCommentaryCard(entry, sourceCode, sources) {
@@ -426,30 +658,143 @@ async function renderWorshipTab(body) {
     })
   );
 
+  const groups = state.worshipMode === 'hymns'
+    ? (service.worship?.hymnGroups || ['전체'])
+    : (service.worship?.responsiveGroups || ['전체']);
+  if (!groups.includes(state.worshipGroup)) state.worshipGroup = '전체';
+
+  body.appendChild(
+    el(
+      'div',
+      { className: 'source-grid', style: 'margin-bottom:12px;' },
+      ...groups.map((g) =>
+        el(
+          'button',
+          {
+            type: 'button',
+            className: `source-pill ${state.worshipGroup === g ? 'active' : ''}`,
+            onClick: () => { state.worshipGroup = g; state.selectedResponsive = null; renderStudyPane(); },
+          },
+          g
+        )
+      )
+    )
+  );
+
   const q = state.worshipQuery.trim();
 
   if (state.worshipMode === 'hymns') {
-    const hymns = service.getHymns().filter((h) =>
-      !q || String(h.num) === q || String(h.old) === q || h.title.includes(q) || h.category.includes(q)
+    const HYMN_RANGES = [
+      { key: 'FEATURED', label: '대표 100곡' },
+      { key: '1-100', label: '1~100장' },
+      { key: '101-200', label: '101~200장' },
+      { key: '201-300', label: '201~300장' },
+      { key: '301-400', label: '301~400장' },
+      { key: '401-500', label: '401~500장' },
+      { key: '501-600', label: '501~600장' },
+      { key: '601-645', label: '601~645장' },
+      { key: 'ALL', label: '전체 645장' },
+    ];
+    const hiddenFileInput = el('input', {
+      type: 'file',
+      accept: '.txt,.json',
+      style: 'display:none;',
+      onChange: async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        try {
+          const text = await file.text();
+          const parsed = parseCustomHymnFile(text);
+          const count = await sermonStore.saveCustomHymnLyrics(parsed);
+          state.customHymnLyrics = await sermonStore.getCustomHymnLyricsMap();
+          showToast(`내 찬송가 가사 ${count}곡을 PC에 안전하게 저장했습니다.`);
+          renderStudyPane();
+        } catch (err) {
+          showToast(`찬송가 파일 불러오기 오류: ${err.message}`);
+        }
+      },
+    });
+    body.appendChild(hiddenFileInput);
+
+    body.appendChild(
+      el(
+        'div',
+        { className: 'range-pills' },
+        ...HYMN_RANGES.map((r) =>
+          el(
+            'button',
+            {
+              type: 'button',
+              className: `btn btn-sm ${state.hymnRange === r.key ? 'btn-primary' : ''}`,
+              onClick: () => { state.hymnRange = r.key; renderStudyPane(); },
+            },
+            r.label
+          )
+        ),
+        el('button', {
+          type: 'button',
+          className: 'btn btn-sm btn-soft',
+          onClick: () => hiddenFileInput.click(),
+        }, `📂 내 찬송가 가사 추가 (${Object.keys(state.customHymnLyrics).length}곡)`)
+      )
     );
-    body.appendChild(el('p', { style: 'font-size:14.5px;color:var(--text-muted);margin-bottom:10px;font-weight:700;' }, `검색된 찬송가 ${hymns.length}곡 (번호·주제를 누르면 관련 성경으로 바로 이동합니다)`));
+
+    const allHymns = service.getHymns();
+    const hymns = allHymns.filter((h) => {
+      const groupOk = state.worshipGroup === '전체' || h.category === state.worshipGroup;
+      if (!groupOk) return 0 === 1;
+      if (q) {
+        return String(h.num) === q || (h.old && String(h.old) === q) || h.title.includes(q) || h.category.includes(q) || (h.section && h.section.includes(q));
+      }
+      if (state.hymnRange === 'FEATURED') return Boolean(h.featured);
+      if (state.hymnRange === 'ALL') return true;
+      const [lo, hi] = state.hymnRange.split('-').map(Number);
+      return h.num >= lo && h.num <= hi;
+    });
+
+    body.appendChild(
+      el('p', { style: 'font-size:14.5px;color:var(--text-muted);margin-bottom:10px;font-weight:700;' },
+        `21세기 새찬송가 총 ${allHymns.length}장 중 ${hymns.length}곡 표시 (번호나 제목을 입력하면 645장 전체에서 즉시 찾습니다)`
+      )
+    );
+
     for (const h of hymns) {
+      const lyrics = state.customHymnLyrics[h.num] || '';
+      const isExpanded = state.expandedHymnNum === h.num;
       body.appendChild(
         el(
           'div',
           { className: 'card', style: 'padding:14px 18px;' },
           el(
             'div',
-            { style: 'display:flex;align-items:center;gap:10px;flex-wrap:wrap;' },
+            { style: 'display:flex;align-items:center;gap:8px;flex-wrap:wrap;' },
             el('span', { className: 'tag tag-accent', style: 'font-size:15px;' }, `새찬송가 ${h.num}장`),
-            el('span', { className: 'tag' }, `구 ${h.old}장`),
-            el('span', { className: 'tag' }, h.category),
+            h.old ? el('span', { className: 'tag' }, `구 ${h.old}장`) : null,
+            el('span', { className: 'tag' }, h.section || h.category),
+            lyrics ? el('span', { className: 'tag', style: 'background:#dcfce7;color:#166534;' }, '내 가사 있음') : null,
             el('strong', { style: 'font-size:18px;width:100%;margin-top:4px;' }, h.title),
+            isExpanded && lyrics
+              ? el('div', { style: 'width:100%;margin-top:10px;padding:12px 14px;background:var(--surface-soft);border-radius:10px;white-space:pre-wrap;font-size:17px;line-height:1.8;' }, lyrics)
+              : null,
             el(
               'div',
               { style: 'display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;' },
               el('button', { type: 'button', className: 'btn btn-sm btn-soft', onClick: () => loadChapter(h.ref.osis, h.ref.ch, h.ref.vs) }, `📖 관련 말씀 (${h.ref.label}) 열기`),
-              el('button', { type: 'button', className: 'btn btn-sm', onClick: () => clipToSermon(`새찬송가 ${h.num}장`, `${h.title} (구 ${h.old}장 · ${h.category})`) }, '✍️ 설교 노트에 담기')
+              lyrics
+                ? el('button', { type: 'button', className: 'btn btn-sm btn-primary', onClick: () => { state.expandedHymnNum = isExpanded ? null : h.num; renderStudyPane(); } }, isExpanded ? '가사 접기' : '🎵 내 가사 보기')
+                : null,
+              lyrics
+                ? el('button', { type: 'button', className: 'btn btn-sm btn-accent', onClick: () => {
+                    const stanzas = lyrics.split(/\n\s*\n/).filter(Boolean);
+                    state.customPulpitSlides = stanzas.map((st, idx) => ({
+                      section: `새찬송가 ${h.num}장 (${idx + 1}/${stanzas.length})`,
+                      title: `${h.num}장. ${h.title}`,
+                      body: st,
+                    }));
+                    openPulpitMode();
+                  } }, '🎤 강단 큰 화면')
+                : null,
+              el('button', { type: 'button', className: 'btn btn-sm', onClick: () => clipToSermon(`새찬송가 ${h.num}장`, `${h.title}${h.old ? ` (구 ${h.old}장)` : ''} · ${h.section || h.category}`) }, '✍️ 설교 노트에 담기')
             )
           )
         )
@@ -470,7 +815,18 @@ async function renderWorshipTab(body) {
         { className: 'no-print', style: 'display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;' },
         el('button', { type: 'button', className: 'btn btn-sm', onClick: () => { state.selectedResponsive = null; renderStudyPane(); } }, '◀ 교독문 목록'),
         el('button', { type: 'button', className: 'btn btn-sm btn-soft', onClick: () => loadChapter(rr.osis, rr.ch, rr.start_vs) }, '📖 왼쪽에 본문 열기'),
-        el('button', { type: 'button', className: 'btn btn-sm btn-primary', onClick: () => window.print() }, '🖨️ 교독문 큰 글씨 인쇄')
+        el('button', { type: 'button', className: 'btn btn-sm btn-primary', onClick: () => window.print() }, '🖨️ 교독문 큰 글씨 인쇄'),
+        el('button', { type: 'button', className: 'btn btn-sm btn-accent', onClick: () => {
+          state.customPulpitSlides = [
+            { section: `교독문 ${rr.num}번`, title: rr.title, body: `${rr.season} · 사회자와 회중이 번갈아 읽습니다` },
+            ...verses.map((v, i) => ({
+              section: i === verses.length - 1 ? '다같이' : (i % 2 === 0 ? '사회자' : '회중'),
+              title: i === verses.length - 1 ? '[다같이]' : (i % 2 === 0 ? '[사회자]' : '[회중]'),
+              body: v.text,
+            })),
+          ];
+          openPulpitMode();
+        } }, '🎤 강단 큰 화면 교독')
       )
     );
 
@@ -496,7 +852,8 @@ async function renderWorshipTab(body) {
   }
 
   const list = service.getResponsiveReadings().filter((r) =>
-    !q || String(r.num) === q || r.title.includes(q) || r.season.includes(q)
+    (state.worshipGroup === '전체' || r.group === state.worshipGroup) &&
+    (!q || String(r.num) === q || r.title.includes(q) || r.season.includes(q))
   );
   body.appendChild(el('p', { style: 'font-size:14.5px;color:var(--text-muted);margin-bottom:10px;font-weight:700;' }, `교독문 ${list.length}편 (누르면 사회자·회중 큰 글씨 교독문이 바로 열립니다)`));
   for (const rr of list) {
@@ -898,6 +1255,7 @@ async function runSearch() {
 
 /* ---------- 강단 큰 화면 모드 ---------- */
 function buildPulpitSlides() {
+  if (state.customPulpitSlides) return state.customPulpitSlides;
   const sermon = getActiveSermon();
   if (!sermon) return [];
   return [
@@ -924,6 +1282,7 @@ async function openPulpitMode() {
 
 function closePulpitMode() {
   state.pulpit.open = false;
+  state.customPulpitSlides = null;
   document.getElementById('pulpitOverlay').classList.remove('open');
   clearInterval(state.pulpit.timerId);
   if (state.pulpit.wakeLock) {
@@ -969,12 +1328,107 @@ function applyFontStep() {
   document.getElementById('fontSizeLabel').textContent = step.label;
 }
 
+function renderCustomBibleList() {
+  const listEl = document.getElementById('customBibleList');
+  if (!listEl) return;
+  listEl.replaceChildren();
+  if (!state.customBibles.length) {
+    listEl.appendChild(el('p', { style: 'color:var(--text-muted);' }, '아직 불러온 개인 성경 파일이 없습니다. 위에서 개역개정(.txt 또는 .json) 파일을 선택해 추가해 보세요.'));
+    return;
+  }
+  for (const cb of state.customBibles) {
+    listEl.appendChild(
+      el('div', { style: 'display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);flex-wrap:wrap;' },
+        el('div', {},
+          el('strong', { style: 'font-size:17px;' }, cb.name),
+          el('div', { style: 'font-size:13.5px;color:var(--text-muted);' }, `${cb.bookCount}권 · ${cb.verseCount.toLocaleString()}절 저장됨`)
+        ),
+        el('div', { style: 'display:flex;gap:6px;' },
+          el('button', {
+            type: 'button',
+            className: 'btn btn-sm btn-primary',
+            onClick: () => {
+              state.primaryVersion = cb.id;
+              populateVersionSelectors();
+              document.getElementById('bibleImportModal').classList.remove('open');
+              loadChapter(state.osis, state.chapter, state.verse);
+            },
+          }, '주 역본으로 읽기'),
+          el('button', {
+            type: 'button',
+            className: 'btn btn-sm',
+            onClick: async () => {
+              await sermonStore.deleteCustomBible(cb.id);
+              state.customBibles = await sermonStore.listCustomBibles();
+              if (state.primaryVersion === cb.id) state.primaryVersion = 'krv';
+              if (state.parallelVersion === cb.id) state.parallelVersion = 'none';
+              populateVersionSelectors();
+              renderCustomBibleList();
+              loadChapter(state.osis, state.chapter, state.verse);
+              showToast('저장된 개인 역본을 삭제했습니다.');
+            },
+          }, '삭제')
+        )
+      )
+    );
+  }
+}
+
 async function initApp() {
   try {
     await service.init();
     state.sermons = await sermonStore.listSermons();
     state.activeSermonId = state.sermons[0]?.id || null;
+    state.customBibles = await sermonStore.listCustomBibles();
+    state.customHymnLyrics = await sermonStore.getCustomHymnLyricsMap();
+    populateVersionSelectors();
     applyFontStep();
+
+    document.getElementById('primaryVersionSelect')?.addEventListener('change', (e) => {
+      state.primaryVersion = e.target.value;
+      loadChapter(state.osis, state.chapter, state.verse);
+    });
+    document.getElementById('parallelVersionSelect')?.addEventListener('change', (e) => {
+      state.parallelVersion = e.target.value;
+      loadChapter(state.osis, state.chapter, state.verse);
+    });
+    document.getElementById('btnBibleImport')?.addEventListener('click', () => {
+      renderCustomBibleList();
+      document.getElementById('bibleImportStatus').textContent = '';
+      document.getElementById('bibleImportModal').classList.add('open');
+    });
+    document.getElementById('btnCloseBibleImport')?.addEventListener('click', () => {
+      document.getElementById('bibleImportModal').classList.remove('open');
+    });
+    document.getElementById('btnDoBibleImport')?.addEventListener('click', async () => {
+      const fileInput = document.getElementById('customBibleFileInput');
+      const nameInput = document.getElementById('customBibleNameInput');
+      const statusEl = document.getElementById('bibleImportStatus');
+      const file = fileInput?.files?.[0];
+      if (!file) {
+        statusEl.textContent = '먼저 성경 파일(.txt 또는 .json)을 선택해 주세요.';
+        return;
+      }
+      statusEl.textContent = '파일을 읽고 분석하는 중입니다…';
+      try {
+        const raw = await file.text();
+        const parsed = parseCustomBibleFile(raw, file.name, nameInput?.value);
+        if (!parsed.verseCount) {
+          statusEl.textContent = '인식된 성경 절이 없습니다. "창1:1 본문..." 또는 JSON 형식을 확인해 주세요.';
+          return;
+        }
+        await sermonStore.saveCustomBible(parsed);
+        state.customBibles = await sermonStore.listCustomBibles();
+        state.primaryVersion = parsed.id;
+        populateVersionSelectors();
+        renderCustomBibleList();
+        statusEl.textContent = `✅ "${parsed.name}" (${parsed.bookCount}권 · ${parsed.verseCount.toLocaleString()}절) 저장 완료!`;
+        showToast(`${parsed.name} 불러오기 완료!`);
+        loadChapter(state.osis, state.chapter, state.verse);
+      } catch (err) {
+        statusEl.textContent = `오류: ${err.message}`;
+      }
+    });
 
     const last = loadJson(LAST_PLACE_KEY, null);
     if (last && last.osis && last.label) {
