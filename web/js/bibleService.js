@@ -6,7 +6,9 @@ export const HELLOAO_API_BASE = 'https://bible.helloao.org/api';
 
 // Official free-use / public-domain Bible versions available live via HelloAO (zero API key, CORS *)
 export const BUILTIN_TRANSLATIONS = [
-  { id: 'krv', label: '개역한글 (내장 · 오프라인)', shortLabel: '개역한글', lang: 'ko', source: 'local' },
+  { id: 'nkrv', label: '개역개정 (내장 · 66권 전체)', shortLabel: '개역개정', lang: 'ko', source: 'local' },
+  { id: 'nrsv', label: '새번역 (내장 · 66권 전체)', shortLabel: '새번역', lang: 'ko', source: 'local' },
+  { id: 'krv', label: '개역한글 (내장 · 66권 전체)', shortLabel: '개역한글', lang: 'ko', source: 'local' },
   { id: 'kor_old', label: '한국어 구역 성경 (실시간)', shortLabel: '한국어 구역', lang: 'ko', source: 'helloao' },
   { id: 'BSB', label: '현대 영어 성경 (BSB)', shortLabel: 'BSB 영어', lang: 'en', source: 'helloao' },
   { id: 'eng_kjv', label: '킹제임스 흠정역 (KJV)', shortLabel: 'KJV 영어', lang: 'en', source: 'helloao' },
@@ -117,10 +119,16 @@ export class BibleDataService {
    */
   async getVersionChapterMap(versionId, osis, chapterNum, customBibles = []) {
     if (!versionId || versionId === 'none') return null;
-    if (versionId === 'krv') {
-      const verses = await this.getChapterVerses(osis, chapterNum);
+    if (versionId === 'krv' || versionId === 'nkrv' || versionId === 'nrsv') {
+      const cacheKey = `${versionId}:${osis}:${chapterNum}`;
+      if (this.liveChapterCache.has(cacheKey)) return this.liveChapterCache.get(cacheKey);
+      const resp = await this.fetcher(`${this.baseUrl}/${versionId}/${osis}.json`);
+      if (!resp.ok) throw new Error(`${versionId}/${osis} HTTP ${resp.status}`);
+      const book = await resp.json();
+      const list = book.chapters[String(chapterNum)] || [];
       const out = {};
-      for (const v of verses) out[v.verse] = v.text;
+      list.forEach((txt, idx) => { out[idx + 1] = txt; });
+      this.liveChapterCache.set(cacheKey, out);
       return out;
     }
     if (versionId.startsWith('custom_')) {
