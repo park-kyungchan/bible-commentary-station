@@ -48,7 +48,7 @@ const state = {
   compareMode: false,
   compareLeft: 'MATTHEW_HENRY',
   compareRight: 'NICOT_NICNT',
-  primaryVersion: 'krv',
+  primaryVersion: 'nkrv',
   parallelVersion: 'none', // 'none' | 'BSB' | 'eng_kjv' | 'hbo_wlc' | 'grc_sbl' | 'custom_...'
   primaryMap: null,
   parallelMap: null,
@@ -61,10 +61,13 @@ const state = {
   liveCommError: '',
   hymnRange: 'FEATURED', // FEATURED | ALL | 1-100 | 101-200 | ... | 601-645
   expandedHymnNum: null,
+  selectedHymn: null,
   worshipMode: 'hymns', // hymns | responsive
   worshipGroup: '전체',
   worshipQuery: '',
   selectedResponsive: null,
+  rrViewMode: 'ppt', // ppt | text
+  rrRange: 'ALL', // ALL | 1-50 | 51-100 | 101-137
   customPulpitSlides: null,
   theme: 'light',
   fontStepIndex: 1,
@@ -180,7 +183,7 @@ async function loadChapter(osis, ch, targetVerse = 1) {
   // Load primary & optional parallel version maps
   state.parallelError = '';
   try {
-    state.primaryMap = state.primaryVersion === 'krv'
+    state.primaryMap = state.primaryVersion === '__none__'
       ? null
       : await service.getVersionChapterMap(state.primaryVersion, osis, ch, state.customBibles);
   } catch (e) {
@@ -636,7 +639,7 @@ async function renderWorshipTab(body) {
     el(
       'div',
       { style: 'display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;' },
-      el('button', { type: 'button', className: `btn ${state.worshipMode === 'hymns' ? 'btn-primary' : ''}`, onClick: () => { state.worshipMode = 'hymns'; state.selectedResponsive = null; renderStudyPane(); } }, '🎵 새찬송가 찾기'),
+      el('button', { type: 'button', className: `btn ${state.worshipMode === 'hymns' ? 'btn-primary' : ''}`, onClick: () => { state.worshipMode = 'hymns'; state.selectedResponsive = null; state.selectedHymn = null; renderStudyPane(); } }, '🎵 새찬송가 찾기'),
       el('button', { type: 'button', className: `btn ${state.worshipMode === 'responsive' ? 'btn-primary' : ''}`, onClick: () => { state.worshipMode = 'responsive'; renderStudyPane(); } }, '📜 교독문 빠른 찾기')
     )
   );
@@ -652,7 +655,7 @@ async function renderWorshipTab(body) {
         : '교독문 번호나 시편·절기 입력 (예: 11, 시편 23, 부활절, 추수감사)',
       onInput: (e) => {
         state.worshipQuery = e.target.value;
-        state.selectedResponsive = null;
+        state.selectedResponsive = null; state.selectedHymn = null;
         renderStudyPane();
       },
     })
@@ -673,7 +676,7 @@ async function renderWorshipTab(body) {
           {
             type: 'button',
             className: `source-pill ${state.worshipGroup === g ? 'active' : ''}`,
-            onClick: () => { state.worshipGroup = g; state.selectedResponsive = null; renderStudyPane(); },
+            onClick: () => { state.worshipGroup = g; state.selectedResponsive = null; state.selectedHymn = null; renderStudyPane(); },
           },
           g
         )
@@ -684,6 +687,33 @@ async function renderWorshipTab(body) {
   const q = state.worshipQuery.trim();
 
   if (state.worshipMode === 'hymns') {
+    if (state.selectedHymn) {
+      const sh = state.selectedHymn;
+      body.appendChild(
+        el('div', { className: 'no-print', style: 'display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;' },
+          el('button', { type: 'button', className: 'btn btn-sm', onClick: () => { state.selectedHymn = null; renderStudyPane(); } }, '◀ 찬송가 목록'),
+          el('a', { className: 'btn btn-sm btn-primary', href: sh.pptViewUrl, target: '_blank', rel: 'noopener noreferrer', style: 'text-decoration:none;' }, '🔗 새 창에서 큰 화면으로 열기 ↗'),
+          el('button', { type: 'button', className: 'btn btn-sm btn-soft', onClick: () => loadChapter(sh.ref.osis, sh.ref.ch, sh.ref.vs) }, `📖 관련 말씀 (${sh.ref.label})`),
+          el('button', { type: 'button', className: 'btn btn-sm', onClick: () => clipToSermon(`새찬송가 ${sh.num}장`, `${sh.title} (${sh.section || sh.category})`) }, '✍️ 설교 노트에 담기')
+        )
+      );
+      body.appendChild(
+        el('div', { className: 'card', style: 'padding:14px;' },
+          el('div', { style: 'display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;' },
+            el('span', { className: 'tag tag-accent' }, `새찬송가 ${sh.num}장`),
+            el('span', { className: 'tag' }, sh.section || sh.category),
+            el('strong', { style: 'font-size:19px;' }, sh.title)
+          ),
+          el('iframe', {
+            src: sh.pptPreviewUrl,
+            style: 'width:100%;height:500px;border:1.5px solid var(--border);border-radius:12px;background:#111;',
+            allow: 'autoplay; fullscreen',
+            title: `새찬송가 ${sh.num}장 악보·가사 PPT`,
+          })
+        )
+      );
+      return;
+    }
     const HYMN_RANGES = [
       { key: 'FEATURED', label: '대표 100곡' },
       { key: '1-100', label: '1~100장' },
@@ -779,6 +809,12 @@ async function renderWorshipTab(body) {
             el(
               'div',
               { style: 'display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;' },
+              h.pptPreviewUrl
+                ? el('button', { type: 'button', className: 'btn btn-sm btn-primary', onClick: () => { state.selectedHymn = h; renderStudyPane(); } }, '🎞️ 악보·가사 PPT 바로 보기')
+                : null,
+              h.pptViewUrl
+                ? el('a', { className: 'btn btn-sm', href: h.pptViewUrl, target: '_blank', rel: 'noopener noreferrer', style: 'text-decoration:none;' }, '🔗 새 창 PPT ↗')
+                : null,
               el('button', { type: 'button', className: 'btn btn-sm btn-soft', onClick: () => loadChapter(h.ref.osis, h.ref.ch, h.ref.vs) }, `📖 관련 말씀 (${h.ref.label}) 열기`),
               lyrics
                 ? el('button', { type: 'button', className: 'btn btn-sm btn-primary', onClick: () => { state.expandedHymnNum = isExpanded ? null : h.num; renderStudyPane(); } }, isExpanded ? '가사 접기' : '🎵 내 가사 보기')
@@ -803,35 +839,75 @@ async function renderWorshipTab(body) {
     return;
   }
 
-  // 교독문 상세 보기 (개역한글 본문을 사회자 / 회중 / 다같이 형식으로 즉시 생성)
+  // 교독문 상세 보기 (Google Drive 내 PPT 슬라이드 바로 보기 + 개역한글 큰 글씨 텍스트 교독)
   if (state.selectedResponsive) {
     const rr = state.selectedResponsive;
-    const verses = (await service.getChapterVerses(rr.osis, rr.ch))
-      .filter((v) => v.verse >= rr.start_vs && v.verse <= rr.end_vs);
+    const hasPpt = Boolean(rr.pptPreviewUrl);
+    const hasScripture = Boolean(rr.osis && rr.ch);
+    const activeMode = (state.rrViewMode === 'ppt' && hasPpt) ? 'ppt' : (hasScripture ? 'text' : 'ppt');
+    const verses = hasScripture
+      ? (await service.getChapterVerses(rr.osis, rr.ch)).filter((v) => v.verse >= rr.start_vs && v.verse <= rr.end_vs)
+      : [];
 
     body.appendChild(
       el(
         'div',
         { className: 'no-print', style: 'display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;' },
-        el('button', { type: 'button', className: 'btn btn-sm', onClick: () => { state.selectedResponsive = null; renderStudyPane(); } }, '◀ 교독문 목록'),
-        el('button', { type: 'button', className: 'btn btn-sm btn-soft', onClick: () => loadChapter(rr.osis, rr.ch, rr.start_vs) }, '📖 왼쪽에 본문 열기'),
-        el('button', { type: 'button', className: 'btn btn-sm btn-primary', onClick: () => window.print() }, '🖨️ 교독문 큰 글씨 인쇄'),
-        el('button', { type: 'button', className: 'btn btn-sm btn-accent', onClick: () => {
-          state.customPulpitSlides = [
-            { section: `교독문 ${rr.num}번`, title: rr.title, body: `${rr.season} · 사회자와 회중이 번갈아 읽습니다` },
-            ...verses.map((v, i) => ({
-              section: i === verses.length - 1 ? '다같이' : (i % 2 === 0 ? '사회자' : '회중'),
-              title: i === verses.length - 1 ? '[다같이]' : (i % 2 === 0 ? '[사회자]' : '[회중]'),
-              body: v.text,
-            })),
-          ];
-          openPulpitMode();
-        } }, '🎤 강단 큰 화면 교독')
+        el('button', { type: 'button', className: 'btn btn-sm', onClick: () => { state.selectedResponsive = null; state.selectedHymn = null; renderStudyPane(); } }, '◀ 교독문 목록'),
+        hasPpt
+          ? el('button', { type: 'button', className: `btn btn-sm ${activeMode === 'ppt' ? 'btn-primary' : ''}`, onClick: () => { state.rrViewMode = 'ppt'; renderStudyPane(); } }, '🎞️ 내 PPT 슬라이드 보기')
+          : null,
+        hasScripture
+          ? el('button', { type: 'button', className: `btn btn-sm ${activeMode === 'text' ? 'btn-primary' : ''}`, onClick: () => { state.rrViewMode = 'text'; renderStudyPane(); } }, '📖 큰 글씨 텍스트 교독')
+          : null,
+        hasPpt
+          ? el('a', { className: 'btn btn-sm btn-soft', href: rr.pptViewUrl, target: '_blank', rel: 'noopener noreferrer', style: 'text-decoration:none;' }, '🔗 새 창에서 PPT 열기 ↗')
+          : null,
+        hasScripture
+          ? el('button', { type: 'button', className: 'btn btn-sm btn-soft', onClick: () => loadChapter(rr.osis, rr.ch, rr.start_vs) }, '📖 왼쪽에 성경 열기')
+          : null,
+        hasScripture
+          ? el('button', { type: 'button', className: 'btn btn-sm btn-accent', onClick: () => {
+              state.customPulpitSlides = [
+                { section: `교독문 ${rr.num}번`, title: rr.title, body: `${rr.season} · 사회자와 회중이 번갈아 읽습니다` },
+                ...verses.map((v, i) => ({
+                  section: i === verses.length - 1 ? '다같이' : (i % 2 === 0 ? '사회자' : '회중'),
+                  title: i === verses.length - 1 ? '[다같이]' : (i % 2 === 0 ? '[사회자]' : '[회중]'),
+                  body: v.text,
+                })),
+              ];
+              openPulpitMode();
+            } }, '🎤 강단 큰 화면 교독')
+          : null
       )
     );
 
+    if (activeMode === 'ppt' && hasPpt) {
+      body.appendChild(
+        el(
+          'div',
+          { className: 'card', style: 'padding:14px;' },
+          el('div', { style: 'display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;' },
+            el('span', { className: 'tag tag-accent' }, `교독문 ${rr.num}번 · ${rr.season}`),
+            el('strong', { style: 'font-size:19px;' }, rr.title)
+          ),
+          el('iframe', {
+            src: rr.pptPreviewUrl,
+            style: 'width:100%;height:480px;border:1.5px solid var(--border);border-radius:12px;background:#111;',
+            allow: 'autoplay; fullscreen',
+            title: `교독문 ${rr.num}번 PPT 슬라이드`,
+          }),
+          el('p', { style: 'font-size:13.5px;color:var(--text-muted);margin-top:8px;' }, '💡 Google Drive에 저장된 원본 교독문 PPT 슬라이드를 바로 띄웠습니다. 오른쪽 위 전체화면 아이콘이나 [새 창에서 PPT 열기]로 크게 보실 수 있습니다.')
+        )
+      );
+      return;
+    }
+
     const card = el('div', { className: 'card' },
-      el('div', { style: 'margin-bottom:8px;' }, el('span', { className: 'tag tag-accent' }, `교독문 ${rr.num}번 · ${rr.season}`)),
+      el('div', { style: 'display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;flex-wrap:wrap;' },
+        el('span', { className: 'tag tag-accent' }, `교독문 ${rr.num}번 · ${rr.season}`),
+        el('button', { type: 'button', className: 'btn btn-sm no-print', onClick: () => window.print() }, '🖨️ 큰 글씨 인쇄')
+      ),
       el('h3', { style: 'font-size:21px;' }, rr.title)
     );
     verses.forEach((v, idx) => {
@@ -851,11 +927,33 @@ async function renderWorshipTab(body) {
     return;
   }
 
-  const list = service.getResponsiveReadings().filter((r) =>
-    (state.worshipGroup === '전체' || r.group === state.worshipGroup) &&
-    (!q || String(r.num) === q || r.title.includes(q) || r.season.includes(q))
+  const RR_RANGES = [
+    { key: 'ALL', label: '전체 137편' },
+    { key: '1-50', label: '1~50번' },
+    { key: '51-100', label: '51~100번' },
+    { key: '101-137', label: '101~137번 (절기·예식)' },
+  ];
+  body.appendChild(
+    el('div', { className: 'range-pills' },
+      ...RR_RANGES.map((r) =>
+        el('button', {
+          type: 'button',
+          className: `btn btn-sm ${state.rrRange === r.key ? 'btn-primary' : ''}`,
+          onClick: () => { state.rrRange = r.key; renderStudyPane(); },
+        }, r.label)
+      )
+    )
   );
-  body.appendChild(el('p', { style: 'font-size:14.5px;color:var(--text-muted);margin-bottom:10px;font-weight:700;' }, `교독문 ${list.length}편 (누르면 사회자·회중 큰 글씨 교독문이 바로 열립니다)`));
+
+  const list = service.getResponsiveReadings().filter((r) => {
+    const grpOk = state.worshipGroup === '전체' || r.group === state.worshipGroup;
+    if (!grpOk) return 0 === 1;
+    if (q) return String(r.num) === q || r.title.includes(q) || r.season.includes(q);
+    if (state.rrRange === 'ALL') return true;
+    const [lo, hi] = state.rrRange.split('-').map(Number);
+    return r.num >= lo && r.num <= hi;
+  });
+  body.appendChild(el('p', { style: 'font-size:14.5px;color:var(--text-muted);margin-bottom:10px;font-weight:700;' }, `21세기 새교독문 총 137편 중 ${list.length}편 표시 (누르면 Google Drive PPT 슬라이드와 큰 글씨 교독문이 바로 열립니다)`));
   for (const rr of list) {
     body.appendChild(
       el(
@@ -863,13 +961,14 @@ async function renderWorshipTab(body) {
         {
           className: 'card',
           style: 'padding:14px 18px;cursor:pointer;',
-          onClick: () => { state.selectedResponsive = rr; renderStudyPane(); },
+          onClick: () => { state.selectedResponsive = rr; state.rrViewMode = rr.pptPreviewUrl ? 'ppt' : 'text'; renderStudyPane(); },
         },
         el(
           'div',
-          { style: 'display:flex;align-items:center;gap:10px;flex-wrap:wrap;' },
+          { style: 'display:flex;align-items:center;gap:8px;flex-wrap:wrap;' },
           el('span', { className: 'tag tag-accent', style: 'font-size:15px;' }, `교독문 ${rr.num}번`),
           el('span', { className: 'tag' }, rr.season),
+          rr.pptPreviewUrl ? el('span', { className: 'tag', style: 'background:#dbeafe;color:#1e40af;' }, '🎞️ PPT 슬라이드') : null,
           el('strong', { style: 'font-size:17.5px;width:100%;margin-top:4px;' }, rr.title)
         )
       )
