@@ -71,16 +71,18 @@ jobs:
           python3 tests/run_harness.py
           test -z "$(git status --porcelain docs/HARNESS_REPORT.md)"
 
-      - name: Enforce web/data License Allowlist & Zero PII/Watermark Guardrail
+      - name: Enforce web/data Allowlist, Corpus Validation & Zero PII/Watermark Guardrail
         run: |
           set -o pipefail
+          python3 -m bible_station.cli validate --web-data-dir web/data
           python3 -c "
           import json
           from pathlib import Path
           mf = json.loads(Path('web/data/manifest.json').read_text(encoding='utf-8'))
           allowed_dirs = {v['id'] for v in mf['versions']} | {'search'}
           actual_dirs = {p.name for p in Path('web/data').iterdir() if p.is_dir()}
-          assert actual_dirs.issubset(allowed_dirs), f'Unlisted web/data dirs: {actual_dirs - allowed_dirs}'
+          assert actual_dirs == allowed_dirs == {'nkrv', 'krv', 'rnksv', 'search'}, f'Unexpected web/data dirs: {actual_dirs}'
+          assert not (Path('web/data') / 'nrsv').exists()
           "
           ! grep -rnE '복령교회|박우호|cwy0675' bible_station/ web/data/ web/index.html web/js/
 
