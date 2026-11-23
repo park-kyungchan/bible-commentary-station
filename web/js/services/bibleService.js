@@ -37,46 +37,31 @@ export function extractHelloAoText(contentArr) {
   }
   return parts.join(' ').replace(/[ \t]+\n/g, '\n').replace(/[ \t]{2,}/g, ' ').trim();
 }
-
 class LruCache {
   constructor(maxSize) { this.maxSize = maxSize; this.map = new Map(); }
   get(k) { if (!this.map.has(k)) return undefined; const v = this.map.get(k); this.map.delete(k); this.map.set(k, v); return v; }
   set(k, v) { if (this.map.has(k)) this.map.delete(k); else if (this.map.size >= this.maxSize) this.map.delete(this.map.keys().next().value); this.map.set(k, v); }
   get size() { return this.map.size; }
 }
-
 export class BibleDataService {
   constructor(baseUrl = './data', fetcher = (...args) => fetch(...args)) {
-    this.baseUrl = baseUrl.replace(/\/$/, '');
-    this.fetcher = fetcher;
-    this.manifest = null;
-    this.exegesis = null;
-    this.worship = null;
-    this.bookCache = new LruCache(24);
-    this.liveChapterCache = new LruCache(100);
-    this.liveCommentaryCache = new LruCache(60);
-    this.searchIndexCache = new LruCache(4);
-    this._inflightBooks = new Map();
-    this._commentaryByVerse = new Map();
-    this._bookMetaByOsis = new Map();
+    this.baseUrl = baseUrl.replace(/\/$/, ''); this.fetcher = fetcher;
+    this.manifest = null; this.exegesis = null; this.worship = null;
+    this.bookCache = new LruCache(24); this.liveChapterCache = new LruCache(100);
+    this.liveCommentaryCache = new LruCache(60); this.searchIndexCache = new LruCache(4);
+    this._inflightBooks = new Map(); this._commentaryByVerse = new Map(); this._bookMetaByOsis = new Map();
   }
-
   async init() {
     const [mResp, eResp, wResp] = await Promise.all([
-      this.fetcher(`${this.baseUrl}/manifest.json`),
-      this.fetcher(`${this.baseUrl}/exegesis.json`),
-      this.fetcher(`${this.baseUrl}/worship.json`),
+      this.fetcher(`${this.baseUrl}/manifest.json`), this.fetcher(`${this.baseUrl}/exegesis.json`), this.fetcher(`${this.baseUrl}/worship.json`),
     ]);
     if (!mResp.ok || !eResp.ok) throw new Error('성경 기본 자료를 불러오지 못했습니다.');
-    this.manifest = await mResp.json();
-    this.exegesis = await eResp.json();
+    this.manifest = await mResp.json(); this.exegesis = await eResp.json();
     this.worship = wResp.ok ? await wResp.json() : { hymnGroups: [], responsiveGroups: [], hymns: [], responsiveReadings: [], liturgies: [], templates: [] };
-    this._bookMetaByOsis.clear();
-    for (const b of this.getBooks()) this._bookMetaByOsis.set(b.id, b);
+    this._bookMetaByOsis.clear(); for (const b of this.getBooks()) this._bookMetaByOsis.set(b.id, b);
     this._commentaryByVerse.clear();
     for (const c of this.exegesis?.commentaries || []) {
-      const start = Number(c.verse_start_id);
-      const span = Math.min(Number(c.verse_end_id || start) - start, 200);
+      const start = Number(c.verse_start_id); const span = Math.min(Number(c.verse_end_id || start) - start, 200);
       for (let vid = start; vid <= start + span; vid += 1) {
         if (!this._commentaryByVerse.has(vid)) this._commentaryByVerse.set(vid, []);
         this._commentaryByVerse.get(vid).push(c);
@@ -84,10 +69,21 @@ export class BibleDataService {
     }
     return { manifest: this.manifest, exegesis: this.exegesis, worship: this.worship };
   }
-
   getBooks() { return this.manifest?.books || []; }
   getBookMeta(osis) { return this._bookMetaByOsis.get(osis) || this.getBooks().find((b) => b.id === osis) || null; }
-  getBookBoundsMap() { const out = Object.create(null); for (const b of this.getBooks()) out[b.id] = { totalChapters: b.totalChapters }; return out; }
+  getChapterVerseCount(osis, ch) {
+    return this.getBookMeta(osis)?.chapterVerses?.[Number(ch) - 1]
+      || this.bookCache.get(`${this.getDefaultVersionId()}:${osis}`)?.chapters?.[String(ch)]?.length || 50;
+  }
+  getBookBoundsMap() {
+    const out = Object.create(null);
+    for (const b of this.getBooks()) {
+      const chapterVerses = Object.create(null);
+      (b.chapterVerses || []).forEach((cnt, idx) => { chapterVerses[idx + 1] = cnt; });
+      out[b.id] = { totalChapters: b.totalChapters, chapterVerses };
+    }
+    return out;
+  }
 
   getLocalVersions() {
     const list = Array.isArray(this.manifest?.versions) && this.manifest.versions.length
@@ -295,6 +291,11 @@ export class BibleDataService {
   }
 
   getCommentariesForVerse(vid) { return this._commentaryByVerse.get(vid) || []; }
+  getCommentariesForChapter(bookId, chapterNum) {
+    const start = calculateVerseId(bookId, chapterNum, 1);
+    const end = calculateVerseId(bookId, chapterNum, 200);
+    return (this.exegesis?.commentaries || []).filter((c) => c.verse_start_id >= start && c.verse_start_id <= end);
+  }
   getCoverageStats() {
     if (this.exegesis?.coverageStats) return this.exegesis.coverageStats;
     const e = this.exegesis?.commentaries || [];

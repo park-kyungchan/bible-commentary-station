@@ -381,22 +381,26 @@ class TestCorpusWorshipProvenanceAndSecurity(unittest.TestCase):
     def test_02_exegesis_provenance_and_coverage_stats(self) -> None:
         exegesis = json.loads((WEB_DIR / "data" / "exegesis.json").read_text(encoding="utf-8"))
         self.assertEqual(len(exegesis["sources"]), 12)
-        self.assertEqual(len(exegesis["commentaries"]), 234)
-        self.assertGreaterEqual(len(exegesis["chains"]), 4)
+        self.assertEqual(len(exegesis["commentaries"]), 292)
+        self.assertEqual(len(exegesis["chains"]), 8)
+        self.assertEqual(len(exegesis["strongs"]), 26)
         self.assertEqual({s["category"] for s in exegesis["sources"]}, {"CLASSIC", "ACADEMIC", "EXPOSITORY"})
 
         distinct_verses = set()
+        distinct_books = set()
         for c in exegesis["commentaries"]:
             self.assertIn(c["provenance"], ("EDITORIAL_SUMMARY", "PUBLIC_DOMAIN"))
             self.assertEqual(c["attributionLabel"], "핵심 말씀 참고 요약")
             self.assertNotIn("created_at", c)
             distinct_verses.add(c["verse_start_id"])
+            distinct_books.add(c["book_id"])
 
         stats = exegesis["coverageStats"]
-        self.assertEqual(stats["commentaryEntries"], 234)
+        self.assertEqual(stats["commentaryEntries"], 292)
         self.assertEqual(stats["coveredVerses"], len(distinct_verses))
-        self.assertEqual(stats["coveredVerses"], 118)
-        self.assertEqual(stats["coveredBooks"], 37)
+        self.assertEqual(stats["coveredVerses"], 172)
+        self.assertEqual(stats["coveredBooks"], len(distinct_books))
+        self.assertEqual(stats["coveredBooks"], 66)
         self.assertEqual(stats["totalVerses"], 31102)
 
         src_by_code = {s["source_code"]: s for s in exegesis["sources"]}
@@ -456,18 +460,21 @@ class TestCorpusWorshipProvenanceAndSecurity(unittest.TestCase):
                 self.assertIsNotNone(mx)
                 self.assertTrue(1 <= seg["start_vs"] <= seg["end_vs"] <= mx, f"OOB segment in RR #{r['num']}")
 
-        # Liturgies (>= 6, typo fixed 권능와 -> 권능과) and 5 templates
+        # Liturgies (12, typo fixed 권능와 -> 권능과), 8 templates, and 95 CCM with full offline publicLyrics
         liturgies = worship["liturgies"]
-        self.assertGreaterEqual(len(liturgies), 6)
+        self.assertEqual(len(liturgies), 12)
         lit_blob = json.dumps(liturgies, ensure_ascii=False)
         self.assertIn("권능과", lit_blob)
         self.assertNotIn("권능와", lit_blob)
         self.assertIn("심판하러 오십니다.", lit_blob)
-        self.assertEqual(len(worship["templates"]), 5)
-        self.assertGreaterEqual(len(worship.get("ccm", [])), 90)
+        self.assertEqual(len(worship["templates"]), 8)
+        self.assertEqual(len(worship.get("ccm", [])), 95)
         for song in worship["ccm"]:
             self.assertRegex(song["driveId"], r"^[A-Za-z0-9_-]{10,64}$")
             self.assertTrue(song["pptPreviewUrl"].startswith("https://drive.google.com/file/d/"))
+            self.assertTrue(bool(song.get("publicLyrics", "").strip()), f"CCM {song['id']} missing publicLyrics")
+            self.assertTrue(bool(song.get("usageTiming", "").strip()), f"CCM {song['id']} missing usageTiming")
+            self.assertTrue(bool(song.get("pastoralNote", "").strip()), f"CCM {song['id']} missing pastoralNote")
 
         # Zero PII / watermark strings across bible_station/ and web/data/ (R-WR-05)
         for root in (REPO_ROOT / "bible_station", WEB_DIR / "data"):

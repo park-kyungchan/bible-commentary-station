@@ -77,5 +77,46 @@
       { "order": 7, "label": "합심 및 봉헌기도", "slotType": "prayer" },
       { "order": 8, "label": "축도", "slotType": "liturgy", "defaultRef": "liturgy:benediction-pauline" }
     ]
+  },
+  {
+    "id": "dawn-prayer-meeting",
+    "title": "새벽기도회",
+    "description": "말씀 묵상과 개인·교회를 위한 합심 기도로 하루를 여는 새벽기도회 표준 순서",
+    "slots": [
+      { "order": 1, "label": "조용한 묵도", "slotType": "note" },
+      { "order": 2, "label": "새벽 찬송", "slotType": "hymn", "defaultRef": "hymn:365" },
+      { "order": 3, "label": "신앙고백 (사도신경)", "slotType": "liturgy", "defaultRef": "liturgy:apostles-creed-ecumenical" },
+      { "order": 4, "label": "성경봉독", "slotType": "scripture", "defaultRef": "PSA 5:1-3" },
+      { "order": 5, "label": "새벽 말씀 묵상", "slotType": "sermon" },
+      { "order": 6, "label": "주기도문 및 자유기도", "slotType": "liturgy", "defaultRef": "liturgy:lords-prayer-ecumenical" }
+    ]
+  },
+  {
+    "id": "home-visitation-service",
+    "title": "가정 심방예배",
+    "description": "성도 가정을 방문하여 위로와 축복의 말씀을 나누는 심방·구역예배 순서",
+    "slots": [
+      { "order": 1, "label": "심방 개회 찬송", "slotType": "hymn", "defaultRef": "hymn:559" },
+      { "order": 2, "label": "신앙고백 (사도신경)", "slotType": "liturgy", "defaultRef": "liturgy:apostles-creed-ecumenical" },
+      { "order": 3, "label": "가정을 위한 기도", "slotType": "prayer" },
+      { "order": 4, "label": "성경봉독", "slotType": "scripture", "defaultRef": "PSA 121:1-8" },
+      { "order": 5, "label": "권면과 위로의 말씀", "slotType": "sermon" },
+      { "order": 6, "label": "축복 찬송", "slotType": "hymn", "defaultRef": "hymn:305" },
+      { "order": 7, "label": "축도 및 주기도문", "slotType": "liturgy", "defaultRef": "liturgy:benediction-aaronic" }
+    ]
+  },
+  {
+    "id": "funeral-comfort-service",
+    "title": "장례 위로예배",
+    "description": "부활과 천국 소망으로 유가족을 위로하는 입관·발인·위로예배 표준 순서",
+    "slots": [
+      { "order": 1, "label": "예배로의 부름", "slotType": "liturgy", "defaultRef": "liturgy:call-to-worship-psalm100" },
+      { "order": 2, "label": "위로 찬송", "slotType": "hymn", "defaultRef": "hymn:493" },
+      { "order": 3, "label": "위로 대표기도", "slotType": "prayer" },
+      { "order": 4, "label": "성경봉독", "slotType": "scripture", "defaultRef": "REV 21:1-4" },
+      { "order": 5, "label": "부활 소망의 말씀", "slotType": "sermon" },
+      { "order": 6, "label": "파송 찬송", "slotType": "hymn", "defaultRef": "hymn:606" },
+      { "order": 7, "label": "축도", "slotType": "liturgy", "defaultRef": "liturgy:benediction-hebrews" }
+    ]
   }
 ]

@@ -17,6 +17,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 from .canon import BOOKS_BY_OSIS, get_chapter_verse_count
+from .catalog_ccm_lyrics import CCM_ENRICHMENT_95
 
 _DRIVE_ID_RE = re.compile(r"^[A-Za-z0-9_-]{10,64}$")
 _VALID_ROLES = frozenset({"leader", "congregation", "unison"})
@@ -428,14 +429,23 @@ def build_expanded_worship_catalog() -> Dict[str, Any]:
     for entry in ccm_raw:
         cid = str(entry["id"])
         drive_id, ppt_preview, ppt_view = _drive_urls(str(entry.get("driveId", "")), f"ccm {cid}")
-        ccm_items.append({
+        enr = CCM_ENRICHMENT_95.get(cid)
+        usage_timing = enr[0] if enr else str(entry.get("usageTiming", "경배·찬양"))
+        pastoral_note = enr[1] if enr else str(entry.get("pastoralNote", ""))
+        public_lyrics = enr[2] if enr else str(entry.get("publicLyrics", ""))
+        ccm_rec: Dict[str, Any] = {
             "id": cid,
             "title": str(entry["title"]),
             "category": str(entry.get("category", "경배·찬양")),
+            "usageTiming": usage_timing,
+            "pastoralNote": pastoral_note,
             "driveId": drive_id,
             "pptPreviewUrl": ppt_preview,
             "pptViewUrl": ppt_view,
-        })
+        }
+        if public_lyrics:
+            ccm_rec["publicLyrics"] = public_lyrics
+        ccm_items.append(ccm_rec)
 
     curated_by_num = {h["num"]: h for h in curated_hymns}
     seen_old: set[int] = set()

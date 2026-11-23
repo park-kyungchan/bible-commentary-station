@@ -105,8 +105,36 @@
 }
 
 /* Mode & Study Panel Cross-Fade */
-[data-panel-enter] {
+[data-panel-enter],
+.mode-view > .context-bar,
+.mode-view > .worship-shell,
+.mode-view > .sermon-toolbar,
+.mode-view > .sermon-workspace {
   animation: pastoralFadeUp var(--dur-view) var(--ease-pastoral) both;
+}
+
+/* Tactile GPU Hover Lift for Interactive Pastoral Cards */
+.hymn-card,
+.rr-card,
+.liturgy-card,
+.template-card,
+.search-hit-card,
+.bookmark-card,
+.sermon-passage-btn {
+  transition:
+    background-color 140ms var(--ease-tactile),
+    border-color 140ms var(--ease-tactile),
+    transform var(--dur-tactile) var(--ease-tactile);
+}
+
+.hymn-card:hover:not(:disabled),
+.rr-card:hover:not(:disabled),
+.liturgy-card:hover:not(:disabled),
+.template-card:hover:not(:disabled),
+.search-hit-card:hover:not(:disabled),
+.bookmark-card:hover:not(:disabled),
+.sermon-passage-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
 }
 
 /* Directional Chapter Transitions */
@@ -263,6 +291,10 @@
   }
 
   [data-panel-enter],
+  .mode-view > .context-bar,
+  .mode-view > .worship-shell,
+  .mode-view > .sermon-toolbar,
+  .mode-view > .sermon-workspace,
   #verseList[data-chapter-dir="next"],
   #verseList[data-chapter-dir="prev"],
   .pulpit-stage[data-slide-dir="next"] .pulpit-content,
@@ -285,6 +317,13 @@
   .book-tile:active:not(:disabled),
   .chap-tile:active:not(:disabled),
   .pulpit-btn:active:not(:disabled),
+  .hymn-card:hover:not(:disabled),
+  .rr-card:hover:not(:disabled),
+  .liturgy-card:hover:not(:disabled),
+  .template-card:hover:not(:disabled),
+  .search-hit-card:hover:not(:disabled),
+  .bookmark-card:hover:not(:disabled),
+  .sermon-passage-btn:hover:not(:disabled),
   .modal-box,
   .pane-study,
   .toast {

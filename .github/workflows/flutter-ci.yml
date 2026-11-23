@@ -5,12 +5,14 @@ on:
     paths:
       - "lib/**"
       - "pubspec.yaml"
+      - "analysis_options.yaml"
       - "test/**"
       - ".github/workflows/flutter-ci.yml"
   pull_request:
     paths:
       - "lib/**"
       - "pubspec.yaml"
+      - "analysis_options.yaml"
       - "test/**"
       - ".github/workflows/flutter-ci.yml"
   workflow_dispatch:
@@ -41,7 +43,7 @@ jobs:
         run: flutter pub get
 
       - name: Static Analysis
-        run: flutter analyze --no-fatal-infos --fatal-warnings
+        run: flutter analyze --fatal-infos --fatal-warnings
 
       - name: Run Flutter Unit & Widget Tests
         run: flutter test --reporter expanded

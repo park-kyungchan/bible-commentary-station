@@ -195,9 +195,10 @@ async function initApp() {
   worshipPanel.bindEvents();
 
   sermonStudio = createSermonStudio({
-    store, archive, modalManager,
+    store, service, archive, modalManager,
     callbacks: {
       onLaunchPulpit: (deck) => pulpit.open(deck),
+      onOpenPassagePicker: (triggerEl, onSelectRange) => pickerModal.open(triggerEl, { onSelectRange }),
       onPrefsRestored: () => { applyRootState(state); versionModal.render(); scriptureReader.loadChapter(state.osis, state.chapter, state.selectedVerse); },
     },
   });
