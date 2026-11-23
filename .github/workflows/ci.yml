@@ -27,8 +27,8 @@ jobs:
         run: |
           set -o pipefail
           python3 -c "import importlib.util; assert importlib.util.find_spec('bs4') is None"
-          python3 -m pip install --no-deps --no-build-isolation .
-          python3 -c "from bible_station.catalog_worship import get_worship_catalog; c = get_worship_catalog(); assert len(c['hymns']) == 645 and len(c['responsiveReadings']) == 137 and len(c['liturgies']) >= 6"
+          python3 -m pip install --no-deps .
+          (cd /tmp && python3 -c "from bible_station.catalog_worship import get_worship_catalog; c = get_worship_catalog(); assert len(c['hymns']) == 645 and len(c['responsiveReadings']) == 137 and len(c['liturgies']) >= 6")
 
       - name: Build SQLite Dual-FTS5 DB, Deterministic Web Exports & Zero-Cost Bundle
         run: |
