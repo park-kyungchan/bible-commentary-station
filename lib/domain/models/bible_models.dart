@@ -1,4 +1,4 @@
-/// Domain models for Bible Exegesis, Commentaries, Cross-References & Sermons
+/// Domain models for Bible Exegesis, Commentaries, Cross-References & Sermons.
 
 class BibleBook {
   final int bookId;
@@ -9,7 +9,7 @@ class BibleBook {
   final String testament; // OT or NT
   final int totalChapters;
 
-  BibleBook({
+  const BibleBook({
     required this.bookId,
     required this.osisCode,
     required this.nameKr,
@@ -29,7 +29,7 @@ class BibleVerse {
   final String text;
   final String? textWithStrong;
 
-  BibleVerse({
+  const BibleVerse({
     required this.verseId,
     required this.bookId,
     required this.chapter,
@@ -42,7 +42,7 @@ class BibleVerse {
 
 class CommentaryItem {
   final int commentaryId;
-  final String sourceCode; // oxford, wesley, hokma, grand, charisma, henry, baker, esv
+  final String sourceCode;
   final String sourceName;
   final String passageDisplay;
   final String? title;
@@ -50,7 +50,7 @@ class CommentaryItem {
   final String? theologicalTags;
   final String? practicalPoints;
 
-  CommentaryItem({
+  const CommentaryItem({
     required this.commentaryId,
     required this.sourceCode,
     required this.sourceName,
@@ -73,7 +73,7 @@ class CrossRefItem {
   final String relationshipType;
   final double score;
 
-  CrossRefItem({
+  const CrossRefItem({
     required this.refId,
     required this.fromVerseId,
     required this.toVerseId,
@@ -85,7 +85,24 @@ class CrossRefItem {
     this.score = 1.0,
   });
 
-  String get refString => "$toBookName $toChapter:$toVerse";
+  String get refString => '$toBookName $toChapter:$toVerse';
+
+  /// Plain-Korean label avoiding raw developer enum names in UI.
+  String get relationshipLabel {
+    switch (relationshipType) {
+      case 'QUOTATION':
+        return '인용 말씀';
+      case 'PARALLEL':
+        return '병행 본문';
+      case 'PROPHECY_FULFILLMENT':
+        return '약속과 성취';
+      case 'EXPLANATORY':
+        return '풀이 연결';
+      case 'THEMATIC':
+      default:
+        return '주제 연결';
+    }
+  }
 }
 
 class ChainLink {
@@ -95,7 +112,7 @@ class ChainLink {
   final String type;
   final String point;
 
-  ChainLink({
+  const ChainLink({
     required this.ref,
     required this.book,
     required this.text,
@@ -111,7 +128,7 @@ class ChainReference {
   final String summary;
   final List<ChainLink> chains;
 
-  ChainReference({
+  const ChainReference({
     required this.topic,
     required this.title,
     required this.meaning,
@@ -126,7 +143,7 @@ class SermonOutlinePoint {
   final String content;
   final List<String> citations;
 
-  SermonOutlinePoint({
+  const SermonOutlinePoint({
     required this.section,
     required this.title,
     required this.content,
@@ -144,18 +161,48 @@ class Sermon {
   final int targetDurationMins;
   final List<SermonOutlinePoint> outline;
   final String? fullTextMarkdown;
+  final String? gdriveFileId;
   final String? syncStatus;
 
-  Sermon({
+  const Sermon({
     required this.sermonId,
     required this.title,
-    this.preacher = '박우호 목사',
+    this.preacher = '목회자',
     required this.sermonDate,
     this.serviceType = '주일대예배',
     required this.scriptureRef,
     this.targetDurationMins = 30,
     required this.outline,
     this.fullTextMarkdown,
+    this.gdriveFileId,
     this.syncStatus = 'SYNCED',
   });
+
+  Sermon copyWith({
+    String? sermonId,
+    String? title,
+    String? preacher,
+    String? sermonDate,
+    String? serviceType,
+    String? scriptureRef,
+    int? targetDurationMins,
+    List<SermonOutlinePoint>? outline,
+    String? fullTextMarkdown,
+    String? gdriveFileId,
+    String? syncStatus,
+  }) {
+    return Sermon(
+      sermonId: sermonId ?? this.sermonId,
+      title: title ?? this.title,
+      preacher: preacher ?? this.preacher,
+      sermonDate: sermonDate ?? this.sermonDate,
+      serviceType: serviceType ?? this.serviceType,
+      scriptureRef: scriptureRef ?? this.scriptureRef,
+      targetDurationMins: targetDurationMins ?? this.targetDurationMins,
+      outline: outline ?? this.outline,
+      fullTextMarkdown: fullTextMarkdown ?? this.fullTextMarkdown,
+      gdriveFileId: gdriveFileId ?? this.gdriveFileId,
+      syncStatus: syncStatus ?? this.syncStatus,
+    );
+  }
 }

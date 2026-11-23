@@ -1,11 +1,11 @@
 name: bible_commentary_workstation
-description: "Biblical Exegesis & Commentary Pastoral Workstation for Pastor Wooho Pack"
+description: "Sanctuary Paper Biblical Exegesis & Commentary Pastoral Workstation"
 publish_to: "none"
-version: 1.0.0+1
+version: 3.0.0+1
 
 environment:
-  sdk: ">=3.3.0 <4.0.0"
-  flutter: ">=3.19.0"
+  sdk: ">=3.6.0 <4.0.0"
+  flutter: ">=3.27.0"
 
 dependencies:
   flutter:
@@ -13,47 +13,28 @@ dependencies:
   flutter_localizations:
     sdk: flutter
 
-  # Local SQLite & Drift ORM (FTS5 trigram high-speed query)
-  drift: ^2.18.0
-  drift_flutter: ^0.1.0
-  sqlite3: ^2.4.3
+  # Local SQLite FTS5 engine
+  sqlite3: ^2.4.6
   sqlite3_flutter_libs: ^0.5.24
-  path_provider: ^2.1.3
+  path_provider: ^2.1.4
   path: ^1.9.0
 
-  # Responsive & Foldable (PC 3-panel, iPad 11", Galaxy Z Fold 6 folded/unfolded)
-  flutter_adaptive_scaffold: ^0.3.1
-  responsive_builder: ^0.7.1
-
-  # Pulpit Mode (38pt high contrast, screen wakelock)
+  # Pulpit Mode screen wakelock
   wakelock_plus: ^1.2.8
 
-  # Networking & GCP Cloud Storage (commentaries DB download & SHA-256 verification)
-  http: ^1.2.1
-  dio: ^5.4.3
-  crypto: ^3.0.3
-  archive: ^3.6.1
+  # Master SQLite bundle download & mandatory SHA-256 verification
+  http: ^1.2.2
+  crypto: ^3.0.5
 
-  # Google Drive API (Pastor sermon note sync)
+  # Google Drive sermon backup & sync
   google_sign_in: ^6.2.1
   googleapis: ^13.2.0
-  extension_google_sign_in_as_googleapis_auth: ^2.0.12
-
-  # State Management & UI Utilities
-  provider: ^6.1.2
-  shared_preferences: ^2.2.3
-  intl: ^0.19.0
-  google_fonts: ^6.2.1
+  extension_google_sign_in_as_googleapis_auth: ^2.0.13
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^3.0.2
-  drift_dev: ^2.18.0
-  build_runner: ^2.4.9
+  flutter_lints: ^5.0.0
 
 flutter:
   uses-material-design: true
-  assets:
-    - assets/database/
-    - assets/icons/

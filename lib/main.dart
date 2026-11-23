@@ -1,22 +1,27 @@
-import 'dart:io';
+import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:sqlite3/sqlite3.dart';
 import 'application/workstation_controller.dart';
-import 'core/config/app_config.dart';
 import 'core/theme/app_theme.dart';
 import 'data/repositories/sqlite_bible_repository.dart';
+import 'data/services/artifact_sync_service.dart';
+import 'data/services/preferences_store.dart';
 import 'presentation/screens/home_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final dir = await getApplicationDocumentsDirectory();
-  final dbFile = File(p.join(dir.path, AppConfig.localDbFileName));
-  final db = sqlite3.open(dbFile.path);
-  final repo = SqliteBibleRepository(db);
-  final controller = WorkstationController(repo);
-  await controller.initialize();
+  final syncService = ArtifactSyncService();
+  final preferencesStore = FilePreferencesStore();
+  final controller = WorkstationController(
+    syncService: syncService,
+    preferencesStore: preferencesStore,
+    repositoryOpener: (dbFile) async {
+      final db = sqlite3.open(dbFile.path);
+      return SqliteBibleRepository(db);
+    },
+  );
+  unawaited(controller.bootstrapAndInitialize());
   runApp(BiblicalWorkstationApp(controller: controller));
 }
 
@@ -27,13 +32,27 @@ class BiblicalWorkstationApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: '성경주혜주석 v2.0 (Pastoral Workstation)',
-      debugShowCheckedModeBanner: false,
-      theme: PastoralTheme.lightTheme,
-      darkTheme: PastoralTheme.darkTheme,
-      themeMode: ThemeMode.dark,
-      home: HomeScreen(controller: controller),
+    return ListenableBuilder(
+      listenable: controller,
+      builder: (context, _) {
+        return MaterialApp(
+          title: '말씀 서재',
+          debugShowCheckedModeBanner: false,
+          localizationsDelegates: const [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [
+            Locale('ko', 'KR'),
+            Locale('en', 'US'),
+          ],
+          theme: PastoralTheme.lightTheme,
+          darkTheme: PastoralTheme.darkTheme,
+          themeMode: controller.themeMode,
+          home: HomeScreen(controller: controller),
+        );
+      },
     );
   }
 }
