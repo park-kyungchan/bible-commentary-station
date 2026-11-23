@@ -198,7 +198,7 @@ def check_live_pages(
         return results
     results.append(CheckResult("live_pages", manifest_url, True, resp.status, "manifest.json schema v3 OK"))
 
-    for rel_path in ("exegesis.json", "worship.json", "krv/GEN.json", "search/krv.json"):
+    for rel_path in ("exegesis.json", "worship.json", "nkrv/GEN.json", "krv/GEN.json", "rnksv/GEN.json", "search/nkrv.json", "search/krv.json", "search/rnksv.json"):
         expected = checksums.get(rel_path)
         asset_url = f"{base}/data/{rel_path}"
         if not expected:

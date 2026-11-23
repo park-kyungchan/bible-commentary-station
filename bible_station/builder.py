@@ -13,7 +13,7 @@ import sqlite3
 import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from . import __version__
 from .canon import (
@@ -55,7 +55,36 @@ ALLOWED_COUNT_TABLES = frozenset({
     "sermon_clips",
 })
 
-_INLINE_FOOTNOTE_RE = re.compile(r" / [㉠-㉻①-⑮]")
+_INLINE_FOOTNOTE_RE = re.compile(r"\s*/\s*[㉠-㉻①-⑮]")
+
+# Genuine critical-text (Nestle-Aland/UBS) variant omissions in Korean 새번역 (RNKSV)
+DOCUMENTED_VARIANT_OMISSIONS: Dict[str, frozenset[tuple[str, str, int]]] = {
+    "rnksv": frozenset({
+        ("MAT", "17", 21), ("MAT", "18", 11), ("MAT", "23", 14),
+        ("MRK", "9", 44), ("MRK", "9", 46), ("MRK", "11", 26), ("MRK", "15", 28),
+        ("LUK", "23", 17),
+        ("ACT", "8", 37), ("ACT", "15", 34), ("ACT", "24", 7), ("ACT", "28", 29),
+    }),
+}
+
+_EXTRA_WEB_VERSIONS: Tuple[Dict[str, Any], ...] = (
+    {
+        "id": "nkrv",
+        "code": "NKRV",
+        "nameKr": "개역개정",
+        "default": True,
+        "attribution": "대한성서공회 개역개정판 (개인 목회 연구용)",
+        "license": "PERSONAL_PASTORAL",
+    },
+    {
+        "id": "rnksv",
+        "code": "RNKSV",
+        "nameKr": "새번역",
+        "default": False,
+        "attribution": "대한성서공회 새번역 (개인 목회 연구용)",
+        "license": "PERSONAL_PASTORAL",
+    },
+)
 
 
 def validate_table_name(table_name: str, allowlist: frozenset[str]) -> str:
@@ -314,6 +343,7 @@ class BibleDatabaseBuilder:
         self,
         web_data_dir: Path,
         source_date_epoch: Optional[int] = None,
+        extra_versions_source_dir: Optional[Path] = None,
     ) -> Dict[str, Any]:
         """Export deterministic v3 web data artifacts matching SPEC.md §3.5."""
         assert self.conn is not None
@@ -369,7 +399,7 @@ class BibleDatabaseBuilder:
                 "totalVerses": sum(len(v) for v in chapters.values()),
             })
 
-        # Export compact single-fetch web search index (R-BE-05, SPEC.md §3.5)
+        # Export compact single-fetch web search index for KRV (R-BE-05, SPEC.md §3.5)
         search_payload = {
             "version": "krv",
             "books": search_books,
@@ -381,6 +411,82 @@ class BibleDatabaseBuilder:
             encoding="utf-8",
         )
         checksums["search/krv.json"] = sha256_file(search_path)
+
+        # Export built-in additional Korean translations (nkrv [default], rnksv) deterministically
+        src_root = (
+            Path(extra_versions_source_dir)
+            if extra_versions_source_dir is not None
+            else Path(__file__).resolve().parent.parent / "web" / "data"
+        )
+        extra_version_entries: Dict[str, Dict[str, Any]] = {}
+        for vcfg in _EXTRA_WEB_VERSIONS:
+            vid = vcfg["id"]
+            vsrc_dir = src_root / vid
+            if not vsrc_dir.is_dir():
+                continue
+            # Read all 66 normalized books in memory first (safe for in-place web_data_dir == src_root)
+            loaded_books: List[Tuple[int, Any, Dict[str, Any]]] = []
+            for book_idx, b in enumerate(BIBLE_BOOKS):
+                src_file = vsrc_dir / f"{b.osis_code}.json"
+                if not src_file.is_file():
+                    loaded_books = []
+                    break
+                loaded_books.append((book_idx, b, json.loads(src_file.read_text(encoding="utf-8"))))
+            if len(loaded_books) != len(BIBLE_BOOKS):
+                continue
+
+            vout_dir = web_data_dir / vid
+            vout_dir.mkdir(parents=True, exist_ok=True)
+            v_search_verses: List[List[Any]] = []
+            v_total_verses = 0
+            for book_idx, b, raw_doc in loaded_books:
+                chapters_raw = raw_doc.get("chapters", {})
+                norm_chapters: Dict[str, List[str]] = {}
+                for ch_k in sorted(chapters_raw.keys(), key=lambda x: int(x)):
+                    ch_int = int(ch_k)
+                    vs_list = list(chapters_raw[ch_k])
+                    norm_chapters[str(ch_int)] = vs_list
+                    for vs_idx, txt in enumerate(vs_list, start=1):
+                        v_search_verses.append([book_idx, ch_int, vs_idx, txt])
+                        v_total_verses += 1
+                out_doc: Dict[str, Any] = {
+                    "bookId": b.book_id,
+                    "osis": b.osis_code,
+                    "nameKr": b.name_kr,
+                    "nameEn": b.name_en,
+                    "version": vcfg["code"],
+                    "chapters": norm_chapters,
+                }
+                if raw_doc.get("footnotes"):
+                    out_doc["footnotes"] = raw_doc["footnotes"]
+                out_path = vout_dir / f"{b.osis_code}.json"
+                out_path.write_text(
+                    json.dumps(out_doc, ensure_ascii=False, separators=(",", ":")),
+                    encoding="utf-8",
+                )
+                checksums[f"{vid}/{b.osis_code}.json"] = sha256_file(out_path)
+
+            v_search_path = search_dir / f"{vid}.json"
+            v_search_path.write_text(
+                json.dumps(
+                    {"version": vid, "books": search_books, "verses": v_search_verses},
+                    ensure_ascii=False,
+                    separators=(",", ":"),
+                ),
+                encoding="utf-8",
+            )
+            checksums[f"search/{vid}.json"] = sha256_file(v_search_path)
+            extra_version_entries[vid] = {
+                "id": vid,
+                "nameKr": vcfg["nameKr"],
+                "default": bool(vcfg["default"]),
+                "attribution": vcfg["attribution"],
+                "license": vcfg["license"],
+                "pathPrefix": f"./data/{vid}/",
+                "searchIndexPath": f"./data/search/{vid}.json",
+                "totalBooks": len(BIBLE_BOOKS),
+                "totalVerses": v_total_verses,
+            }
 
         # Enrich commentary sources with category & fixed official_url (None where invalid)
         extra_meta = {s["code"]: s for s in COMMENTARY_SOURCES_MASTER}
@@ -482,22 +588,31 @@ class BibleDatabaseBuilder:
         )
         checksums["worship.json"] = sha256_file(worship_path)
 
+        has_nkrv = "nkrv" in extra_version_entries
+        krv_entry = {
+            "id": "krv",
+            "nameKr": "개역한글",
+            "default": not has_nkrv,
+            "attribution": "대한성서공회 1961 (저작권 보호기간 만료)",
+            "license": "PUBLIC_DOMAIN",
+            "pathPrefix": "./data/krv/",
+            "searchIndexPath": "./data/search/krv.json",
+            "totalBooks": len(book_manifest),
+            "totalVerses": total_verses,
+        }
+        versions_list: List[Dict[str, Any]] = []
+        if has_nkrv:
+            versions_list.append(extra_version_entries["nkrv"])
+        versions_list.append(krv_entry)
+        if "rnksv" in extra_version_entries:
+            versions_list.append(extra_version_entries["rnksv"])
+
+        default_ver = next((v["id"] for v in versions_list if v.get("default")), "krv")
         manifest_payload: Dict[str, Any] = {
             "schemaVersion": WEB_MANIFEST_SCHEMA_VERSION,
             "appVersion": __version__,
-            "defaultVersion": "krv",
-            "versions": [
-                {
-                    "id": "krv",
-                    "nameKr": "개역한글",
-                    "attribution": "대한성서공회 1961 (저작권 보호기간 만료)",
-                    "license": "PUBLIC_DOMAIN",
-                    "pathPrefix": "./data/krv/",
-                    "searchIndexPath": "./data/search/krv.json",
-                    "totalBooks": len(book_manifest),
-                    "totalVerses": total_verses,
-                }
-            ],
+            "defaultVersion": default_ver,
+            "versions": versions_list,
             "books": book_manifest,
             "checksums": dict(sorted(checksums.items())),
         }
@@ -512,6 +627,7 @@ class BibleDatabaseBuilder:
         )
 
         return {
+            "versions": [v["id"] for v in versions_list],
             "total_verses": total_verses,
             "chunk_count": len(chunk_sizes),
             "avg_chunk_bytes": sum(chunk_sizes.values()) // max(len(chunk_sizes), 1),
@@ -523,7 +639,7 @@ class BibleDatabaseBuilder:
 
 
 def validate_web_corpus(web_data_dir: Path, conn: Optional[sqlite3.Connection] = None) -> Dict[str, Any]:
-    """Strict corpus validator enforcing R-BE-03 invariants across web/data/."""
+    """Strict corpus validator enforcing R-BE-03 invariants across all registered versions in web/data/."""
     web_data_dir = Path(web_data_dir)
     manifest_path = web_data_dir / "manifest.json"
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
@@ -533,7 +649,7 @@ def validate_web_corpus(web_data_dir: Path, conn: Optional[sqlite3.Connection] =
     actual_dirs = {p.name for p in web_data_dir.iterdir() if p.is_dir()}
     extra_dirs = actual_dirs - allowed_dirs
     if extra_dirs:
-        raise ValueError(f"Unlisted web/data directories violate license allowlist: {sorted(extra_dirs)}")
+        raise ValueError(f"Unlisted web/data directories violate allowlist: {sorted(extra_dirs)}")
 
     checksums = manifest.get("checksums", {})
     if not checksums:
@@ -550,6 +666,7 @@ def validate_web_corpus(web_data_dir: Path, conn: Optional[sqlite3.Connection] =
     for v in versions:
         vid = v["id"]
         vdir = web_data_dir / vid
+        allowed_empty = DOCUMENTED_VARIANT_OMISSIONS.get(vid, frozenset())
         files = sorted(vdir.glob("*.json"))
         if len(files) != 66:
             raise ValueError(f"Version {vid} expected 66 book files, found {len(files)}")
@@ -560,22 +677,33 @@ def validate_web_corpus(web_data_dir: Path, conn: Optional[sqlite3.Connection] =
             for key in ("bookId", "osis", "nameKr", "nameEn", "version", "chapters"):
                 if key not in data:
                     raise ValueError(f"{vid}/{f.name} missing required schema key {key!r}")
+            osis = data["osis"]
             for ch_str, verse_list in data["chapters"].items():
                 if not isinstance(verse_list, list):
                     raise ValueError(f"{vid}/{f.name} chapter {ch_str} must be list[str]")
                 chapters_count += 1
                 for idx, txt in enumerate(verse_list, start=1):
-                    if not isinstance(txt, str) or not txt.strip():
-                        raise ValueError(f"Empty verse in {vid}/{f.name} {ch_str}:{idx}")
-                    if "\ufffd" in txt:
-                        raise ValueError(f"Mojibake U+FFFD in {vid}/{f.name} {ch_str}:{idx}")
-                    if _INLINE_FOOTNOTE_RE.search(txt):
-                        raise ValueError(f"Inline footnote pollution in {vid}/{f.name} {ch_str}:{idx}")
+                    if not isinstance(txt, str):
+                        raise ValueError(f"Non-string verse in {vid}/{f.name} {ch_str}:{idx}")
+                    if not txt.strip():
+                        if (osis, ch_str, idx) not in allowed_empty:
+                            raise ValueError(f"Unexpected empty verse in {vid}/{f.name} {ch_str}:{idx}")
+                    else:
+                        if "\ufffd" in txt:
+                            raise ValueError(f"Mojibake U+FFFD in {vid}/{f.name} {ch_str}:{idx}")
+                        if _INLINE_FOOTNOTE_RE.search(txt):
+                            raise ValueError(f"Inline footnote pollution in {vid}/{f.name} {ch_str}:{idx}")
                     verses_count += 1
         if chapters_count != 1189:
             raise ValueError(f"Version {vid} expected 1,189 chapters, got {chapters_count}")
         if verses_count != v["totalVerses"]:
             raise ValueError(f"Version {vid} verse count mismatch: {verses_count} vs manifest {v['totalVerses']}")
+        search_file = web_data_dir / "search" / f"{vid}.json"
+        if not search_file.is_file():
+            raise ValueError(f"Missing search index for {vid}: {search_file}")
+        sdata = json.loads(search_file.read_text(encoding="utf-8"))
+        if len(sdata.get("books", [])) != 66 or len(sdata.get("verses", [])) != v["totalVerses"]:
+            raise ValueError(f"Invalid search index counts for {vid}")
         total_checked_verses += verses_count
 
     if conn is not None:

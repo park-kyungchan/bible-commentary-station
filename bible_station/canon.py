@@ -164,7 +164,7 @@ COMMENTARY_SOURCES_MASTER: List[Dict[str, object]] = [
         "code": "JFB",
         "category": "CLASSIC",
         "category_kr": "고전·경건",
-        "name_kr": "제이미슨-포셋-브라운 주석 (JFB)",
+        "name_kr": "제이미슨-포셋-브라운 주석",
         "name_en": "Jamieson-Fausset-Brown Commentary (1871)",
         "author": "R. Jamieson, A.R. Fausset, D. Brown",
         "description": "군더더기 없이 구절의 핵심 뜻과 병행 구절을 짚어주는 19세기 대표 간결 주석 (공공도메인)",

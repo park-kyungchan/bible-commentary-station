@@ -35,7 +35,7 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
-      - name: Enforce web/data/ License Allowlist & Stage Clean Pages Artifact
+      - name: Enforce web/data/ Allowlist & Stage Clean Pages Artifact
         run: |
           set -o pipefail
           python3 -c "
@@ -46,6 +46,7 @@ jobs:
           actual_dirs = {p.name for p in Path('web/data').iterdir() if p.is_dir()}
           extra = actual_dirs - allowed_dirs
           assert not extra, f'Blocked deploy: unlisted web/data/ directories found: {sorted(extra)}'
+          assert not (Path('web/data') / 'nrsv').exists(), 'Legacy mislabeled nrsv/ must not be deployed'
           "
           rm -rf _site
           mkdir -p _site

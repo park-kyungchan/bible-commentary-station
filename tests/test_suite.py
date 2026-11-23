@@ -339,21 +339,38 @@ class TestCorpusWorshipProvenanceAndSecurity(unittest.TestCase):
     def test_01_web_data_corpus_allowlist_checksums_and_search_index(self) -> None:
         web_data_dir = WEB_DIR / "data"
         report = validate_web_corpus(web_data_dir)
-        self.assertEqual(report["versions"], ["krv"])
-        self.assertEqual(report["total_checked_verses"], 31102)
-        self.assertFalse((web_data_dir / "nkrv").exists())
-        self.assertFalse((web_data_dir / "nrsv").exists())
+        self.assertEqual(report["versions"], ["nkrv", "krv", "rnksv"])
+        self.assertEqual(report["total_checked_verses"], 31102 * 3)
+        self.assertFalse((web_data_dir / "nrsv").exists(), "Legacy mislabeled nrsv/ must remain removed")
 
         manifest = json.loads((web_data_dir / "manifest.json").read_text(encoding="utf-8"))
         self.assertEqual(manifest["schemaVersion"], 3)
         self.assertEqual(manifest["appVersion"], __version__)
-        self.assertEqual(manifest["defaultVersion"], "krv")
+        self.assertEqual(manifest["defaultVersion"], "nkrv")
+        self.assertEqual([v["id"] for v in manifest["versions"]], ["nkrv", "krv", "rnksv"])
+        self.assertTrue(manifest["versions"][0]["default"])
+        self.assertEqual(manifest["versions"][0]["nameKr"], "개역개정")
+        self.assertEqual(manifest["versions"][1]["nameKr"], "개역한글")
+        self.assertEqual(manifest["versions"][2]["nameKr"], "새번역")
         self.assertEqual(len(manifest["books"]), 66)
+        self.assertEqual(len(manifest["checksums"]), 66 * 3 + 3 + 2)
 
-        search_idx = json.loads((web_data_dir / "search" / "krv.json").read_text(encoding="utf-8"))
-        self.assertEqual(search_idx["version"], "krv")
-        self.assertEqual(len(search_idx["books"]), 66)
-        self.assertEqual(len(search_idx["verses"]), 31102)
+        for vid in ("nkrv", "krv", "rnksv"):
+            search_idx = json.loads((web_data_dir / "search" / f"{vid}.json").read_text(encoding="utf-8"))
+            self.assertEqual(search_idx["version"], vid)
+            self.assertEqual(len(search_idx["books"]), 66)
+            self.assertEqual(len(search_idx["verses"]), 31102)
+
+        # Verify NKRV repaired empty verses (GEN 29:28, DAN 3:19) and RNKSV separated footnotes
+        nkrv_gen = json.loads((web_data_dir / "nkrv" / "GEN.json").read_text(encoding="utf-8"))
+        nkrv_dan = json.loads((web_data_dir / "nkrv" / "DAN.json").read_text(encoding="utf-8"))
+        self.assertTrue(nkrv_gen["chapters"]["29"][27].startswith("야곱이 그대로"))
+        self.assertTrue(nkrv_dan["chapters"]["3"][18].startswith("느부갓네살이 분이 가득하여"))
+
+        rnksv_gen = json.loads((web_data_dir / "rnksv" / "GEN.json").read_text(encoding="utf-8"))
+        self.assertNotIn(" / ㉠", rnksv_gen["chapters"]["1"][0])
+        self.assertIn("footnotes", rnksv_gen)
+        self.assertGreaterEqual(len(rnksv_gen["footnotes"]["1"]["1"]), 1)
 
     def test_02_exegesis_provenance_and_coverage_stats(self) -> None:
         exegesis = json.loads((WEB_DIR / "data" / "exegesis.json").read_text(encoding="utf-8"))
@@ -379,6 +396,22 @@ class TestCorpusWorshipProvenanceAndSecurity(unittest.TestCase):
         self.assertIsNone(src_by_code["OXFORD"]["official_url"])
         self.assertIsNone(src_by_code["HOKMA"]["official_url"])
         self.assertIsNone(src_by_code["GRAND"]["official_url"])
+
+        # DEF-UX-03 / R-UX-07 regression: zero banned jargon acronyms in user-visible Korean fields
+        banned_ui_jargon = (
+            "HelloAO", "API", "PPT", "GAE", "BSB", "KJV", "WLC", "SBL",
+            "JFB", "TSK", "JSON", ".txt", "HTTP 404", "FTS5", "PWA", "PROPHECY_FULFILLMENT",
+        )
+        for s in exegesis["sources"]:
+            for field in ("name_kr", "description", "theological_stance", "category_kr"):
+                val = str(s.get(field) or "")
+                for term in banned_ui_jargon:
+                    self.assertNotIn(term, val, f"Banned UI jargon {term!r} in source {s['source_code']}.{field}: {val!r}")
+        for c in exegesis["commentaries"]:
+            for field in ("passage_display", "title", "content_markdown", "theological_tags", "practical_points", "attributionLabel"):
+                val = str(c.get(field) or "")
+                for term in banned_ui_jargon:
+                    self.assertNotIn(term, val, f"Banned UI jargon {term!r} in commentary {c['source_code']}.{field}: {val!r}")
 
     def test_03_worship_hymns_responsive_liturgies_templates_and_zero_pii(self) -> None:
         worship = json.loads((WEB_DIR / "data" / "worship.json").read_text(encoding="utf-8"))
@@ -520,8 +553,12 @@ class TestCorpusWorshipProvenanceAndSecurity(unittest.TestCase):
         asset_bytes = {
             "exegesis.json": (web_data_dir / "exegesis.json").read_bytes(),
             "worship.json": (web_data_dir / "worship.json").read_bytes(),
+            "nkrv/GEN.json": (web_data_dir / "nkrv" / "GEN.json").read_bytes(),
             "krv/GEN.json": (web_data_dir / "krv" / "GEN.json").read_bytes(),
+            "rnksv/GEN.json": (web_data_dir / "rnksv" / "GEN.json").read_bytes(),
+            "search/nkrv.json": (web_data_dir / "search" / "nkrv.json").read_bytes(),
             "search/krv.json": (web_data_dir / "search" / "krv.json").read_bytes(),
+            "search/rnksv.json": (web_data_dir / "search" / "rnksv.json").read_bytes(),
         }
 
         def healthy_fetcher(url: str, method: str, timeout: float) -> HttpResponse:
