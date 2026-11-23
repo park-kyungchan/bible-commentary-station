@@ -270,14 +270,9 @@ html[data-mode="sermon"] #viewSermon {
 
 .worship-search-icon {
   position: absolute;
-  left: 14px;
+  left: 16px;
   color: var(--ink-muted);
   pointer-events: none;
-}
-
-.worship-search-input {
-  width: 100%;
-  padding-left: 44px;
 }
 
 .worship-scroll {
@@ -406,6 +401,8 @@ html[data-mode="sermon"] #viewSermon {
     gap: 8px;
     flex-wrap: nowrap;
     overflow-x: auto;
+    scroll-snap-type: x proximity;
+    scroll-padding-inline: 8px;
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
   }
@@ -418,15 +415,46 @@ html[data-mode="sermon"] #viewSermon {
     flex-shrink: 0;
   }
 
+  .hide-mobile-inline {
+    display: none;
+  }
+
+  #btnOpenPicker {
+    order: 1;
+    flex: 0 0 calc(100vw - 246px);
+    min-width: 120px;
+    scroll-snap-align: start;
+  }
+
+  #btnPrevChap {
+    order: 2;
+  }
+
+  #btnNextChap {
+    order: 3;
+  }
+
+  #btnVersionSettings {
+    order: 4;
+  }
+
+  #btnBookmarks {
+    order: 5;
+  }
+
   .search-form {
-    flex: 0 0 auto;
-    min-width: 0;
-    max-width: none;
+    order: 6;
+    flex: 0 0 calc(100vw - 16px);
+    min-width: calc(100vw - 16px);
+    max-width: calc(100vw - 16px);
+    margin-left: 8px;
+    scroll-snap-align: center;
   }
 
   .search-input {
-    width: 170px;
-    min-width: 140px;
+    flex: 1 1 auto;
+    min-width: 0;
+    width: auto;
   }
 
   .version-btn-prefix {

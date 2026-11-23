@@ -7,7 +7,7 @@
 .pulpit-overlay {
   position: fixed;
   inset: 0;
-  z-index: 9500;
+  z-index: 10100;
   background: var(--pulpit-bg);
   color: var(--pulpit-ink);
   display: flex;
