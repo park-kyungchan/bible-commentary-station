@@ -1,5 +1,5 @@
-export const DRIVE_IFRAME_SANDBOX = 'allow-scripts allow-same-origin allow-presentation';
-export const DRIVE_IFRAME_REFERRER = 'no-referrer';
+export const DRIVE_IFRAME_SANDBOX = 'allow-scripts allow-same-origin allow-presentation allow-popups allow-popups-to-escape-sandbox allow-forms';
+export const DRIVE_IFRAME_REFERRER = 'strict-origin-when-cross-origin';
 export const MAX_BYOT_FILE_BYTES = 15 * 1024 * 1024;
 
 const DRIVE_ID_RE = /^[A-Za-z0-9_-]{10,64}$/;
