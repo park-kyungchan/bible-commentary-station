@@ -291,7 +291,7 @@ void main() {
         ),
       ),
     );
-    await tester.pumpAndSettle();
+    await tester.pump();
 
     final scaffold = tester.widget<Scaffold>(find.byType(Scaffold));
     expect(scaffold.backgroundColor, equals(PastoralTheme.pulpitBackground));
@@ -316,15 +316,15 @@ void main() {
       );
     }
 
-    // Advance slide via Korean next button
+    // Advance slide via Korean next button (use bounded pump because countdown Timer.periodic ticks every 1s)
     expect(find.text('대지 1 / 3 · 서론'), findsOneWidget);
     await tester.tap(find.byKey(const Key('pulpit_btn_next')));
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 300));
     expect(find.text('대지 2 / 3 · 본론'), findsOneWidget);
 
     // Exit button invokes callback cleanly
     await tester.tap(find.byKey(const Key('pulpit_btn_exit')));
-    await tester.pumpAndSettle();
+    await tester.pump();
     expect(exited, isTrue);
   });
 }
