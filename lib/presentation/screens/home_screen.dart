@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../application/workstation_controller.dart';
 import '../../core/responsive/responsive_layout.dart';
 import '../../core/theme/app_theme.dart';
+import '../../domain/models/bible_models.dart';
 import '../widgets/pulpit_prompter_view.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -21,7 +23,8 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   bool _isPulpitMode = false;
-  int _rightTab = 0; // 0: 핵심 주석, 1: 연결 말씀, 2: 설교 준비
+  List<PulpitSlide>? _pulpitOverrideSlides;
+  int _rightTab = 0; // 0: 핵심 주석, 1: 연결 말씀, 2: 설교 준비, 3: 예배 예전
   int _mobileNavIndex = 1; // 0: 66권, 1: 성경 본문, 2: 주석·설교
 
   WorkstationController get _ctrl => widget.controller;
@@ -33,9 +36,12 @@ class _HomeScreenState extends State<HomeScreen> {
       builder: (context, _) {
         if (_isPulpitMode) {
           return PulpitPrompterView(
-            slides: _ctrl.buildPulpitSlides(),
+            slides: _pulpitOverrideSlides ?? _ctrl.buildPulpitSlides(),
             targetDurationMins: _ctrl.activeSermon.targetDurationMins,
-            onExit: () => setState(() => _isPulpitMode = false),
+            onExit: () => setState(() {
+              _isPulpitMode = false;
+              _pulpitOverrideSlides = null;
+            }),
             onWakelockChanged: widget.onWakelockChanged,
           );
         }
@@ -133,7 +139,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 padding: const EdgeInsets.only(right: 12),
                 child: ElevatedButton.icon(
                   key: const Key('btn_pulpit_mode'),
-                  onPressed: () => setState(() => _isPulpitMode = true),
+                  onPressed: () => setState(() {
+                    _pulpitOverrideSlides = null;
+                    _isPulpitMode = true;
+                  }),
                   icon: const Icon(Icons.present_to_all, size: 20),
                   label: const Text('강단 화면'),
                 ),
@@ -572,6 +581,96 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Future<void> _openVersionPickerModal(BuildContext context) async {
+    final versions = WorkstationController.supportedVersions.entries.toList();
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (sheetContext) {
+        final theme = Theme.of(sheetContext);
+        final cs = theme.colorScheme;
+        final hairline = PastoralTheme.hairlineBorder(theme.brightness);
+        final muted = PastoralTheme.mutedInk(theme.brightness);
+
+        return SizedBox(
+          key: const Key('version_picker_modal'),
+          height: MediaQuery.sizeOf(sheetContext).height * 0.72,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 14, 12, 10),
+                child: Row(
+                  children: [
+                    Text(
+                      '성경 역본 선택',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: cs.onSurface,
+                      ),
+                    ),
+                    const Spacer(),
+                    OutlinedButton(
+                      key: const Key('btn_close_version_picker'),
+                      onPressed: () => Navigator.of(sheetContext).pop(),
+                      child: const Text('닫기'),
+                    ),
+                  ],
+                ),
+              ),
+              Divider(height: 1, color: hairline),
+              Expanded(
+                child: ListView.builder(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  itemCount: versions.length,
+                  itemBuilder: (_, index) {
+                    final entry = versions[index];
+                    final isSelected = entry.key == _ctrl.selectedVersionCode;
+                    return ListTile(
+                      key: Key('version_option_${entry.key}'),
+                      minTileHeight: 52,
+                      selected: isSelected,
+                      selectedTileColor: cs.primaryContainer,
+                      title: Text(
+                        entry.value,
+                        style: TextStyle(
+                          fontSize: 17,
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                          color: isSelected ? cs.onPrimaryContainer : cs.onSurface,
+                        ),
+                      ),
+                      trailing: isSelected
+                          ? Icon(Icons.check, color: cs.primary)
+                          : Text(
+                              entry.key,
+                              style: TextStyle(fontSize: 13, color: muted),
+                            ),
+                      onTap: () {
+                        Navigator.of(sheetContext).pop();
+                        unawaited(_ctrl.setVersionCode(entry.key));
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _openScriptureSearchModal(BuildContext context) async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (_) => _ScriptureSearchSheet(controller: _ctrl),
+    );
+  }
+
   Widget _buildScriptureReader(
     BuildContext context, {
     required bool showBookPickerButton,
@@ -618,6 +717,18 @@ class _HomeScreenState extends State<HomeScreen> {
                       fontSize: 18,
                       color: cs.onSurface,
                     ),
+                  ),
+                  OutlinedButton.icon(
+                    key: const Key('btn_version_picker'),
+                    onPressed: () => _openVersionPickerModal(context),
+                    icon: const Icon(Icons.translate, size: 18),
+                    label: Text(_ctrl.selectedVersionName),
+                  ),
+                  OutlinedButton.icon(
+                    key: const Key('btn_open_search'),
+                    onPressed: () => _openScriptureSearchModal(context),
+                    icon: const Icon(Icons.search, size: 18),
+                    label: const Text('말씀 찾기'),
                   ),
                 ],
               ),
@@ -706,170 +817,503 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildExegesisPanel(BuildContext context) {
-    final theme = Theme.of(context);
-    final cs = theme.colorScheme;
-    final warmAccent = PastoralTheme.warmAccent(theme.brightness);
-
     return Column(
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(12, 10, 12, 6),
-          child: SegmentedButton<int>(
-            segments: const [
-              ButtonSegment(value: 0, label: Text('핵심 주석')),
-              ButtonSegment(value: 1, label: Text('연결 말씀')),
-              ButtonSegment(value: 2, label: Text('설교 준비')),
-            ],
-            selected: {_rightTab},
-            onSelectionChanged: (s) => setState(() => _rightTab = s.first),
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: SegmentedButton<int>(
+              showSelectedIcon: false,
+              style: const ButtonStyle(
+                minimumSize: WidgetStatePropertyAll<Size>(Size(48, 48)),
+                padding: WidgetStatePropertyAll<EdgeInsetsGeometry>(
+                  EdgeInsets.symmetric(horizontal: 10),
+                ),
+              ),
+              segments: const [
+                ButtonSegment(value: 0, label: Text('핵심 주석')),
+                ButtonSegment(value: 1, label: Text('연결 말씀')),
+                ButtonSegment(value: 2, label: Text('설교 준비')),
+                ButtonSegment(value: 3, label: Text('예배 예전')),
+              ],
+              selected: {_rightTab},
+              onSelectionChanged: (s) => setState(() => _rightTab = s.first),
+            ),
           ),
         ),
-        Expanded(
-          child: _rightTab == 0
-              ? _ctrl.commentaries.isEmpty
-                  ? Center(
+        Expanded(child: _buildRightTabContent(context)),
+      ],
+    );
+  }
+
+  Widget _buildRightTabContent(BuildContext context) {
+    switch (_rightTab) {
+      case 0:
+        return _buildCommentariesTab(context);
+      case 1:
+        return _buildCrossRefsTab(context);
+      case 2:
+        return _buildSermonPrepTab(context);
+      case 3:
+        return _buildLiturgyTab(context);
+      default:
+        return _buildCommentariesTab(context);
+    }
+  }
+
+  Widget _buildCommentariesTab(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final warmAccent = PastoralTheme.warmAccent(theme.brightness);
+
+    if (_ctrl.commentaries.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Text(
+            '선택한 절에 등록된 핵심 주석이 없습니다.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: _ctrl.studyFontSize,
+              color: cs.onSurfaceVariant,
+            ),
+          ),
+        ),
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(14),
+      itemCount: _ctrl.commentaries.length,
+      itemBuilder: (_, i) {
+        final c = _ctrl.commentaries[i];
+        return Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '[${c.sourceName}] ${c.title ?? ''}'.trim(),
+                  style: TextStyle(
+                    fontSize: _ctrl.studyFontSize,
+                    fontWeight: FontWeight.bold,
+                    color: warmAccent,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  c.contentMarkdown,
+                  style: TextStyle(
+                    fontSize: _ctrl.studyFontSize,
+                    height: 1.7,
+                    color: cs.onSurface,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildCrossRefsTab(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
+    if (_ctrl.crossRefs.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Text(
+            '선택한 절에 연결된 말씀이 없습니다.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: _ctrl.studyFontSize,
+              color: cs.onSurfaceVariant,
+            ),
+          ),
+        ),
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(14),
+      itemCount: _ctrl.crossRefs.length,
+      itemBuilder: (_, i) {
+        final r = _ctrl.crossRefs[i];
+        return Card(
+          child: ListTile(
+            minTileHeight: 56,
+            title: Text(
+              '${r.refString} · ${r.relationshipLabel}',
+              style: TextStyle(
+                fontSize: _ctrl.studyFontSize,
+                color: cs.primary,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            subtitle: Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: Text(
+                r.fullText,
+                style: TextStyle(
+                  fontSize: _ctrl.studyFontSize - 1,
+                  height: 1.6,
+                  color: cs.onSurface,
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildSermonPrepTab(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
+    return ListView(
+      padding: const EdgeInsets.all(14),
+      children: [
+        Text(
+          _ctrl.activeSermon.title,
+          style: TextStyle(
+            fontSize: _ctrl.studyFontSize + 2,
+            fontWeight: FontWeight.bold,
+            color: cs.onSurface,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          '${_ctrl.activeSermon.scriptureRef} · ${_ctrl.activeSermon.sermonDate}',
+          style: TextStyle(
+            fontSize: _ctrl.studyFontSize - 1,
+            color: cs.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(height: 12),
+        ..._ctrl.activeSermon.outline.map(
+          (o) => Card(
+            child: ListTile(
+              minTileHeight: 56,
+              title: Text(
+                '[${o.section}] ${o.title}',
+                style: TextStyle(
+                  fontSize: _ctrl.studyFontSize,
+                  fontWeight: FontWeight.bold,
+                  color: cs.onSurface,
+                ),
+              ),
+              subtitle: Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Text(
+                  o.content,
+                  style: TextStyle(
+                    fontSize: _ctrl.studyFontSize - 1,
+                    height: 1.6,
+                    color: cs.onSurfaceVariant,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLiturgyTab(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final warmAccent = PastoralTheme.warmAccent(theme.brightness);
+    final muted = PastoralTheme.mutedInk(theme.brightness);
+
+    return ListView.builder(
+      key: const Key('liturgy_catalog_list'),
+      padding: const EdgeInsets.all(14),
+      itemCount: kOfflineWorshipLiturgies.length,
+      itemBuilder: (_, index) {
+        final liturgy = kOfflineWorshipLiturgies[index];
+        return Card(
+          key: Key('liturgy_card_${liturgy.id}'),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 6,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: cs.primaryContainer,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        liturgy.category,
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: cs.onPrimaryContainer,
+                        ),
+                      ),
+                    ),
+                    Text(
+                      liturgy.title,
+                      style: TextStyle(
+                        fontSize: _ctrl.studyFontSize + 2,
+                        fontWeight: FontWeight.bold,
+                        color: cs.onSurface,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  liturgy.citation,
+                  style: TextStyle(
+                    fontSize: _ctrl.studyFontSize - 2,
+                    color: muted,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                for (final slide in liturgy.slides) ...[
+                  if (liturgy.slides.length > 1)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 4),
+                      child: Text(
+                        slide.heading,
+                        style: TextStyle(
+                          fontSize: _ctrl.studyFontSize - 1,
+                          fontWeight: FontWeight.bold,
+                          color: warmAccent,
+                        ),
+                      ),
+                    ),
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: Text(
+                      slide.body,
+                      style: TextStyle(
+                        fontSize: _ctrl.studyFontSize,
+                        height: 1.7,
+                        color: cs.onSurface,
+                      ),
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 4),
+                ElevatedButton.icon(
+                  key: Key('btn_liturgy_pulpit_${liturgy.id}'),
+                  onPressed: () => setState(() {
+                    _pulpitOverrideSlides = _ctrl.buildLiturgySlides(liturgy);
+                    _isPulpitMode = true;
+                  }),
+                  icon: const Icon(Icons.present_to_all, size: 18),
+                  label: const Text('강단 화면으로 열기'),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _ScriptureSearchSheet extends StatefulWidget {
+  final WorkstationController controller;
+
+  const _ScriptureSearchSheet({required this.controller});
+
+  @override
+  State<_ScriptureSearchSheet> createState() => _ScriptureSearchSheetState();
+}
+
+class _ScriptureSearchSheetState extends State<_ScriptureSearchSheet> {
+  late final TextEditingController _queryController;
+
+  @override
+  void initState() {
+    super.initState();
+    _queryController = TextEditingController(text: widget.controller.searchQuery);
+  }
+
+  @override
+  void dispose() {
+    _queryController.dispose();
+    super.dispose();
+  }
+
+  String _bookNameForId(int bookId) {
+    for (final book in widget.controller.books) {
+      if (book.bookId == bookId) return book.nameKr;
+    }
+    return '성경';
+  }
+
+  void _runSearch() {
+    unawaited(widget.controller.searchScripture(_queryController.text));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final hairline = PastoralTheme.hairlineBorder(theme.brightness);
+    final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: bottomInset),
+      child: SizedBox(
+        key: const Key('scripture_search_modal'),
+        height: MediaQuery.sizeOf(context).height * 0.72,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 14, 12, 10),
+              child: Row(
+                children: [
+                  Text(
+                    '말씀 찾기',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: cs.onSurface,
+                    ),
+                  ),
+                  const Spacer(),
+                  OutlinedButton(
+                    key: const Key('btn_close_search'),
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: const Text('닫기'),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      key: const Key('input_scripture_search'),
+                      controller: _queryController,
+                      textInputAction: TextInputAction.search,
+                      onSubmitted: (_) => _runSearch(),
+                      decoration: const InputDecoration(
+                        hintText: '찾으실 말씀의 단어를 입력하세요',
+                        border: OutlineInputBorder(),
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 12,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  ElevatedButton(
+                    key: const Key('btn_execute_search'),
+                    onPressed: _runSearch,
+                    child: const Text('검색'),
+                  ),
+                ],
+              ),
+            ),
+            Divider(height: 1, color: hairline),
+            Expanded(
+              child: ListenableBuilder(
+                listenable: widget.controller,
+                builder: (context, _) {
+                  final ctrl = widget.controller;
+                  if (ctrl.searchQuery.isEmpty) {
+                    return Center(
                       child: Padding(
                         padding: const EdgeInsets.all(24),
                         child: Text(
-                          '선택한 절에 등록된 핵심 주석이 없습니다.',
+                          '찾으실 말씀의 단어나 구절을 입력해 주세요.',
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                            fontSize: _ctrl.studyFontSize,
+                            fontSize: ctrl.studyFontSize,
                             color: cs.onSurfaceVariant,
                           ),
                         ),
                       ),
-                    )
-                  : ListView.builder(
-                      padding: const EdgeInsets.all(14),
-                      itemCount: _ctrl.commentaries.length,
-                      itemBuilder: (_, i) {
-                        final c = _ctrl.commentaries[i];
-                        return Card(
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  '[${c.sourceName}] ${c.title ?? ''}'.trim(),
-                                  style: TextStyle(
-                                    fontSize: _ctrl.studyFontSize,
-                                    fontWeight: FontWeight.bold,
-                                    color: warmAccent,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  c.contentMarkdown,
-                                  style: TextStyle(
-                                    fontSize: _ctrl.studyFontSize,
-                                    height: 1.7,
-                                    color: cs.onSurface,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    )
-              : _rightTab == 1
-                  ? _ctrl.crossRefs.isEmpty
-                      ? Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(24),
-                            child: Text(
-                              '선택한 절에 연결된 말씀이 없습니다.',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: _ctrl.studyFontSize,
-                                color: cs.onSurfaceVariant,
-                              ),
-                            ),
-                          ),
-                        )
-                      : ListView.builder(
-                          padding: const EdgeInsets.all(14),
-                          itemCount: _ctrl.crossRefs.length,
-                          itemBuilder: (_, i) {
-                            final r = _ctrl.crossRefs[i];
-                            return Card(
-                              child: ListTile(
-                                minTileHeight: 56,
-                                title: Text(
-                                  '${r.refString} · ${r.relationshipLabel}',
-                                  style: TextStyle(
-                                    fontSize: _ctrl.studyFontSize,
-                                    color: cs.primary,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                subtitle: Padding(
-                                  padding: const EdgeInsets.only(top: 6),
-                                  child: Text(
-                                    r.fullText,
-                                    style: TextStyle(
-                                      fontSize: _ctrl.studyFontSize - 1,
-                                      height: 1.6,
-                                      color: cs.onSurface,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
-                        )
-                  : ListView(
-                      padding: const EdgeInsets.all(14),
-                      children: [
-                        Text(
-                          _ctrl.activeSermon.title,
+                    );
+                  }
+                  if (ctrl.searchResults.isEmpty) {
+                    return Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Text(
+                          '검색 결과가 없습니다.',
+                          textAlign: TextAlign.center,
                           style: TextStyle(
-                            fontSize: _ctrl.studyFontSize + 2,
-                            fontWeight: FontWeight.bold,
-                            color: cs.onSurface,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '${_ctrl.activeSermon.scriptureRef} · ${_ctrl.activeSermon.sermonDate}',
-                          style: TextStyle(
-                            fontSize: _ctrl.studyFontSize - 1,
+                            fontSize: ctrl.studyFontSize,
                             color: cs.onSurfaceVariant,
                           ),
                         ),
-                        const SizedBox(height: 12),
-                        ..._ctrl.activeSermon.outline.map(
-                          (o) => Card(
-                            child: ListTile(
-                              minTileHeight: 56,
-                              title: Text(
-                                '[${o.section}] ${o.title}',
-                                style: TextStyle(
-                                  fontSize: _ctrl.studyFontSize,
-                                  fontWeight: FontWeight.bold,
-                                  color: cs.onSurface,
-                                ),
-                              ),
-                              subtitle: Padding(
-                                padding: const EdgeInsets.only(top: 6),
-                                child: Text(
-                                  o.content,
-                                  style: TextStyle(
-                                    fontSize: _ctrl.studyFontSize - 1,
-                                    height: 1.6,
-                                    color: cs.onSurfaceVariant,
-                                  ),
-                                ),
+                      ),
+                    );
+                  }
+                  return ListView.builder(
+                    padding: const EdgeInsets.all(12),
+                    itemCount: ctrl.searchResults.length,
+                    itemBuilder: (_, index) {
+                      final verse = ctrl.searchResults[index];
+                      final bookName = _bookNameForId(verse.bookId);
+                      return Card(
+                        child: ListTile(
+                          key: Key('search_result_${verse.verseId}'),
+                          minTileHeight: 56,
+                          title: Text(
+                            '$bookName ${verse.chapter}:${verse.verse}',
+                            style: TextStyle(
+                              fontSize: ctrl.studyFontSize,
+                              fontWeight: FontWeight.bold,
+                              color: cs.primary,
+                            ),
+                          ),
+                          subtitle: Padding(
+                            padding: const EdgeInsets.only(top: 4),
+                            child: Text(
+                              verse.text,
+                              style: TextStyle(
+                                fontSize: ctrl.studyFontSize - 1,
+                                height: 1.6,
+                                color: cs.onSurface,
                               ),
                             ),
                           ),
+                          onTap: () {
+                            Navigator.of(context).pop();
+                            unawaited(
+                              ctrl.loadChapter(
+                                verse.bookId,
+                                verse.chapter,
+                                verseNumber: verse.verse,
+                              ),
+                            );
+                          },
                         ),
-                      ],
-                    ),
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }

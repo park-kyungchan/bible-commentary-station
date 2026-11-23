@@ -53,6 +53,10 @@ class _FakeBibleRepository implements BibleRepository {
     required int bookId,
     required int chapter,
   }) async {
+    if (versionCode == 'RNKSV') {
+      // Simulate DB having only KRV rows for RNKSV to exercise KRV fallback.
+      return const [];
+    }
     if (bookId == 19) {
       return [
         BibleVerse(
@@ -61,7 +65,29 @@ class _FakeBibleRepository implements BibleRepository {
           chapter: chapter,
           verse: 1,
           versionCode: versionCode,
-          text: '복 있는 사람은 악인의 꾀를 좇지 아니하며',
+          text: versionCode == 'NKRV'
+              ? '복 있는 사람은 악인들의 꾀를 따르지 아니하며'
+              : '복 있는 사람은 악인의 꾀를 좇지 아니하며',
+        ),
+      ];
+    }
+    if (versionCode == 'NKRV') {
+      return [
+        BibleVerse(
+          verseId: 1022001,
+          bookId: bookId,
+          chapter: chapter,
+          verse: 1,
+          versionCode: versionCode,
+          text: '그 일 후에 하나님이 아브라함을 시험하시려고 그를 부르시되',
+        ),
+        BibleVerse(
+          verseId: 1022002,
+          bookId: bookId,
+          chapter: chapter,
+          verse: 2,
+          versionCode: versionCode,
+          text: '여호와께서 이르시되 네 아들 네 사랑하는 독자 이삭을 데리고 모리아 땅으로 가서',
         ),
       ];
     }
@@ -90,8 +116,21 @@ class _FakeBibleRepository implements BibleRepository {
     required String query,
     String versionCode = 'KRV',
     int limit = 25,
-  }) async =>
-      const [];
+  }) async {
+    if (query.contains('복 있는')) {
+      return const [
+        BibleVerse(
+          verseId: 19001001,
+          bookId: 19,
+          chapter: 1,
+          verse: 1,
+          versionCode: 'KRV',
+          text: '복 있는 사람은 악인의 꾀를 좇지 아니하며',
+        ),
+      ];
+    }
+    return const [];
+  }
 
   @override
   Future<List<CommentaryItem>> getCommentariesForVerse(int verseId) async => const [
@@ -326,5 +365,138 @@ void main() {
     await tester.tap(find.byKey(const Key('pulpit_btn_exit')));
     await tester.pump();
     expect(exited, isTrue);
+  });
+
+  test('F-005: WorkstationController switches versions with KRV fallback and exposes 6 offline liturgies', () async {
+    final controller = WorkstationController(repository: _FakeBibleRepository());
+    await controller.initialize();
+
+    expect(controller.selectedVersionCode, equals('KRV'));
+    expect(WorkstationController.supportedVersions.length, equals(23));
+    expect(WorkstationController.supportedVersions['NKRV'], equals('개역개정'));
+    expect(WorkstationController.supportedVersions['ESV'], equals('영어 표준역 (ESV)'));
+    expect(WorkstationController.supportedVersions['TNIV'], equals('영어 신국제역 (TNIV)'));
+    expect(WorkstationController.supportedVersions['NASB'], equals('영어 신미국표준역 (NASB)'));
+    expect(WorkstationController.supportedVersions['NLT'], equals('영어 새번역 (NLT)'));
+
+    await controller.setVersionCode('NKRV');
+    expect(controller.selectedVersionCode, equals('NKRV'));
+    expect(controller.isUsingFallbackKrv, isFalse);
+    expect(controller.chapterVerses[1].text, contains('여호와께서 이르시되'));
+
+    // RNKSV returns empty in _FakeBibleRepository -> falls back to KRV rows
+    await controller.setVersionCode('RNKSV');
+    expect(controller.selectedVersionCode, equals('RNKSV'));
+    expect(controller.isUsingFallbackKrv, isTrue);
+    expect(controller.chapterVerses[1].versionCode, equals('KRV'));
+    expect(controller.chapterVerses[1].text, contains('여호와께서 가라사대'));
+
+    expect(kOfflineWorshipLiturgies.length, equals(6));
+  });
+
+  testWidgets('F-005: version picker modal switches version & search modal navigates to verse', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1280, 900);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    final controller = WorkstationController(repository: _FakeBibleRepository());
+    await controller.initialize();
+
+    await tester.pumpWidget(BiblicalWorkstationApp(controller: controller));
+    await tester.pumpAndSettle();
+
+    final versionBtn = find.byKey(const Key('btn_version_picker'));
+    final searchBtn = find.byKey(const Key('btn_open_search'));
+    expect(versionBtn, findsOneWidget);
+    expect(searchBtn, findsOneWidget);
+    expect(tester.getSize(versionBtn).height, greaterThanOrEqualTo(48.0));
+    expect(tester.getSize(searchBtn).height, greaterThanOrEqualTo(48.0));
+    expect(find.text('개역한글'), findsOneWidget);
+
+    // Open version picker modal and switch to NKRV (개역개정)
+    await tester.tap(versionBtn);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('version_picker_modal')), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('version_option_NKRV')));
+    await tester.pumpAndSettle();
+    expect(controller.selectedVersionCode, equals('NKRV'));
+    expect(find.text('개역개정'), findsOneWidget);
+    expect(find.textContaining('여호와께서 이르시되'), findsOneWidget);
+
+    // Open scripture search modal, search, and jump to result
+    await tester.tap(searchBtn);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('scripture_search_modal')), findsOneWidget);
+
+    await tester.enterText(find.byKey(const Key('input_scripture_search')), '복 있는');
+    await tester.tap(find.byKey(const Key('btn_execute_search')));
+    await tester.pumpAndSettle();
+
+    final hitFinder = find.byKey(const Key('search_result_19001001'));
+    expect(hitFinder, findsOneWidget);
+    await tester.tap(hitFinder);
+    await tester.pumpAndSettle();
+
+    expect(find.text('시편 1장'), findsOneWidget);
+    expect(find.textContaining('복 있는 사람은'), findsOneWidget);
+  });
+
+  testWidgets('F-005: offline worship liturgy tab renders creeds & prayers and projects to PulpitPrompterView', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(800, 1280);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    final controller = WorkstationController(repository: _FakeBibleRepository());
+    await controller.initialize();
+
+    await tester.pumpWidget(BiblicalWorkstationApp(controller: controller));
+    await tester.pumpAndSettle();
+
+    // Switch right panel to 4th segment: 예배 예전
+    await tester.tap(find.text('예배 예전'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('사도신경 (새번역)'), findsOneWidget);
+
+    final liturgyScrollable = find.descendant(
+      of: find.byKey(const Key('liturgy_catalog_list')),
+      matching: find.byType(Scrollable),
+    );
+    final lordsPrayerCard = find.byKey(const Key('liturgy_card_lords_prayer_ecumenical'));
+    await tester.scrollUntilVisible(lordsPrayerCard, 300.0, scrollable: liturgyScrollable);
+    await tester.pumpAndSettle();
+
+    expect(find.text('주기도문 (새번역)'), findsOneWidget);
+    expect(find.textContaining('권능과'), findsWidgets);
+
+    final openPulpitBtn = find.byKey(const Key('btn_liturgy_pulpit_lords_prayer_ecumenical'));
+    await tester.scrollUntilVisible(openPulpitBtn, 200.0, scrollable: liturgyScrollable);
+    await tester.pumpAndSettle();
+    expect(tester.getSize(openPulpitBtn).height, greaterThanOrEqualTo(48.0));
+
+    // Tap '강단 화면으로 열기' and use bounded pump because PulpitPrompterView runs Timer.periodic
+    await tester.tap(openPulpitBtn);
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.byType(PulpitPrompterView), findsOneWidget);
+    expect(find.textContaining('주기도문 (새번역)'), findsOneWidget);
+    expect(find.text('주기도문 (1/3)'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('pulpit_btn_next')));
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.tap(find.byKey(const Key('pulpit_btn_next')));
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.text('주기도문 (3/3)'), findsOneWidget);
+    expect(find.textContaining('권능과'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('pulpit_btn_exit')));
+    await tester.pumpAndSettle();
+    expect(find.byType(PulpitPrompterView), findsNothing);
   });
 }
