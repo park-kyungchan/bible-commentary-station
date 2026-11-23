@@ -4,9 +4,10 @@ import '../../domain/models/bible_models.dart';
 import '../../domain/repositories/bible_repository.dart';
 
 /// Concrete SQLite3 implementation of [BibleRepository] using Dual Hybrid FTS5
-/// (unicode61 prefix + trigram 3+ char substring) with zero mock hardcoding.
+/// (unicode61 prefix + trigram 3+ char substring) with strict SQLite single-quoted literals.
 class SqliteBibleRepository implements BibleRepository {
   final Database _db;
+  bool _isClosed = false;
 
   SqliteBibleRepository(this._db);
 
@@ -49,23 +50,47 @@ class SqliteBibleRepository implements BibleRepository {
     String versionCode = 'KRV',
     int limit = 25,
   }) async {
-    final cleaned = query.replaceAll(RegExp(r'["\x27*():^~+-]+'), ' ').trim();
+    final cleaned = query
+        .replaceAll(RegExp(r'["\x27*():^~+.,?!;/\\{}\[\]\-]+'), ' ')
+        .trim();
     if (cleaned.isEmpty) return [];
     final tokens = cleaned.split(RegExp(r'\s+'));
 
     final useTrigram = tokens.every((t) => t.length >= 3);
-    final table = useTrigram ? 'fts_bible_verses_trigram' : 'fts_bible_verses_unicode';
-    final expr = useTrigram
-        ? tokens.map((t) => '"$t"').join(' ')
-        : tokens.map((t) => '"$t"*').join(' ');
+    if (useTrigram) {
+      final trigramExpr = tokens.map((t) => '"$t"').join(' ');
+      final trigramRows = _db.select(
+        'SELECT v.verse_id, v.book_id, v.chapter, v.verse, v.version_code, v.text, v.text_with_strong '
+        'FROM fts_bible_verses_trigram f JOIN bible_verses v ON f.rowid = v.id '
+        'WHERE fts_bible_verses_trigram MATCH ? AND v.version_code = ? LIMIT ?;',
+        [trigramExpr, versionCode, limit],
+      );
+      if (trigramRows.isNotEmpty) {
+        return trigramRows.map(_mapVerse).toList();
+      }
+    }
 
-    final rows = _db.select(
+    final unicodeExpr = tokens.map((t) => '"$t"*').join(' ');
+    final unicodeRows = _db.select(
       'SELECT v.verse_id, v.book_id, v.chapter, v.verse, v.version_code, v.text, v.text_with_strong '
-      'FROM $table f JOIN bible_verses v ON f.rowid = v.id '
-      'WHERE $table MATCH ? AND v.version_code = ? LIMIT ?;',
-      [expr, versionCode, limit],
+      'FROM fts_bible_verses_unicode f JOIN bible_verses v ON f.rowid = v.id '
+      'WHERE fts_bible_verses_unicode MATCH ? AND v.version_code = ? LIMIT ?;',
+      [unicodeExpr, versionCode, limit],
     );
-    return rows.map(_mapVerse).toList();
+    if (unicodeRows.isNotEmpty) {
+      return unicodeRows.map(_mapVerse).toList();
+    }
+
+    // Forgiving space-stripped fallback for Korean queries without spaces.
+    final compact = tokens.join('');
+    final fallbackRows = _db.select(
+      "SELECT verse_id, book_id, chapter, verse, version_code, text, text_with_strong "
+      "FROM bible_verses "
+      "WHERE version_code = ? AND REPLACE(text, ' ', '') LIKE ? "
+      "ORDER BY verse_id ASC LIMIT ?;",
+      [versionCode, '%$compact%', limit],
+    );
+    return fallbackRows.map(_mapVerse).toList();
   }
 
   @override
@@ -97,13 +122,13 @@ class SqliteBibleRepository implements BibleRepository {
     String versionCode = 'KRV',
   }) async {
     final rows = _db.select(
-      'SELECT cr.ref_id, cr.from_verse_id, cr.to_verse_id, cr.score, cr.relationship_type, '
-      'b.name_kr AS to_book_name, (cr.to_verse_id % 1000000) / 1000 AS to_chapter, '
-      'cr.to_verse_id % 1000 AS to_verse, COALESCE(v.text, cr.note, "") AS full_text '
-      'FROM cross_references cr '
-      'JOIN bible_books b ON (cr.to_verse_id / 1000000) = b.book_id '
-      'LEFT JOIN bible_verses v ON cr.to_verse_id = v.verse_id AND v.version_code = ? '
-      'WHERE cr.from_verse_id = ? ORDER BY cr.score DESC;',
+      "SELECT cr.ref_id, cr.from_verse_id, cr.to_verse_id, cr.score, cr.relationship_type, "
+      "b.name_kr AS to_book_name, (cr.to_verse_id % 1000000) / 1000 AS to_chapter, "
+      "cr.to_verse_id % 1000 AS to_verse, COALESCE(v.text, cr.note, '') AS full_text "
+      "FROM cross_references cr "
+      "JOIN bible_books b ON (cr.to_verse_id / 1000000) = b.book_id "
+      "LEFT JOIN bible_verses v ON cr.to_verse_id = v.verse_id AND v.version_code = ? "
+      "WHERE cr.from_verse_id = ? ORDER BY cr.score DESC;",
       [versionCode, verseId],
     );
     return rows
@@ -126,11 +151,11 @@ class SqliteBibleRepository implements BibleRepository {
     final topics = _db.select('SELECT topic_key, title, meaning, summary FROM chain_topics;');
     return topics.map((t) {
       final links = _db.select(
-        'SELECT cl.passage_display, cl.stage_label, cl.sermon_point, b.name_kr, COALESCE(v.text, "") AS verse_text '
-        'FROM chain_links cl '
-        'JOIN bible_books b ON (cl.verse_id / 1000000) = b.book_id '
-        'LEFT JOIN bible_verses v ON cl.verse_id = v.verse_id AND v.version_code = ? '
-        'WHERE cl.topic_key = ? ORDER BY cl.sort_order ASC;',
+        "SELECT cl.passage_display, cl.stage_label, cl.sermon_point, b.name_kr, COALESCE(v.text, '') AS verse_text "
+        "FROM chain_links cl "
+        "JOIN bible_books b ON (cl.verse_id / 1000000) = b.book_id "
+        "LEFT JOIN bible_verses v ON cl.verse_id = v.verse_id AND v.version_code = ? "
+        "WHERE cl.topic_key = ? ORDER BY cl.sort_order ASC;",
         [versionCode, t['topic_key']],
       );
       return ChainReference(
@@ -164,12 +189,21 @@ class SqliteBibleRepository implements BibleRepository {
           .toList(),
     );
     _db.execute(
-      'INSERT INTO sermons (sermon_id, title, preacher, sermon_date, service_type, scripture_ref, '
-      'target_duration_mins, outline_json, full_text_markdown, sync_status, local_updated_at) '
-      'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime("now")) '
-      'ON CONFLICT(sermon_id) DO UPDATE SET '
-      'title=excluded.title, scripture_ref=excluded.scripture_ref, outline_json=excluded.outline_json, '
-      'full_text_markdown=excluded.full_text_markdown, sync_status="PENDING_UPLOAD", local_updated_at=datetime("now");',
+      "INSERT INTO sermons (sermon_id, title, preacher, sermon_date, service_type, scripture_ref, "
+      "target_duration_mins, outline_json, full_text_markdown, gdrive_file_id, sync_status, local_updated_at) "
+      "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now')) "
+      "ON CONFLICT(sermon_id) DO UPDATE SET "
+      "title = excluded.title, "
+      "preacher = excluded.preacher, "
+      "sermon_date = excluded.sermon_date, "
+      "service_type = excluded.service_type, "
+      "scripture_ref = excluded.scripture_ref, "
+      "target_duration_mins = excluded.target_duration_mins, "
+      "outline_json = excluded.outline_json, "
+      "full_text_markdown = excluded.full_text_markdown, "
+      "gdrive_file_id = COALESCE(excluded.gdrive_file_id, sermons.gdrive_file_id), "
+      "sync_status = 'PENDING_UPLOAD', "
+      "local_updated_at = datetime('now');",
       [
         sermon.sermonId,
         sermon.title,
@@ -180,6 +214,7 @@ class SqliteBibleRepository implements BibleRepository {
         sermon.targetDurationMins,
         outlineJson,
         sermon.fullTextMarkdown,
+        sermon.gdriveFileId,
         sermon.syncStatus ?? 'LOCAL_ONLY',
       ],
     );
@@ -207,9 +242,18 @@ class SqliteBibleRepository implements BibleRepository {
                 ))
             .toList(),
         fullTextMarkdown: r['full_text_markdown'] as String?,
+        gdriveFileId: r['gdrive_file_id'] as String?,
         syncStatus: r['sync_status'] as String?,
       );
     }).toList();
+  }
+
+  @override
+  Future<void> close() async {
+    if (!_isClosed) {
+      _isClosed = true;
+      _db.dispose();
+    }
   }
 
   BibleVerse _mapVerse(Row r) => BibleVerse(

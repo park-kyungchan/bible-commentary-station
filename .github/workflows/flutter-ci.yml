@@ -1,0 +1,47 @@
+name: Flutter Client CI
+
+on:
+  push:
+    paths:
+      - "lib/**"
+      - "pubspec.yaml"
+      - "test/**"
+      - ".github/workflows/flutter-ci.yml"
+  pull_request:
+    paths:
+      - "lib/**"
+      - "pubspec.yaml"
+      - "test/**"
+      - ".github/workflows/flutter-ci.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  flutter-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter (stable >= 3.27)
+        uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+          cache: true
+
+      - name: Static Guardrails (Zero PII & Strict SQLite Literals)
+        run: |
+          set -o pipefail
+          ! grep -rn "박우호" lib/ pubspec.yaml
+          ! grep -rnE 'datetime\("now"\)|sync_status="PENDING_UPLOAD"|COALESCE\([^)]*""\)' lib/
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Static Analysis
+        run: flutter analyze --no-fatal-infos --fatal-warnings
+
+      - name: Run Flutter Unit & Widget Tests
+        run: flutter test --reporter expanded
