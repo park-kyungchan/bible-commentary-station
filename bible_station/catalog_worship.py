@@ -418,6 +418,7 @@ def build_expanded_worship_catalog() -> Dict[str, Any]:
     ]
 
     titles_map: Dict[str, str] = _require_json("hymns_645.json")
+    notes_map: Dict[str, Dict[str, Any]] = _require_json("hymns_645_notes.json")
     hymns_ppt_map: Dict[str, Dict[str, str]] = _require_json("hymns_drive_ppts.json")
     liturgies: List[Dict[str, Any]] = _require_json("catalog_liturgy.json")
     templates: List[Dict[str, Any]] = _require_json("worship_templates.json")
@@ -444,6 +445,15 @@ def build_expanded_worship_catalog() -> Dict[str, Any]:
         title = titles_map.get(str(num))
         if not title:
             raise ValueError(f"Missing hymn title for #{num} in hymns_645.json")
+        note_entry = notes_map.get(str(num))
+        if not note_entry:
+            raise ValueError(f"Missing hymn note for #{num} in hymns_645_notes.json")
+        usage_timing = str(note_entry.get("usageTiming", "")).strip()
+        pastoral_note = str(note_entry.get("pastoralNote", "")).strip()
+        if not usage_timing or not pastoral_note:
+            raise ValueError(f"Incomplete usageTiming/pastoralNote for hymn #{num}")
+        public_lyrics = str(note_entry.get("publicLyrics", "")).strip()
+
         section, default_group, default_ref = _classify_hymn_21c(num)
         hp = hymns_ppt_map.get(str(num))
         drive_id, ppt_preview, ppt_view = _drive_urls(hp["id"] if hp else "", f"hymn #{num}")
@@ -455,31 +465,32 @@ def build_expanded_worship_catalog() -> Dict[str, Any]:
                 if old_num in seen_old:
                     raise ValueError(f"Duplicate legacy Unified Hymnal number old={old_num} on hymn #{num}")
                 seen_old.add(old_num)
-            full_hymns.append({
-                "num": num,
-                "old": old_num,
-                "title": title,
-                "category": cur["category"],
-                "section": section,
-                "featured": True,
-                "ref": cur["ref"],
-                "driveId": drive_id,
-                "pptPreviewUrl": ppt_preview,
-                "pptViewUrl": ppt_view,
-            })
+            category = cur["category"]
+            ref_obj = cur["ref"]
+            featured = True
         else:
-            full_hymns.append({
-                "num": num,
-                "old": 0,
-                "title": title,
-                "category": default_group,
-                "section": section,
-                "featured": False,
-                "ref": default_ref,
-                "driveId": drive_id,
-                "pptPreviewUrl": ppt_preview,
-                "pptViewUrl": ppt_view,
-            })
+            old_num = 0
+            category = default_group
+            ref_obj = default_ref
+            featured = False
+
+        hymn_record: Dict[str, Any] = {
+            "num": num,
+            "old": old_num,
+            "title": title,
+            "category": category,
+            "section": section,
+            "featured": featured,
+            "ref": ref_obj,
+            "usageTiming": usage_timing,
+            "pastoralNote": pastoral_note,
+            "driveId": drive_id,
+            "pptPreviewUrl": ppt_preview,
+            "pptViewUrl": ppt_view,
+        }
+        if public_lyrics:
+            hymn_record["publicLyrics"] = public_lyrics
+        full_hymns.append(hymn_record)
 
     return {
         "hymnGroups": ["전체", "주일경배", "은혜·사랑", "기도·위로", "감사·헌신", "절기·특별", "장례·파송"],

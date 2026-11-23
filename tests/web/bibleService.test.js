@@ -1,7 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { BibleDataService } from '../../web/js/services/bibleService.js';
 import { createStore } from '../../web/js/core/state.js';
+import { createWorshipPanel } from '../../web/js/features/worshipPanel.js';
+
+const ROOT_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 
 function createFixtureFetcher() {
   const calls = [];
@@ -245,4 +251,91 @@ test('multi-version manifest (nkrv default:true + krv + rnksv) loads chapters, f
   const rnksvHits = await svc.searchActiveVersion('악인의 꾀를 따르지', 'rnksv');
   assert.equal(rnksvHits.length, 1);
   assert.equal(rnksvHits[0].versionId, 'rnksv');
+});
+
+test('worship.json carries usageTiming and pastoralNote on all 645 hymns and >= 25 offline publicLyrics', async () => {
+  const worshipPath = path.join(ROOT_DIR, 'web', 'data', 'worship.json');
+  const worship = JSON.parse(fs.readFileSync(worshipPath, 'utf8'));
+  const hymns = worship.hymns || [];
+  assert.equal(hymns.length, 645);
+
+  let publicLyricsCount = 0;
+  for (const h of hymns) {
+    assert.equal(typeof h.usageTiming, 'string', `Hymn #${h.num} missing usageTiming`);
+    assert.ok(h.usageTiming.trim().length > 0, `Hymn #${h.num} has empty usageTiming`);
+    assert.equal(typeof h.pastoralNote, 'string', `Hymn #${h.num} missing pastoralNote`);
+    assert.ok(h.pastoralNote.trim().length > 0, `Hymn #${h.num} has empty pastoralNote`);
+    if (typeof h.publicLyrics === 'string' && h.publicLyrics.trim().length > 0) {
+      publicLyricsCount += 1;
+    }
+  }
+  assert.ok(publicLyricsCount >= 25, `Expected >= 25 hymns with publicLyrics, got ${publicLyricsCount}`);
+
+  const amazingGrace = hymns.find((h) => h.num === 305);
+  assert.ok(amazingGrace?.publicLyrics?.includes('\n\n'), 'Hymn #305 must have multi-stanza publicLyrics');
+
+  const prevDoc = globalThis.document;
+  const makeNode = (tag) => {
+    const node = {
+      tagName: String(tag).toUpperCase(),
+      attrs: {},
+      dataset: {},
+      children: [],
+      listeners: {},
+      className: '',
+      textContent: '',
+      setAttribute(k, v) { this.attrs[k] = String(v); },
+      getAttribute(k) { return this.attrs[k] ?? null; },
+      addEventListener(ev, fn) { (this.listeners[ev] ||= []).push(fn); },
+      appendChild(child) { this.children.push(child); return child; },
+      replaceChildren(...kids) {
+        this.children = kids.flatMap((k) => (k?.tagName === 'FRAGMENT' ? k.children : [k]));
+      },
+    };
+    return node;
+  };
+  const collectText = (node) => {
+    if (!node) return '';
+    if (typeof node === 'string') return node;
+    if (node.nodeType === 3) return node.textContent;
+    return [node.textContent || '', ...(node.children || []).map(collectText)].join(' ');
+  };
+  const viewWorship = makeNode('section');
+  const detailEl = makeNode('div');
+  const filterEl = makeNode('div');
+  const listEl = makeNode('div');
+  globalThis.document = {
+    createElement: (t) => makeNode(t),
+    createElementNS: (_ns, t) => makeNode(t),
+    createDocumentFragment: () => makeNode('fragment'),
+    createTextNode: (txt) => ({ nodeType: 3, textContent: String(txt) }),
+    getElementById: (id) => ({
+      viewWorship,
+      worshipFilterBar: filterEl,
+      worshipListContainer: listEl,
+      worshipDetailContainer: detailEl,
+    }[id] || null),
+    querySelectorAll: () => [],
+  };
+  try {
+    const store = createStore(null);
+    store.state.worshipTab = 'hymns';
+    store.state.worshipSearch = '305';
+    const panel = createWorshipPanel({ store, service: { worship }, callbacks: {} });
+    panel.render();
+    assert.ok(listEl.children.length >= 1);
+    const firstCard = listEl.children[0];
+    assert.ok(collectText(firstCard).includes('가사 내장'));
+    assert.ok(collectText(firstCard).includes(amazingGrace.usageTiming));
+    firstCard.listeners.click[0]();
+    const detailText = collectText(detailEl);
+    assert.ok(detailText.includes(amazingGrace.pastoralNote));
+    assert.ok(detailText.includes('4절 수록'));
+    const deck = panel.getActivePulpitDeck();
+    assert.equal(deck.slides.length, 4);
+    assert.ok(deck.slides[0].heading.includes('(1절)'));
+    assert.ok(deck.slides[3].heading.includes('(4절)'));
+  } finally {
+    globalThis.document = prevDoc;
+  }
 });
