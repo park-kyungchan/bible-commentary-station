@@ -158,7 +158,6 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.open(SHELL_CACHE).then(async (cache) => {
       const cached = await cache.match(event.request);
-      if (cached) return cached;
       try {
         const resp = await fetch(event.request);
         if (resp && resp.ok && resp.type === 'basic') {
@@ -166,7 +165,7 @@ self.addEventListener('fetch', (event) => {
         }
         return resp;
       } catch {
-        return new Response('', { status: 503, statusText: 'Offline' });
+        return cached || new Response('', { status: 503, statusText: 'Offline' });
       }
     })
   );

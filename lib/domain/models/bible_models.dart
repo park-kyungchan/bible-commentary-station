@@ -206,3 +206,239 @@ class Sermon {
     );
   }
 }
+
+class WorshipLiturgySlide {
+  final String heading;
+  final List<String> lines;
+
+  const WorshipLiturgySlide({
+    required this.heading,
+    required this.lines,
+  });
+
+  String get body => lines.join('\n');
+}
+
+class WorshipLiturgy {
+  final String id;
+  final String title;
+  final String category;
+  final String citation;
+  final List<WorshipLiturgySlide> slides;
+
+  const WorshipLiturgy({
+    required this.id,
+    required this.title,
+    required this.category,
+    required this.citation,
+    required this.slides,
+  });
+}
+
+/// Built-in offline Korean worship liturgy catalog available without network access.
+const List<WorshipLiturgy> kOfflineWorshipLiturgies = [
+  WorshipLiturgy(
+    id: 'apostles_creed_ecumenical',
+    title: '사도신경 (새번역)',
+    category: '신앙고백',
+    citation: '한국기독교교회협의회 · 대한예수교장로회 공동 새 번역',
+    slides: [
+      WorshipLiturgySlide(
+        heading: '사도신경 (1/5)',
+        lines: [
+          '나는 전능하신 아버지 하나님,',
+          '천지의 창조주를 믿습니다.',
+          '나는 그의 유일하신 아들,',
+          '우리 주 예수 그리스도를 믿습니다.',
+        ],
+      ),
+      WorshipLiturgySlide(
+        heading: '사도신경 (2/5)',
+        lines: [
+          '그는 성령으로 잉태되어',
+          '동정녀 마리아에게서 나시고,',
+          '본디오 빌라도에게 고난을 받아',
+          '십자가에 못박혀 죽으시고,',
+        ],
+      ),
+      WorshipLiturgySlide(
+        heading: '사도신경 (3/5)',
+        lines: [
+          '장사된 지 사흘 만에 죽은 자',
+          '가운데서 다시 살아나셨으며,',
+          '하늘에 오르시어 전능하신 아버지',
+          '하나님 우편에 앉아 계시다가,',
+        ],
+      ),
+      WorshipLiturgySlide(
+        heading: '사도신경 (4/5)',
+        lines: [
+          '거기로부터 살아 있는 자와 죽은 자를',
+          '심판하러 오십니다.',
+          '나는 성령을 믿으며 거룩한 공교회와',
+          '성도의 교제와 죄를 용서받는 것과',
+        ],
+      ),
+      WorshipLiturgySlide(
+        heading: '사도신경 (5/5)',
+        lines: [
+          '몸의 부활과 영생을 믿습니다.',
+          '아멘.',
+        ],
+      ),
+    ],
+  ),
+  WorshipLiturgy(
+    id: 'apostles_creed_traditional',
+    title: '사도신경 (전통)',
+    category: '신앙고백',
+    citation: '한국 개신교 전통 번역 (공공도메인)',
+    slides: [
+      WorshipLiturgySlide(
+        heading: '사도신경 · 전통 (1/4)',
+        lines: [
+          '전능하사 천지를 만드신 하나님 아버지를',
+          '내가 믿사오며,',
+          '그 외아들 우리 주 예수 그리스도를 믿사오니,',
+        ],
+      ),
+      WorshipLiturgySlide(
+        heading: '사도신경 · 전통 (2/4)',
+        lines: [
+          '이는 성령으로 잉태하사 동정녀 마리아에게 나시고,',
+          '본디오 빌라도에게 고난을 받으사',
+          '십자가에 못박혀 죽으시고,',
+        ],
+      ),
+      WorshipLiturgySlide(
+        heading: '사도신경 · 전통 (3/4)',
+        lines: [
+          '장사한 지 사흘 만에 죽은 자 가운데서 다시 살아나시며,',
+          '하늘에 오르사 전능하신 하나님 우편에 앉아 계시다가,',
+          '저리로서 산 자와 죽은 자를 심판하러 오시리라.',
+        ],
+      ),
+      WorshipLiturgySlide(
+        heading: '사도신경 · 전통 (4/4)',
+        lines: [
+          '성령을 믿사오며, 거룩한 공회와',
+          '성도가 서로 교통하는 것과 죄를 사하여 주시는 것과',
+          '몸이 다시 사는 것과 영원히 사는 것을 믿사옵나이다. 아멘.',
+        ],
+      ),
+    ],
+  ),
+  WorshipLiturgy(
+    id: 'lords_prayer_ecumenical',
+    title: '주기도문 (새번역)',
+    category: '주기도문',
+    citation: '마태복음 6:9-13 (새 번역)',
+    slides: [
+      WorshipLiturgySlide(
+        heading: '주기도문 (1/3)',
+        lines: [
+          '하늘에 계신 우리 아버지,',
+          '아버지의 이름을 거룩하게 하시며,',
+          '아버지의 나라가 오게 하시며,',
+          '아버지의 뜻이 하늘에서와 같이',
+          '땅에서도 이루어지게 하소서.',
+        ],
+      ),
+      WorshipLiturgySlide(
+        heading: '주기도문 (2/3)',
+        lines: [
+          '오늘 우리에게 일용할 양식을 주시고,',
+          '우리가 우리에게 잘못한 사람을',
+          '용서하여 준 것같이',
+          '우리 죄를 용서하여 주시고,',
+        ],
+      ),
+      WorshipLiturgySlide(
+        heading: '주기도문 (3/3)',
+        lines: [
+          '우리를 시험에 빠지지 않게 하시고',
+          '악에서 구하소서.',
+          '나라와 권능과 영광이',
+          '영원히 아버지의 것입니다. 아멘.',
+        ],
+      ),
+    ],
+  ),
+  WorshipLiturgy(
+    id: 'lords_prayer_traditional',
+    title: '주기도문 (전통)',
+    category: '주기도문',
+    citation: '마태복음 6:9-13 (전통 번역 · 공공도메인)',
+    slides: [
+      WorshipLiturgySlide(
+        heading: '주기도문 · 전통 (1/3)',
+        lines: [
+          '하늘에 계신 우리 아버지여,',
+          '이름이 거룩히 여김을 받으시오며,',
+          '나라이 임하옵시며,',
+          '뜻이 하늘에서 이룬 것같이 땅에서도 이루어지이다.',
+        ],
+      ),
+      WorshipLiturgySlide(
+        heading: '주기도문 · 전통 (2/3)',
+        lines: [
+          '오늘날 우리에게 일용할 양식을 주옵시고,',
+          '우리가 우리에게 죄 지은 자를 사하여 준 것같이',
+          '우리 죄를 사하여 주옵시고,',
+        ],
+      ),
+      WorshipLiturgySlide(
+        heading: '주기도문 · 전통 (3/3)',
+        lines: [
+          '우리를 시험에 들게 하지 마옵시고',
+          '다만 악에서 구하옵소서.',
+          '대개 나라와 권세와 영광이',
+          '아버지께 영원히 있사옵나이다. 아멘.',
+        ],
+      ),
+    ],
+  ),
+  WorshipLiturgy(
+    id: 'communion_institution',
+    title: '성찬 예식 (고전 11:23-25)',
+    category: '성례전',
+    citation: '고린도전서 11:23-25 (개역한글)',
+    slides: [
+      WorshipLiturgySlide(
+        heading: '성찬 예식 · 떡을 나누며',
+        lines: [
+          '주 예수께서 잡히시던 밤에 떡을 가지사',
+          '축사하시고 떼어 가라사대',
+          '이것은 너희를 위하는 내 몸이니',
+          '이것을 행하여 나를 기념하라 하시고',
+        ],
+      ),
+      WorshipLiturgySlide(
+        heading: '성찬 예식 · 잔을 나누며',
+        lines: [
+          '식후에 또한 이와 같이 잔을 가지시고 가라사대',
+          '이 잔은 내 피로 세운 새 언약이니',
+          '이것을 행하여 마실 때마다 나를 기념하라 하셨으니',
+          '(고린도전서 11:23-25)',
+        ],
+      ),
+    ],
+  ),
+  WorshipLiturgy(
+    id: 'benediction_pauline',
+    title: '축도 (고후 13:13)',
+    category: '축도',
+    citation: '고린도후서 13:13 (개역한글)',
+    slides: [
+      WorshipLiturgySlide(
+        heading: '축도 (고린도후서 13:13)',
+        lines: [
+          '주 예수 그리스도의 은혜와',
+          '하나님의 사랑과',
+          '성령의 교통하심이',
+          '너희 무리와 함께 있을지어다. 아멘.',
+        ],
+      ),
+    ],
+  ),
+];

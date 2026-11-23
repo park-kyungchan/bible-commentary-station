@@ -381,7 +381,7 @@ class TestCorpusWorshipProvenanceAndSecurity(unittest.TestCase):
     def test_02_exegesis_provenance_and_coverage_stats(self) -> None:
         exegesis = json.loads((WEB_DIR / "data" / "exegesis.json").read_text(encoding="utf-8"))
         self.assertEqual(len(exegesis["sources"]), 12)
-        self.assertEqual(len(exegesis["commentaries"]), 55)
+        self.assertEqual(len(exegesis["commentaries"]), 234)
         self.assertGreaterEqual(len(exegesis["chains"]), 4)
         self.assertEqual({s["category"] for s in exegesis["sources"]}, {"CLASSIC", "ACADEMIC", "EXPOSITORY"})
 
@@ -393,9 +393,10 @@ class TestCorpusWorshipProvenanceAndSecurity(unittest.TestCase):
             distinct_verses.add(c["verse_start_id"])
 
         stats = exegesis["coverageStats"]
-        self.assertEqual(stats["commentaryEntries"], 55)
+        self.assertEqual(stats["commentaryEntries"], 234)
         self.assertEqual(stats["coveredVerses"], len(distinct_verses))
-        self.assertEqual(stats["coveredVerses"], 28)
+        self.assertEqual(stats["coveredVerses"], 118)
+        self.assertEqual(stats["coveredBooks"], 37)
         self.assertEqual(stats["totalVerses"], 31102)
 
         src_by_code = {s["source_code"]: s for s in exegesis["sources"]}
