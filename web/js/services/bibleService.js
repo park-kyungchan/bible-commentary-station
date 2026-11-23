@@ -97,7 +97,7 @@ export class BibleDataService {
       id: v.id, label: `${v.nameKr} (기본 내장 · 66권)`, shortLabel: v.nameKr, isDefault: Boolean(v.default),
       attribution: v.attribution || '', license: v.license || 'PUBLIC_DOMAIN',
       pathPrefix: v.pathPrefix || `${this.baseUrl}/${v.id}/`,
-      searchIndexPath: v.searchIndexPath || `${this.baseUrl}/search/${v.id}.json`, lang: 'ko', source: 'local',
+      searchIndexPath: v.searchIndexPath || `${this.baseUrl}/search/${v.id}.json`, lang: v.lang || 'ko', source: 'local',
     }));
   }
 

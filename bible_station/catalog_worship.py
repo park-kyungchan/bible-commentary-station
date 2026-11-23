@@ -421,6 +421,20 @@ def build_expanded_worship_catalog() -> Dict[str, Any]:
     hymns_ppt_map: Dict[str, Dict[str, str]] = _require_json("hymns_drive_ppts.json")
     liturgies: List[Dict[str, Any]] = _require_json("catalog_liturgy.json")
     templates: List[Dict[str, Any]] = _require_json("worship_templates.json")
+    ccm_raw: List[Dict[str, Any]] = _require_json("ccm_drive_ppts.json")
+
+    ccm_items: List[Dict[str, Any]] = []
+    for entry in ccm_raw:
+        cid = str(entry["id"])
+        drive_id, ppt_preview, ppt_view = _drive_urls(str(entry.get("driveId", "")), f"ccm {cid}")
+        ccm_items.append({
+            "id": cid,
+            "title": str(entry["title"]),
+            "category": str(entry.get("category", "경배·찬양")),
+            "driveId": drive_id,
+            "pptPreviewUrl": ppt_preview,
+            "pptViewUrl": ppt_view,
+        })
 
     curated_by_num = {h["num"]: h for h in curated_hymns}
     seen_old: set[int] = set()
@@ -470,10 +484,12 @@ def build_expanded_worship_catalog() -> Dict[str, Any]:
     return {
         "hymnGroups": ["전체", "주일경배", "은혜·사랑", "기도·위로", "감사·헌신", "절기·특별", "장례·파송"],
         "responsiveGroups": ["전체", "주일예배", "위로·기도", "감사·찬양", "절기·특별"],
+        "ccmGroups": ["전체", "경배·찬양", "은혜·사랑", "기도·위로", "헌신·결단", "절기·파송"],
         "hymns": full_hymns,
         "responsiveReadings": _merge_137_responsive_readings(),
         "liturgies": liturgies,
         "templates": templates,
+        "ccm": ccm_items,
     }
 
 

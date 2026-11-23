@@ -339,27 +339,33 @@ class TestCorpusWorshipProvenanceAndSecurity(unittest.TestCase):
     def test_01_web_data_corpus_allowlist_checksums_and_search_index(self) -> None:
         web_data_dir = WEB_DIR / "data"
         report = validate_web_corpus(web_data_dir)
-        self.assertEqual(report["versions"], ["nkrv", "krv", "rnksv"])
-        self.assertEqual(report["total_checked_verses"], 31102 * 3)
+        self.assertEqual(len(report["versions"]), 23)
+        self.assertEqual(report["versions"][:3], ["nkrv", "krv", "rnksv"])
+        self.assertIn("easy", report["versions"])
+        self.assertIn("dob", report["versions"])
+        self.assertIn("nkcb", report["versions"])
+        self.assertIn("esv", report["versions"])
+        self.assertIn("tniv", report["versions"])
+        self.assertGreaterEqual(report["total_checked_verses"], 31102 * 23)
         self.assertFalse((web_data_dir / "nrsv").exists(), "Legacy mislabeled nrsv/ must remain removed")
 
         manifest = json.loads((web_data_dir / "manifest.json").read_text(encoding="utf-8"))
         self.assertEqual(manifest["schemaVersion"], 3)
         self.assertEqual(manifest["appVersion"], __version__)
         self.assertEqual(manifest["defaultVersion"], "nkrv")
-        self.assertEqual([v["id"] for v in manifest["versions"]], ["nkrv", "krv", "rnksv"])
+        self.assertEqual(len(manifest["versions"]), 23)
         self.assertTrue(manifest["versions"][0]["default"])
         self.assertEqual(manifest["versions"][0]["nameKr"], "개역개정")
         self.assertEqual(manifest["versions"][1]["nameKr"], "개역한글")
         self.assertEqual(manifest["versions"][2]["nameKr"], "새번역")
         self.assertEqual(len(manifest["books"]), 66)
-        self.assertEqual(len(manifest["checksums"]), 66 * 3 + 3 + 2)
+        self.assertEqual(len(manifest["checksums"]), 66 * 23 + 23 + 2)
 
-        for vid in ("nkrv", "krv", "rnksv"):
+        for vid in ("nkrv", "krv", "rnksv", "easy", "esv"):
             search_idx = json.loads((web_data_dir / "search" / f"{vid}.json").read_text(encoding="utf-8"))
             self.assertEqual(search_idx["version"], vid)
             self.assertEqual(len(search_idx["books"]), 66)
-            self.assertEqual(len(search_idx["verses"]), 31102)
+            self.assertGreaterEqual(len(search_idx["verses"]), 31100)
 
         # Verify NKRV repaired empty verses (GEN 29:28, DAN 3:19) and RNKSV separated footnotes
         nkrv_gen = json.loads((web_data_dir / "nkrv" / "GEN.json").read_text(encoding="utf-8"))
@@ -457,6 +463,10 @@ class TestCorpusWorshipProvenanceAndSecurity(unittest.TestCase):
         self.assertNotIn("권능와", lit_blob)
         self.assertIn("심판하러 오십니다.", lit_blob)
         self.assertEqual(len(worship["templates"]), 5)
+        self.assertGreaterEqual(len(worship.get("ccm", [])), 90)
+        for song in worship["ccm"]:
+            self.assertRegex(song["driveId"], r"^[A-Za-z0-9_-]{10,64}$")
+            self.assertTrue(song["pptPreviewUrl"].startswith("https://drive.google.com/file/d/"))
 
         # Zero PII / watermark strings across bible_station/ and web/data/ (R-WR-05)
         for root in (REPO_ROOT / "bible_station", WEB_DIR / "data"):

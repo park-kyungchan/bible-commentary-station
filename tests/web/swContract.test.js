@@ -53,7 +53,13 @@ test('web/sw.js matches SPEC.md v4 cache names, frozen SHELL_ASSETS, corpus rout
 
   assert.ok(swSrc.includes("const SHELL_CACHE = 'bible-station-shell-v4'"));
   assert.ok(swSrc.includes("const CORPUS_CACHE = 'bible-station-corpus-v4'"));
-  assert.ok(swSrc.includes('/\\/data\\/(krv|nkrv|rnksv|search)\\//'));
+  const corpusReMatch = swSrc.match(/const\s+CORPUS_PATH_RE\s*=\s*\/(.+?)\/;/);
+  assert.ok(corpusReMatch, 'Missing CORPUS_PATH_RE in web/sw.js');
+  const corpusRe = new RegExp(corpusReMatch[1]);
+  for (const sample of ['/data/krv/GEN.json', '/data/nkrv/GEN.json', '/data/rnksv/GEN.json', '/data/easy/GEN.json', '/data/esv/GEN.json', '/data/search/nkrv.json']) {
+    assert.ok(corpusRe.test(sample), `CORPUS_PATH_RE must match ${sample}`);
+  }
+  assert.equal(corpusRe.test('/data/manifest.json'), false, 'CORPUS_PATH_RE must not match metadata manifest.json');
   assert.ok(swSrc.includes("type === 'SKIP_WAITING'"));
   const installBlock = swSrc.match(/addEventListener\(\s*'install'[\s\S]*?addEventListener\(\s*'activate'/);
   assert.ok(installBlock, 'Missing install listener in web/sw.js');

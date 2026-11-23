@@ -81,7 +81,9 @@ jobs:
           mf = json.loads(Path('web/data/manifest.json').read_text(encoding='utf-8'))
           allowed_dirs = {v['id'] for v in mf['versions']} | {'search'}
           actual_dirs = {p.name for p in Path('web/data').iterdir() if p.is_dir()}
-          assert actual_dirs == allowed_dirs == {'nkrv', 'krv', 'rnksv', 'search'}, f'Unexpected web/data dirs: {actual_dirs}'
+          assert actual_dirs == allowed_dirs, f'Unexpected web/data dirs: {actual_dirs ^ allowed_dirs}'
+          assert len(mf['versions']) == 23, f'Expected 23 built-in versions, found {len(mf[\"versions\"])}'
+          assert {'nkrv', 'krv', 'rnksv', 'easy', 'dob', 'esv', 'search'}.issubset(actual_dirs)
           assert not (Path('web/data') / 'nrsv').exists()
           "
           ! grep -rnE '복령교회|박우호|cwy0675' bible_station/ web/data/ web/index.html web/js/

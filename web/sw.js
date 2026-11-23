@@ -41,7 +41,7 @@ const INITIAL_DATA_ASSETS = [
   './data/worship.json',
 ];
 
-const CORPUS_PATH_RE = /\/data\/(krv|nkrv|rnksv|search)\//;
+const CORPUS_PATH_RE = /\/data\/(?!manifest\.json|exegesis\.json|worship\.json)[^/]+\//;
 const METADATA_PATH_RE = /\/data\/(manifest|exegesis|worship)\.json$/;
 
 function offlineJsonResponse(path) {
