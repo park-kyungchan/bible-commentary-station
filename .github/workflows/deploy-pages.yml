@@ -18,15 +18,11 @@ jobs:
     permissions:
       contents: read
 
-  deploy:
+  stage:
     needs: verify
     permissions:
       contents: read
       pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -59,6 +55,20 @@ jobs:
         with:
           path: "./_site"
 
+      - name: Wait for GitHub Actions artifact index propagation
+        run: sleep 5
+
+  deploy:
+    needs: stage
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
