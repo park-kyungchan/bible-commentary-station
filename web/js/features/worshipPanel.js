@@ -188,6 +188,51 @@ export function createWorshipPanel({ store, service, callbacks }) {
     listEl.replaceChildren(frag);
   }
 
+  function renderCcmDetail(detailEl, song) {
+    const viewEl = document.getElementById('viewWorship');
+    if (viewEl) viewEl.dataset.hasDetail = 'true';
+    const deck = {
+      title: song.title,
+      targetDurationMins: 5,
+      slides: [{ heading: song.title, body: `${song.category || '경배·찬양'} 찬양 시간입니다.\n아래 발표 화면 또는 새 창에서 악보와 가사를 보실 수 있습니다.` }],
+    };
+    activeDetailDeck = deck;
+    const doPulpit = () => callbacks.onLaunchPulpit?.(deck);
+    const doPrint = () => {
+      setPrintDocument(song.title, song.category || '복음성가 · 찬양', [{ heading: '찬양 안내', lines: [song.title] }]);
+      window.print();
+    };
+    const backBtn = el('button', {
+      type: 'button', className: 'btn btn-ghost', dataset: { action: 'worship-back' },
+      onClick: () => { activeDetailDeck = null; if (viewEl) viewEl.dataset.hasDetail = 'false'; detailEl.replaceChildren(); },
+    }, iconEl('icon-back'), '복음성가 목록으로');
+
+    detailEl.replaceChildren(
+      el('div', { className: 'card-header' }, backBtn, el('h2', {}, song.title), song.category ? el('span', { className: 'tag-accent' }, song.category) : null),
+      el('div', { className: 'action-row' },
+        btn('btn btn-primary', doPulpit, iconEl('icon-pulpit'), '강단 화면으로 열기'),
+        btn('btn btn-secondary', doPrint, iconEl('icon-print'), '큰 글씨 인쇄')
+      ),
+      buildDrivePreviewSection(song, doPulpit, doPrint)
+    );
+  }
+
+  function renderCcmList(filterEl, listEl, detailEl) {
+    renderFilterPills(filterEl, service.worship?.ccmGroups || ['전체']);
+    const parsedQ = normalizeWorshipQuery(state.worshipSearch);
+    const songs = (service.worship?.ccm || []).filter((s) => (state.worshipGroup === '전체' || s.category === state.worshipGroup) && matchWorshipItem(s, parsedQ, 'ccm'));
+    if (!songs.length) { listEl.replaceChildren(el('div', { className: 'card empty-state' }, '검색 조건에 맞는 복음성가가 없습니다.')); return; }
+
+    const frag = document.createDocumentFragment();
+    for (const song of songs) {
+      frag.appendChild(btn('card hymn-card', () => renderCcmDetail(detailEl, song),
+        el('div', { className: 'card-header' }, song.category ? el('span', { className: 'tag-accent' }, song.category) : null),
+        el('strong', {}, song.title)
+      ));
+    }
+    listEl.replaceChildren(frag);
+  }
+
   function renderListOnly() {
     const filterEl = document.getElementById('worshipFilterBar');
     const listEl = document.getElementById('worshipListContainer');
@@ -197,6 +242,7 @@ export function createWorshipPanel({ store, service, callbacks }) {
     else if (state.worshipTab === 'templates') callbacks.renderTemplates?.(filterEl, listEl, detailEl, state.worshipSearch);
     else if (state.worshipTab === 'hymns') renderHymnsList(filterEl, listEl, detailEl);
     else if (state.worshipTab === 'responsive') renderResponsiveList(filterEl, listEl, detailEl);
+    else if (state.worshipTab === 'ccm') renderCcmList(filterEl, listEl, detailEl);
   }
 
   function syncSubTabs() {

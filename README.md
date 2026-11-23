@@ -1,6 +1,6 @@
 # 말씀 서재 v3.0 (Bible Commentary Station)
 
-> **시니어 목회자를 위한 오프라인-퍼스트 성경 66권 3대 역본(개역개정 기본 · 개역한글 · 새번역, 각 31,102절) · 12대 주석 관점 참고 요약 · 예배·예전(사도신경/주기도문/성찬/축도/137교독문/645찬송가) · 설교 스튜디오 · 강단 프롬프터 워크스테이션**  
+> **시니어 목회자를 위한 오프라인-퍼스트 성경 66권 23개 역본(한국어 14종 · 영어 9종, 개역개정 기본) · 12대 주석 관점 참고 요약 · 예배·예전(사도신경/주기도문/성찬/축도/137교독문/645찬송가/95복음성가) · 설교 스튜디오 · 강단 프롬프터 워크스테이션**  
 > **Zero-Cost ($0.00) 아키텍처**: 외부 종량제 클라우드 없이 Python 표준 라이브러리(의존성 0) + 로컬 SQLite Dual-FTS5 + 정적 PWA로 동작합니다.
 
 ## 주요 아키텍처 (v3.0)
@@ -9,17 +9,18 @@
    - `canon.py`: 성경 66권 정경 메타데이터(개역한글 1961 기준 1,189장 31,102절, 장별 절 수 SSOT), 12대 주석 관점 카탈로그(교파 중립적 설명), 구절 ID 공식.
    - `schema.py`: **External-Content Dual FTS5 (`unicode61` + `trigram`) + SQLite 자동 동기화 트리거** 및 Flutter Drift 스키마 자동 생성기(`sync-drift`).
    - `parsers.py` & `search.py`: 시니어 목회자 친화 관대 검색(`여호와는나의목자`, `복있는 사람`, `시 23편 1절`, `계시록 21:4`, `사랑?`) + 3단계 폴백(Trigram → Unicode61 → 공백제거) + 구절 자동 이동 + FTS5 인젝션 차단.
-   - `builder.py` & `cli.py`: 100% 멱등·결정적(Deterministic) 빌더, 3대 역본(`nkrv` 개역개정 기본 · `krv` 개역한글 · `rnksv` 새번역 각 66권 청크 + 각주 구조 분리 + 3종 오프라인 검색 인덱스 `web/data/search/{nkrv,krv,rnksv}.json`), SHA-256 매니페스트(`schemaVersion: 3`, 203개 체크섬), SQLite Online Backup API 기반 WAL-free `VACUUM` 읽기 전용 안전 번들(`.db.gz`), 엄격 코퍼스 검증기(`validate`).
-   - `catalog_worship.py` & JSON 카탈로그: 새찬송가 645곡(중복 없는 통일찬송가 번호, 공식 제목 일치), 21세기 새교독문 137편 전편 오프라인 본문 지원(#88–#137 구조화 성경구절 시퀀스 포함), 예배 예전(사도신경·주기도문 새번역/전통번역, 성찬 예식, 축도 3종), PII 없는 예배 순서 템플릿 5종.
+   - `builder.py` & `cli.py`: 100% 멱등·결정적(Deterministic) 빌더, 23개 내장 역본(한국어 14종: 개역개정[기본]·개역한글·새번역·쉬운성경·우리말성경·현대인의 성경·공동번역개정판·바른성경·킹제임스 흠정역·한글킹제임스·현대어성경·개역한글 국한문·공동번역·가톨릭성경 + 영어 9종: ESV·TNIV·NASB·NLT·NKJV·NRSV·MSG·HCSB·GNT, 각 66권 청크 + 23종 오프라인 검색 인덱스), SHA-256 매니페스트(`schemaVersion: 3`, 1,543개 체크섬), SQLite Online Backup API 기반 WAL-free `VACUUM` 읽기 전용 안전 번들(`.db.gz`), 엄격 코퍼스 검증기(`validate`).
+   - `catalog_worship.py` & JSON 카탈로그: 새찬송가 645곡(중복 없는 통일찬송가 번호, 공식 제목 일치), 21세기 새교독문 137편 전편 오프라인 본문 지원(#88–#137 구조화 성경구절 시퀀스 포함), 복음성가·찬양 95곡 색인 및 발표 화면 연결, 예배 예전(사도신경·주기도문 새번역/전통번역, 성찬 예식, 축도 3종), PII 없는 예배 순서 템플릿 5종.
    - `health_check.py`: 주간 운영 상태 점검 CLI (HelloAO API, 주석 공식 URL, Drive 예배 링크, 라이브 Pages SHA-256 무결성).
 2. **모듈형 오프라인 PWA (`web/`)**
    - Sanctuary Hanji & Sumi Ink 디자인 시스템(WCAG AAA `>= 7.0:1`), 모바일 본문 영역 80%+, 48px 시니어 터치 타깃, 무눈부심 강단 프롬프터, IndexedDB 자동저장 + JSON 전체 백업/복원, 개인 소장 번역본 로컬 가져오기(BYOT).
 3. **자동화 검증 및 배포 게이트 (`.github/workflows/`)**
-   - `ci.yml`: Zero-dependency Python 3.12 빌드/패키징/결정적 출력/WAL-free `.db.gz` + 5-table FTS5/코퍼스·예배 불변성/PII·라이선스 허용목록/Node v24 웹 모듈 테스트.
-   - `deploy-pages.yml`: `verify`(`ci.yml`) 통과 필수, `package.json` 제외 및 `.nojekyll` 포함 스테이징, 라이선스 허용목록 검증 후 GitHub Pages 배포.
+   - `ci.yml`: Zero-dependency Python 3.12 빌드/패키징/결정적 출력/WAL-free `.db.gz` + 5-table FTS5/코퍼스·예배 불변성/PII·허용목록/Node v24 웹 모듈 테스트.
+   - `flutter-ci.yml`: Flutter stable (`>= 3.27`) 정적 가드레일(PII·SQLite strict literals), `flutter pub get`, `flutter analyze`, `flutter test`.
+   - `deploy-pages.yml`: `verify`(`ci.yml`) 통과 필수, `package.json` 제외 및 `.nojekyll` 포함 스테이징 후 GitHub Pages 배포.
    - `scheduled-health.yml`: 매주 월요일 11:00 KST 자동 운영 상태 점검 및 중복 방지 `ops-health` 이슈 알림.
 4. **Flutter 클라이언트 (`lib/`)**
-   - Drift 스키마 SSOT 동기화 유지(Wave 2 별도 PR에서 부트스트랩 및 태블릿 UI 패리티 진행).
+   - Fail-closed SHA-256 부트스트랩(`ArtifactSyncService`), Sanctuary Hanji 라이트/다크/무눈부심 강단 테마 + 4단계 글자 크기 조절, 태블릿 66권 선택 모달/드로어, strict SQLite 쿼리 및 `gdrive_file_id` 기반 Google Drive 동기화, Drift 스키마 SSOT 동기화.
 
 ## 빠른 시작 (Quick Start)
 

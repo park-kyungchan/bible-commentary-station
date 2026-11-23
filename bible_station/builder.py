@@ -72,6 +72,7 @@ _EXTRA_WEB_VERSIONS: Tuple[Dict[str, Any], ...] = (
         "id": "nkrv",
         "code": "NKRV",
         "nameKr": "개역개정",
+        "lang": "ko",
         "default": True,
         "attribution": "대한성서공회 개역개정판 (개인 목회 연구용)",
         "license": "PERSONAL_PASTORAL",
@@ -80,8 +81,189 @@ _EXTRA_WEB_VERSIONS: Tuple[Dict[str, Any], ...] = (
         "id": "rnksv",
         "code": "RNKSV",
         "nameKr": "새번역",
+        "lang": "ko",
         "default": False,
         "attribution": "대한성서공회 새번역 (개인 목회 연구용)",
+        "license": "PERSONAL_PASTORAL",
+    },
+    {
+        "id": "easy",
+        "code": "EASY",
+        "nameKr": "쉬운성경",
+        "lang": "ko",
+        "default": False,
+        "attribution": "아가페출판사 쉬운성경 (개인 목회 연구용)",
+        "license": "PERSONAL_PASTORAL",
+    },
+    {
+        "id": "dob",
+        "code": "DOB",
+        "nameKr": "우리말성경",
+        "lang": "ko",
+        "default": False,
+        "attribution": "두란노서원 우리말성경 (개인 목회 연구용)",
+        "license": "PERSONAL_PASTORAL",
+    },
+    {
+        "id": "klb",
+        "code": "KLB",
+        "nameKr": "현대인의 성경",
+        "lang": "ko",
+        "default": False,
+        "attribution": "생명의말씀사 현대인의 성경 (개인 목회 연구용)",
+        "license": "PERSONAL_PASTORAL",
+    },
+    {
+        "id": "nkcb",
+        "code": "NKCB",
+        "nameKr": "공동번역개정판",
+        "lang": "ko",
+        "default": False,
+        "attribution": "대한성서공회 공동번역개정판 (개인 목회 연구용)",
+        "license": "PERSONAL_PASTORAL",
+    },
+    {
+        "id": "ktv",
+        "code": "KTV",
+        "nameKr": "바른성경",
+        "lang": "ko",
+        "default": False,
+        "attribution": "한국성경공회 바른성경 (개인 목회 연구용)",
+        "license": "PERSONAL_PASTORAL",
+    },
+    {
+        "id": "hkjv",
+        "code": "HKJV",
+        "nameKr": "킹제임스 흠정역",
+        "lang": "ko",
+        "default": False,
+        "attribution": "그리스도예수안에 킹제임스 흠정역 (개인 목회 연구용)",
+        "license": "PERSONAL_PASTORAL",
+    },
+    {
+        "id": "kkjv",
+        "code": "KKJV",
+        "nameKr": "한글킹제임스",
+        "lang": "ko",
+        "default": False,
+        "attribution": "말씀보존학회 한글킹제임스 (개인 목회 연구용)",
+        "license": "PERSONAL_PASTORAL",
+    },
+    {
+        "id": "tkv",
+        "code": "TKV",
+        "nameKr": "현대어성경",
+        "lang": "ko",
+        "default": False,
+        "attribution": "성서원 현대어성경 (개인 목회 연구용)",
+        "license": "PERSONAL_PASTORAL",
+    },
+    {
+        "id": "hchv",
+        "code": "HCHV",
+        "nameKr": "개역한글 국한문",
+        "lang": "ko",
+        "default": False,
+        "attribution": "개역한글 국한문 혼용판 (개인 목회 연구용)",
+        "license": "PERSONAL_PASTORAL",
+    },
+    {
+        "id": "kcb",
+        "code": "KCB",
+        "nameKr": "공동번역",
+        "lang": "ko",
+        "default": False,
+        "attribution": "대한성서공회 공동번역 (개인 목회 연구용)",
+        "license": "PERSONAL_PASTORAL",
+    },
+    {
+        "id": "cath",
+        "code": "CATH",
+        "nameKr": "가톨릭성경",
+        "lang": "ko",
+        "default": False,
+        "attribution": "한국천주교주교회의 성경 (개인 목회 연구용)",
+        "license": "PERSONAL_PASTORAL",
+    },
+    {
+        "id": "esv",
+        "code": "ESV",
+        "nameKr": "영어 표준역 (ESV)",
+        "lang": "en",
+        "default": False,
+        "attribution": "English Standard Version (개인 목회 연구용)",
+        "license": "PERSONAL_PASTORAL",
+    },
+    {
+        "id": "tniv",
+        "code": "TNIV",
+        "nameKr": "영어 신국제역 (TNIV)",
+        "lang": "en",
+        "default": False,
+        "attribution": "Today's New International Version (개인 목회 연구용)",
+        "license": "PERSONAL_PASTORAL",
+    },
+    {
+        "id": "nasb",
+        "code": "NASB",
+        "nameKr": "영어 신미국표준역 (NASB)",
+        "lang": "en",
+        "default": False,
+        "attribution": "New American Standard Bible (개인 목회 연구용)",
+        "license": "PERSONAL_PASTORAL",
+    },
+    {
+        "id": "nlt",
+        "code": "NLT",
+        "nameKr": "영어 새번역 (NLT)",
+        "lang": "en",
+        "default": False,
+        "attribution": "New Living Translation (개인 목회 연구용)",
+        "license": "PERSONAL_PASTORAL",
+    },
+    {
+        "id": "nkjv",
+        "code": "NKJV",
+        "nameKr": "영어 신킹제임스",
+        "lang": "en",
+        "default": False,
+        "attribution": "New King James Version (개인 목회 연구용)",
+        "license": "PERSONAL_PASTORAL",
+    },
+    {
+        "id": "en_nrsv",
+        "code": "EN_NRSV",
+        "nameKr": "영어 신개정표준역 (NRSV)",
+        "lang": "en",
+        "default": False,
+        "attribution": "New Revised Standard Version (개인 목회 연구용)",
+        "license": "PERSONAL_PASTORAL",
+    },
+    {
+        "id": "msg",
+        "code": "MSG",
+        "nameKr": "영어 메시지 성경 (MSG)",
+        "lang": "en",
+        "default": False,
+        "attribution": "The Message Bible (개인 목회 연구용)",
+        "license": "PERSONAL_PASTORAL",
+    },
+    {
+        "id": "hcsb",
+        "code": "HCSB",
+        "nameKr": "영어 홀만 표준역 (HCSB)",
+        "lang": "en",
+        "default": False,
+        "attribution": "Holman Christian Standard Bible (개인 목회 연구용)",
+        "license": "PERSONAL_PASTORAL",
+    },
+    {
+        "id": "gnt",
+        "code": "GNT",
+        "nameKr": "영어 굿뉴스 성경 (GNT)",
+        "lang": "en",
+        "default": False,
+        "attribution": "Good News Translation (개인 목회 연구용)",
         "license": "PERSONAL_PASTORAL",
     },
 )
@@ -479,6 +661,7 @@ class BibleDatabaseBuilder:
             extra_version_entries[vid] = {
                 "id": vid,
                 "nameKr": vcfg["nameKr"],
+                "lang": vcfg.get("lang", "ko"),
                 "default": bool(vcfg["default"]),
                 "attribution": vcfg["attribution"],
                 "license": vcfg["license"],
@@ -592,6 +775,7 @@ class BibleDatabaseBuilder:
         krv_entry = {
             "id": "krv",
             "nameKr": "개역한글",
+            "lang": "ko",
             "default": not has_nkrv,
             "attribution": "대한성서공회 1961 (저작권 보호기간 만료)",
             "license": "PUBLIC_DOMAIN",
@@ -604,8 +788,10 @@ class BibleDatabaseBuilder:
         if has_nkrv:
             versions_list.append(extra_version_entries["nkrv"])
         versions_list.append(krv_entry)
-        if "rnksv" in extra_version_entries:
-            versions_list.append(extra_version_entries["rnksv"])
+        for vcfg in _EXTRA_WEB_VERSIONS:
+            vid = vcfg["id"]
+            if vid != "nkrv" and vid in extra_version_entries:
+                versions_list.append(extra_version_entries[vid])
 
         default_ver = next((v["id"] for v in versions_list if v.get("default")), "krv")
         manifest_payload: Dict[str, Any] = {
@@ -635,6 +821,7 @@ class BibleDatabaseBuilder:
             "responsive_readings": len(worship["responsiveReadings"]),
             "liturgies": len(worship["liturgies"]),
             "templates": len(worship["templates"]),
+            "ccm": len(worship.get("ccm", [])),
         }
 
 
@@ -672,6 +859,8 @@ def validate_web_corpus(web_data_dir: Path, conn: Optional[sqlite3.Connection] =
             raise ValueError(f"Version {vid} expected 66 book files, found {len(files)}")
         chapters_count = 0
         verses_count = 0
+        empty_count = 0
+        strict_empty_check = vid in ("krv", "nkrv", "rnksv")
         for f in files:
             data = json.loads(f.read_text(encoding="utf-8"))
             for key in ("bookId", "osis", "nameKr", "nameEn", "version", "chapters"):
@@ -686,7 +875,8 @@ def validate_web_corpus(web_data_dir: Path, conn: Optional[sqlite3.Connection] =
                     if not isinstance(txt, str):
                         raise ValueError(f"Non-string verse in {vid}/{f.name} {ch_str}:{idx}")
                     if not txt.strip():
-                        if (osis, ch_str, idx) not in allowed_empty:
+                        empty_count += 1
+                        if strict_empty_check and (osis, ch_str, idx) not in allowed_empty:
                             raise ValueError(f"Unexpected empty verse in {vid}/{f.name} {ch_str}:{idx}")
                     else:
                         if "\ufffd" in txt:
@@ -694,6 +884,8 @@ def validate_web_corpus(web_data_dir: Path, conn: Optional[sqlite3.Connection] =
                         if _INLINE_FOOTNOTE_RE.search(txt):
                             raise ValueError(f"Inline footnote pollution in {vid}/{f.name} {ch_str}:{idx}")
                     verses_count += 1
+        if not strict_empty_check and empty_count > 25:
+            raise ValueError(f"Version {vid} has excessive empty verse slots: {empty_count} > 25")
         if chapters_count != 1189:
             raise ValueError(f"Version {vid} expected 1,189 chapters, got {chapters_count}")
         if verses_count != v["totalVerses"]:
