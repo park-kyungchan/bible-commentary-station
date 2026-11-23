@@ -59,7 +59,7 @@ export function createVersionSettingsModal({ store, service, archive, modalManag
         el(
           'div',
           { className: 'empty-state' },
-          '아직 불러온 개인 성경 파일이 없습니다. 목사님이 소유하신 역본 파일을 선택하면 이 기기에만 안전하게 저장됩니다.'
+          '개역개정·개역한글·새번역 66권이 기본 내장되어 있습니다. 추가로 소유하신 성경 파일이 있으면 이 기기에만 안전하게 불러올 수 있습니다.'
         )
       );
       return;

@@ -272,6 +272,7 @@ async function initApp() {
     state.customBibles = customBibles;
     state.customHymns = customHymns;
     state.worshipOrders = worshipOrders;
+    if (!state.primaryVersion) state.primaryVersion = service.getDefaultVersionId();
     versionModal.render();
 
     const boot = state.lastPlaceOnBoot;

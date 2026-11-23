@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { BibleDataService } from '../../web/js/services/bibleService.js';
+import { createStore } from '../../web/js/core/state.js';
 
 function createFixtureFetcher() {
   const calls = [];
@@ -185,4 +186,63 @@ test('resolveResponsiveReadingLines supports both single range and segments[]', 
   assert.equal(rangeLines.length, 2);
   assert.equal(rangeLines[0].role, 'leader');
   assert.equal(rangeLines[1].role, 'congregation');
+});
+
+test('multi-version manifest (nkrv default:true + krv + rnksv) loads chapters, footnotes, parallel, and search cleanly', async () => {
+  const store = createStore(null);
+  assert.equal(store.state.primaryVersion, '', 'Fresh store leaves primaryVersion unset so manifest default:true wins');
+
+  const multiFixtures = {
+    './data/manifest.json': {
+      schemaVersion: 3,
+      appVersion: '3.0.0',
+      defaultVersion: 'nkrv',
+      versions: [
+        { id: 'nkrv', nameKr: '개역개정', default: true, pathPrefix: './data/nkrv/', searchIndexPath: './data/search/nkrv.json' },
+        { id: 'krv', nameKr: '개역한글', pathPrefix: './data/krv/', searchIndexPath: './data/search/krv.json' },
+        { id: 'rnksv', nameKr: '새번역', pathPrefix: './data/rnksv/', searchIndexPath: './data/search/rnksv.json' },
+      ],
+      books: [{ bookId: 19, id: 'PSA', name: '시편', abbr: '시', testament: 'OT', totalChapters: 150 }],
+    },
+    './data/exegesis.json': { sources: [], commentaries: [], crossReferences: {}, chains: {}, strongs: {} },
+    './data/worship.json': { hymns: [], responsiveReadings: [], liturgies: [], templates: [] },
+    './data/nkrv/PSA.json': { bookId: 19, osis: 'PSA', chapters: { '1': ['복 있는 사람은 악인들의 꾀를 따르지 아니하며'] } },
+    './data/krv/PSA.json': { bookId: 19, osis: 'PSA', chapters: { '1': ['복 있는 사람은 악인의 꾀를 좇지 아니하며'] } },
+    './data/rnksv/PSA.json': {
+      bookId: 19,
+      osis: 'PSA',
+      chapters: { '1': ['복 있는 사람은 악인의 꾀를 따르지 아니하며'] },
+      footnotes: { '1': { '1': ['㉠ 또는 "복되도다"'] } },
+    },
+    './data/search/nkrv.json': { version: 'nkrv', books: ['PSA'], verses: [[0, 1, 1, '복 있는 사람은 악인들의 꾀를 따르지 아니하며']] },
+    './data/search/krv.json': { version: 'krv', books: ['PSA'], verses: [[0, 1, 1, '복 있는 사람은 악인의 꾀를 좇지 아니하며']] },
+    './data/search/rnksv.json': { version: 'rnksv', books: ['PSA'], verses: [[0, 1, 1, '복 있는 사람은 악인의 꾀를 따르지 아니하며']] },
+  };
+
+  const fetcher = async (url) => ({
+    ok: Object.prototype.hasOwnProperty.call(multiFixtures, url),
+    status: Object.prototype.hasOwnProperty.call(multiFixtures, url) ? 200 : 404,
+    json: async () => structuredClone(multiFixtures[url] || {}),
+  });
+
+  const svc = new BibleDataService('./data', fetcher);
+  await svc.init();
+  assert.equal(svc.getDefaultVersionId(), 'nkrv');
+
+  const nkrvWithRnksv = await svc.getMergedChapterVerses('nkrv', 'rnksv', 'PSA', 1);
+  assert.equal(nkrvWithRnksv[0].primaryLabel, '개역개정');
+  assert.equal(nkrvWithRnksv[0].parallelLabel, '새번역');
+  assert.ok(nkrvWithRnksv[0].primaryText.includes('악인들의 꾀를 따르지'));
+
+  const rnksvVerses = await svc.getMergedChapterVerses('rnksv', 'krv', 'PSA', 1);
+  assert.deepEqual(rnksvVerses[0].footnotes, ['㉠ 또는 "복되도다"']);
+  assert.equal(rnksvVerses[0].parallelLabel, '개역한글');
+
+  const nkrvHits = await svc.searchActiveVersion('악인들의 꾀를 따르지', 'nkrv');
+  assert.equal(nkrvHits.length, 1);
+  assert.equal(nkrvHits[0].versionId, 'nkrv');
+
+  const rnksvHits = await svc.searchActiveVersion('악인의 꾀를 따르지', 'rnksv');
+  assert.equal(rnksvHits.length, 1);
+  assert.equal(rnksvHits[0].versionId, 'rnksv');
 });

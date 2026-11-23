@@ -94,7 +94,7 @@ export class BibleDataService {
       ? this.manifest.versions
       : [{ id: 'krv', nameKr: '개역한글', attribution: '대한성서공회 1961 (저작권 보호기간 만료)', license: 'PUBLIC_DOMAIN' }];
     return list.map((v) => ({
-      id: v.id, label: `${v.nameKr} (기본 내장 · 66권)`, shortLabel: v.nameKr,
+      id: v.id, label: `${v.nameKr} (기본 내장 · 66권)`, shortLabel: v.nameKr, isDefault: Boolean(v.default),
       attribution: v.attribution || '', license: v.license || 'PUBLIC_DOMAIN',
       pathPrefix: v.pathPrefix || `${this.baseUrl}/${v.id}/`,
       searchIndexPath: v.searchIndexPath || `${this.baseUrl}/search/${v.id}.json`, lang: 'ko', source: 'local',
@@ -103,14 +103,12 @@ export class BibleDataService {
 
   getDefaultVersionId() {
     const locals = this.getLocalVersions();
-    const pref = this.manifest?.defaultVersion;
-    return (pref && locals.some((v) => v.id === pref)) ? pref : (locals[0]?.id || 'krv');
+    return locals.find((v) => v.isDefault)?.id
+      || (this.manifest?.defaultVersion && locals.some((v) => v.id === this.manifest.defaultVersion) ? this.manifest.defaultVersion : (locals[0]?.id || 'nkrv'));
   }
 
   getAvailableVersions(customBibles = []) {
-    const customs = (customBibles || []).map((b) => ({
-      id: b.id, label: `${b.name} (내 기기 저장 · ${b.bookCount || 0}권)`, shortLabel: b.shortName || b.name, lang: 'ko', source: 'custom',
-    }));
+    const customs = (customBibles || []).map((b) => ({ id: b.id, label: `${b.name} (내 기기 저장 · ${b.bookCount || 0}권)`, shortLabel: b.shortName || b.name, lang: 'ko', source: 'custom' }));
     return [...this.getLocalVersions(), ...customs, ...LIVE_TRANSLATIONS];
   }
 
@@ -123,7 +121,6 @@ export class BibleDataService {
     const cached = this.bookCache.get(key);
     if (cached) return cached;
     if (this._inflightBooks.has(key)) return this._inflightBooks.get(key);
-
     const promise = (async () => {
       const resp = await this.fetcher(`${localVer.pathPrefix.replace(/\/$/, '')}/${osis}.json`, signal ? { signal } : undefined);
       if (!resp.ok) throw new Error('성경 본문 파일을 불러오지 못했습니다.');
@@ -171,6 +168,7 @@ export class BibleDataService {
       this.getVersionChapterMap(primaryVersionId, osis, chapterNum, customBibles, signal),
       useParallel ? this.getVersionChapterMap(parallelVersionId, osis, chapterNum, customBibles, signal).catch(() => null) : Promise.resolve(null),
     ]);
+    const chFootnotes = this.bookCache.get(`${primaryVersionId}:${osis}`)?.footnotes?.[String(chapterNum)] || null;
     const nums = new Set([...Object.keys(primaryMap || {}), ...Object.keys(parallelMap || {})].map(Number).filter((n) => Number.isInteger(n) && n > 0));
     return Array.from(nums).sort((a, b) => a - b).map((vs) => {
       const rawPrimary = primaryMap && Object.prototype.hasOwnProperty.call(primaryMap, vs) ? String(primaryMap[vs] || '').trim() : '';
@@ -179,6 +177,7 @@ export class BibleDataService {
         verseId: calculateVerseId(meta?.bookId || 1, chapterNum, vs), bookId: meta?.bookId || 1, osis,
         bookName: meta?.name || osis, chapter: chapterNum, verse: vs, primaryText: rawPrimary, isEmptyPrimary: !rawPrimary,
         parallelText: rawParallel, primaryLabel: primaryInfo?.shortLabel || primaryVersionId, parallelLabel: parallelInfo?.shortLabel || '',
+        footnotes: Array.isArray(chFootnotes?.[String(vs)]) ? chFootnotes[String(vs)] : [],
       };
     });
   }
