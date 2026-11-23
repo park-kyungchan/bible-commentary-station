@@ -43,15 +43,33 @@ function updateStorageWarningBanner(mode) {
   }
 }
 
+export function shouldReloadOnControllerChange({ hadController, userRequestedUpdate }) {
+  return Boolean(hadController && userRequestedUpdate);
+}
+
 function registerServiceWorker() {
   if (!('serviceWorker' in navigator)) return;
+  const hadController = Boolean(navigator.serviceWorker.controller);
+  let userRequestedUpdate = false;
+  let refreshing = false;
+
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!shouldReloadOnControllerChange({ hadController, userRequestedUpdate })) return;
+    if (refreshing) return;
+    refreshing = true;
+    window.location.reload();
+  });
+
   navigator.serviceWorker.register('./sw.js').then((reg) => {
     const promptUpdate = (worker) => {
       const banner = document.getElementById('swUpdateBanner');
       const reloadBtn = document.getElementById('btnSwReload');
       if (!banner || !reloadBtn) return;
       banner.dataset.open = 'true';
-      reloadBtn.onclick = () => worker.postMessage({ type: 'SKIP_WAITING' });
+      reloadBtn.onclick = () => {
+        userRequestedUpdate = true;
+        worker.postMessage({ type: 'SKIP_WAITING' });
+      };
     };
     if (reg.waiting) promptUpdate(reg.waiting);
     reg.addEventListener('updatefound', () => {
@@ -59,12 +77,6 @@ function registerServiceWorker() {
       w?.addEventListener('statechange', () => {
         if (w.state === 'installed' && navigator.serviceWorker.controller) promptUpdate(w);
       });
-    });
-    let refreshing = false;
-    navigator.serviceWorker.addEventListener('controllerchange', () => {
-      if (refreshing) return;
-      refreshing = true;
-      window.location.reload();
     });
   }).catch(() => {});
 }
@@ -274,4 +286,6 @@ async function initApp() {
   }
 }
 
-initApp();
+if (typeof document !== 'undefined') {
+  initApp();
+}

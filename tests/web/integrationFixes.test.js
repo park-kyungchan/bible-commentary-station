@@ -9,6 +9,8 @@ import {
   normalizeSlotValue,
 } from '../../web/js/features/liturgyPanel.js';
 import { showConfirm } from '../../web/js/core/dom.js';
+import { shouldReloadOnControllerChange } from '../../web/js/main.js';
+import { createCommentaryPanel } from '../../web/js/features/commentaryPanel.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 
@@ -158,6 +160,95 @@ test('DEF-V1-02: clicking #confirmModal .modal-close settles showConfirm(false) 
     const secondAnswer = await secondPromise;
     assert.equal(secondAnswer, true);
     assert.equal(okBtn.listenerCount('click'), 0);
+  } finally {
+    globalThis.document = prevDoc;
+  }
+});
+
+test('DEF-UX-01: controllerchange never reloads on first-ever visit without prior controller', () => {
+  assert.equal(shouldReloadOnControllerChange({ hadController: false, userRequestedUpdate: false }), false);
+  assert.equal(shouldReloadOnControllerChange({ hadController: false, userRequestedUpdate: true }), false);
+  assert.equal(shouldReloadOnControllerChange({ hadController: true, userRequestedUpdate: false }), false);
+  assert.equal(shouldReloadOnControllerChange({ hadController: true, userRequestedUpdate: true }), true);
+});
+
+test('DEF-UX-02: commentaryPanel uses single compact select dropdown instead of 17-pill filter wall', () => {
+  const prevDoc = globalThis.document;
+  const makeNode = (tag) => ({
+    tagName: String(tag).toUpperCase(),
+    className: '',
+    value: '',
+    dataset: {},
+    attrs: new Map(),
+    children: [],
+    setAttribute(k, v) { this.attrs.set(k, String(v)); },
+    getAttribute(k) { return this.attrs.get(k) ?? null; },
+    addEventListener() {},
+    appendChild(c) { this.children.push(c); return c; },
+    replaceChildren(...cs) { this.children = cs; },
+  });
+  globalThis.document = {
+    createElement: makeNode,
+    createElementNS: (_ns, tag) => makeNode(tag),
+    createTextNode: (t) => ({ nodeType: 3, textContent: t }),
+  };
+
+  const walk = (node, out = []) => {
+    out.push(node);
+    for (const c of node.children || []) walk(c, out);
+    return out;
+  };
+
+  try {
+    const sources = Array.from({ length: 12 }, (_, i) => ({
+      source_code: `SRC_${i}`,
+      name_kr: `주석서 ${i + 1}`,
+      category: 'CLASSIC',
+      category_kr: '고전·경건',
+    }));
+    const entries = sources.map((s, i) => ({
+      source_code: s.source_code,
+      title: `제목 ${i + 1}`,
+      content_markdown: `내용 ${i + 1}`,
+      attributionLabel: '핵심 말씀 참고 요약',
+    }));
+    const service = {
+      exegesis: { sources },
+      getCommentariesForVerse: () => entries,
+      getCoverageStats: () => ({ coveredVerses: 28 }),
+    };
+    const panel = createCommentaryPanel({
+      store: {
+        state: { selectedSource: 'ALL', compareMode: false, liveCommSource: 'matthew-henry', liveCommLoadedKey: '' },
+        guards: { liveCommentary: { next: () => ({ signal: undefined, isCurrent: () => true }) } },
+      },
+      service,
+      callbacks: {},
+    });
+
+    const body = makeNode('div');
+    panel.render(body, { verseId: 1022002, osis: 'GEN', bookName: '창세기', chapter: 22, verse: 2 });
+    const all = walk(body);
+    const pills = all.filter((n) => String(n.className || '').includes('filter-pill'));
+    const selects = all.filter((n) => n.tagName === 'SELECT' && n.getAttribute('aria-label') === '주석 선택');
+    assert.equal(pills.length, 0, 'Must not render multi-row filter-pill wall');
+    assert.equal(selects.length, 1, 'Must render one compact source select dropdown');
+    assert.equal(selects[0].children.length, 13, 'Dropdown must list ALL + 12 matched sources');
+
+    // When <= 1 entry exists, source dropdown must be hidden completely
+    const singleService = { ...service, getCommentariesForVerse: () => [entries[0]] };
+    const singlePanel = createCommentaryPanel({
+      store: {
+        state: { selectedSource: 'ALL', compareMode: false, liveCommSource: 'matthew-henry', liveCommLoadedKey: '' },
+        guards: { liveCommentary: { next: () => ({ signal: undefined, isCurrent: () => true }) } },
+      },
+      service: singleService,
+      callbacks: {},
+    });
+    const singleBody = makeNode('div');
+    singlePanel.render(singleBody, { verseId: 1001001, osis: 'GEN', bookName: '창세기', chapter: 1, verse: 1 });
+    const singleSelects = walk(singleBody).filter((n) => n.tagName === 'SELECT' && n.getAttribute('aria-label') === '주석 선택');
+    assert.equal(singleSelects.length, 0, 'Dropdown must be omitted when <= 1 commentary entry');
   } finally {
     globalThis.document = prevDoc;
   }
