@@ -253,3 +253,131 @@ test('DEF-UX-02: commentaryPanel uses single compact select dropdown instead of 
     globalThis.document = prevDoc;
   }
 });
+
+test('L3-UX: sermonStudio replaces plain-text scripture input with click-to-select picker button & quick pills, and biblePickerModal selects verse ranges', async () => {
+  const { createSermonStudio } = await import('../../web/js/features/sermonStudio.js');
+  const { createBiblePickerModal } = await import('../../web/js/features/biblePickerModal.js');
+  const prevDoc = globalThis.document;
+  const nodes = {};
+  const makeNode = (tag) => {
+    const n = {
+      tagName: String(tag).toUpperCase(),
+      id: '',
+      className: '',
+      value: '',
+      textContent: '',
+      dataset: {},
+      attrs: new Map(),
+      listeners: {},
+      children: [],
+      setAttribute(k, v) { this.attrs.set(k, String(v)); if (k === 'id') { this.id = String(v); nodes[this.id] = this; } },
+      getAttribute(k) { return this.attrs.get(k) ?? null; },
+      addEventListener(ev, fn) { (this.listeners[ev] ||= []).push(fn); },
+      appendChild(c) { this.children.push(c); return c; },
+      replaceChildren(...cs) { this.children = cs; },
+    };
+    return n;
+  };
+  const walk = (node, out = []) => {
+    if (!node) return out;
+    out.push(node);
+    for (const c of node.children || []) walk(c, out);
+    return out;
+  };
+
+  nodes.sermonSelect = makeNode('select');
+  nodes.sermonSaveStatus = makeNode('span');
+  nodes.sermonEditorPane = makeNode('div');
+  nodes.sermonClipsPane = makeNode('div');
+  nodes.pickerBody = makeNode('div');
+  nodes.toast = makeNode('div');
+
+  globalThis.document = {
+    createElement: makeNode,
+    createElementNS: (_ns, tag) => makeNode(tag),
+    createTextNode: (t) => ({ nodeType: 3, textContent: String(t) }),
+    getElementById: (id) => nodes[id] || null,
+  };
+
+  try {
+    const store = {
+      state: {
+        mode: 'sermon',
+        osis: 'GEN',
+        chapter: 22,
+        selectedVerse: 2,
+        primaryVersion: 'nkrv',
+        customBibles: [],
+        sermons: [{
+          id: 's1',
+          title: '모리아 산의 순종',
+          scriptureRef: '창세기 22:1-14',
+          date: '2026-11-23',
+          targetDurationMins: 30,
+          outline: [{ id: 'o1', section: '서론', title: '부르심', content: '' }],
+          clips: [],
+        }],
+        activeSermonId: 's1',
+      },
+    };
+    const service = {
+      getBooks: () => [{ id: 'GEN', name: '창세기', testament: 'OT', totalChapters: 50 }, { id: 'JHN', name: '요한복음', testament: 'NT', totalChapters: 21 }],
+      getBookMeta: (osis) => ({ GEN: { id: 'GEN', name: '창세기', testament: 'OT', totalChapters: 50 }, JHN: { id: 'JHN', name: '요한복음', testament: 'NT', totalChapters: 21 } }[osis] || null),
+      getChapterVerseCount: (osis, ch) => (osis === 'JHN' && ch === 3 ? 36 : 24),
+      getVersionInfo: () => ({ shortLabel: '개역개정' }),
+      getVersionChapterMap: async () => ({ 16: '하나님이 세상을 이처럼 사랑하사 독생자를 주셨으니', 17: '하나님이 그 아들을 세상에 보내신 것은' }),
+    };
+    const archive = { scheduleSermonSave: (_s, _ms, cb) => cb?.({ persisted: 'idb', savedAt: new Date().toISOString() }) };
+    const modalManager = { open: () => {}, close: () => {} };
+
+    let pickerModal = null;
+    const studio = createSermonStudio({
+      store,
+      service,
+      archive,
+      modalManager,
+      callbacks: {
+        onOpenPassagePicker: (triggerEl, onSelectRange) => pickerModal.open(triggerEl, { onSelectRange }),
+      },
+    });
+    pickerModal = createBiblePickerModal({ store, service, modalManager, callbacks: {} });
+
+    studio.render();
+    const editorNodes = walk(nodes.sermonEditorPane);
+    const pickBtn = editorNodes.find((n) => n.id === 'btnSermonPickPassage');
+    assert.ok(pickBtn, 'Sermon studio must render #btnSermonPickPassage click-to-select button');
+    const plainScriptureInputs = editorNodes.filter((n) => n.tagName === 'INPUT' && n.getAttribute('placeholder')?.includes('창세기'));
+    assert.equal(plainScriptureInputs.length, 0, 'Plain text input for scriptureRef must be removed');
+
+    // Click #btnSermonPickPassage -> opens picker in range mode -> switch to NT -> pick JHN -> pick ch 3 -> pick verses 16..17 -> confirm
+    pickBtn.listeners.click[0]({ currentTarget: pickBtn });
+    const ntTab = walk(nodes.pickerBody).find((n) => n.tagName === 'BUTTON' && n.children.some((c) => c.textContent?.includes('신약 성경')));
+    assert.ok(ntTab);
+    ntTab.listeners.click[0]();
+
+    const jhnBtn = walk(nodes.pickerBody).find((n) => n.dataset?.osis === 'JHN');
+    assert.ok(jhnBtn);
+    jhnBtn.listeners.click[0]();
+
+    const ch3Btn = walk(nodes.pickerBody).find((n) => n.dataset?.chapter === '3');
+    assert.ok(ch3Btn);
+    ch3Btn.listeners.click[0]();
+
+    const v16Btn = walk(nodes.pickerBody).find((n) => n.dataset?.verse === '16');
+    const v17Btn = walk(nodes.pickerBody).find((n) => n.dataset?.verse === '17');
+    assert.ok(v16Btn && v17Btn);
+    v16Btn.listeners.click[0]();
+    v17Btn.listeners.click[0]();
+
+    const confirmRangeBtn = walk(nodes.pickerBody).find((n) => n.tagName === 'BUTTON' && n.children.some((c) => c.textContent?.includes('요한복음 3:16-17 본문으로 결정')));
+    assert.ok(confirmRangeBtn, 'Verse range picker must show "요한복음 3:16-17 본문으로 결정" button');
+    await confirmRangeBtn.listeners.click[0]();
+
+    assert.equal(store.state.sermons[0].scriptureRef, '요한복음 3:16-17');
+    assert.equal(store.state.sermons[0].clips.length, 1, 'Selecting sermon passage must auto-clip verse text into sermon notes');
+    assert.ok(store.state.sermons[0].clips[0].source.includes('요한복음 3:16-17'));
+    assert.ok(store.state.sermons[0].clips[0].text.includes('독생자를 주셨으니'));
+  } finally {
+    globalThis.document = prevDoc;
+  }
+});

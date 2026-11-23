@@ -1,14 +1,22 @@
 import { btn, downloadTextFile, el, generateId, iconEl, setPrintDocument, showConfirm, showToast } from '../core/dom.js';
 import { createDefaultSermon, SermonArchiveStore } from '../services/storage.js';
 
+const QUICK_PASSAGES = Object.freeze([
+  { osis: 'GEN', ch: 22, s: 1, e: 14, label: '창세기 22:1-14' },
+  { osis: 'PSA', ch: 23, s: 1, e: 6, label: '시편 23:1-6' },
+  { osis: 'ISA', ch: 40, s: 27, e: 31, label: '이사야 40:27-31' },
+  { osis: 'MAT', ch: 11, s: 28, e: 30, label: '마태복음 11:28-30' },
+  { osis: 'JHN', ch: 3, s: 16, e: 17, label: '요한복음 3:16-17' },
+  { osis: 'ROM', ch: 8, s: 28, e: 32, label: '로마서 8:28-32' },
+]);
+
 function formatSavedTime(iso) {
   if (!iso) return '';
   const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return '';
-  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+  return Number.isNaN(d.getTime()) ? '' : `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 }
 
-export function createSermonStudio({ store, archive, modalManager, callbacks }) {
+export function createSermonStudio({ store, service, archive, modalManager, callbacks }) {
   const { state } = store;
 
   function getActiveSermon() {
@@ -68,6 +76,26 @@ export function createSermonStudio({ store, archive, modalManager, callbacks }) 
     showToast(`"${sermon.title}" 설교 노트에 담았습니다.`);
   }
 
+  async function applyPassageSelection(sel, autoClip = false) {
+    const sermon = getActiveSermon();
+    sermon.scriptureRef = sel.refLabel;
+    scheduleSave(sermon);
+    renderEditor();
+    if (autoClip && service?.getVersionChapterMap) {
+      try {
+        const chMap = await service.getVersionChapterMap(state.primaryVersion, sel.osis, sel.chapter, state.customBibles);
+        const lines = [];
+        for (let v = sel.startVerse; v <= sel.endVerse; v += 1) if (chMap?.[v]) lines.push(`${v}. ${chMap[v]}`);
+        if (lines.length) {
+          const verLabel = service.getVersionInfo?.(state.primaryVersion, state.customBibles)?.shortLabel || state.primaryVersion;
+          addClip(`${sel.refLabel} (${verLabel})`, lines.join('\n'));
+          return;
+        }
+      } catch { /* fallback to toast */ }
+    }
+    showToast(`설교 본문을 "${sel.refLabel}" 말씀으로 선택했습니다.`);
+  }
+
   function renderSelect() {
     const sel = document.getElementById('sermonSelect');
     if (!sel) return;
@@ -80,17 +108,39 @@ export function createSermonStudio({ store, archive, modalManager, callbacks }) 
     const pane = document.getElementById('sermonEditorPane');
     if (!pane) return;
     const sermon = getActiveSermon();
+    const curBook = service?.getBookMeta?.(state.osis);
+    const curPlaceLabel = `${curBook?.name || state.osis} ${state.chapter}:${state.selectedVerse || 1}`;
+
+    const pickerTrigger = el('button', {
+      id: 'btnSermonPickPassage', type: 'button', className: 'current-place-btn sermon-passage-btn', 'aria-haspopup': 'dialog',
+      onClick: (e) => callbacks.onOpenPassagePicker?.(e.currentTarget, (sel) => applyPassageSelection(sel, true)),
+    }, iconEl('icon-bible'), el('span', { id: 'sermonScriptureRefText' }, sermon.scriptureRef || '눌러서 본문 말씀 선택'), el('span', { className: 'place-caret', 'aria-hidden': 'true' }, '▾'));
+
+    const quickPills = el('div', { className: 'filter-strip', role: 'group', 'aria-label': '자주 쓰는 본문 바로 선택' },
+      btn('filter-pill btn-secondary', () => applyPassageSelection({
+        osis: state.osis, chapter: state.chapter, startVerse: state.selectedVerse || 1, endVerse: state.selectedVerse || 1, refLabel: curPlaceLabel,
+      }, true), `현재 읽던 말씀 (${curPlaceLabel})`),
+      ...QUICK_PASSAGES.map((qp) => el('button', {
+        type: 'button', className: `filter-pill ${sermon.scriptureRef === qp.label ? 'btn-primary' : 'btn-ghost'}`,
+        'aria-pressed': sermon.scriptureRef === qp.label ? 'true' : 'false',
+        onClick: () => applyPassageSelection({ osis: qp.osis, chapter: qp.ch, startVerse: qp.s, endVerse: qp.e, refLabel: qp.label }, true),
+      }, qp.label))
+    );
 
     const metaCard = el('section', { className: 'card' },
       el('label', {}, '설교 제목', el('input', {
         type: 'text', className: 'input-field', value: sermon.title || '', placeholder: '설교 제목을 입력하세요',
         onInput: (e) => { sermon.title = e.target.value; renderSelect(); scheduleSave(sermon); },
       })),
+      el('div', { className: 'sermon-passage-box' },
+        el('div', { className: 'card-header' },
+          el('strong', {}, '본문 말씀 (눌러서 책·장·절 선택)'),
+          el('span', { className: 'tag-provenance' }, '선택 시 본문이 참고 자료에 자동 수록됩니다')
+        ),
+        el('div', { className: 'action-row' }, pickerTrigger),
+        quickPills
+      ),
       el('div', { className: 'action-row' },
-        el('label', {}, '본문 말씀', el('input', {
-          type: 'text', className: 'input-field', value: sermon.scriptureRef || '', placeholder: '예: 창세기 22:1-14',
-          onInput: (e) => { sermon.scriptureRef = e.target.value; scheduleSave(sermon); },
-        })),
         el('label', {}, '설교 날짜', el('input', {
           type: 'date', className: 'input-field', value: sermon.date || '',
           onChange: (e) => { sermon.date = e.target.value; renderSelect(); scheduleSave(sermon); },
@@ -111,17 +161,12 @@ export function createSermonStudio({ store, archive, modalManager, callbacks }) 
           if (!ok) return;
           const removed = { ...pt };
           sermon.outline = sermon.outline.filter((x) => x.id !== pt.id);
-          scheduleSave(sermon);
-          renderEditor();
+          scheduleSave(sermon); renderEditor();
           showToast('대지 항목을 삭제했습니다.', {
             undoLabel: '되돌리기', durationMs: 5000,
             onUndo: () => {
-              const next = [...sermon.outline];
-              next.splice(idx, 0, removed);
-              sermon.outline = next;
-              scheduleSave(sermon);
-              renderEditor();
-              showToast('삭제한 대지를 복원했습니다.');
+              const next = [...sermon.outline]; next.splice(idx, 0, removed); sermon.outline = next;
+              scheduleSave(sermon); renderEditor(); showToast('삭제한 대지를 복원했습니다.');
             },
           });
         }, iconEl('icon-trash'), '삭제')
@@ -148,7 +193,6 @@ export function createSermonStudio({ store, archive, modalManager, callbacks }) 
       pane.replaceChildren(heading, el('div', { className: 'card empty-state' }, '성경이나 주석에서 [노트에 담기]를 누르면 이곳에 모아집니다.'));
       return;
     }
-
     const cards = clips.map((clip, idx) => el('article', { className: 'card clip-card' },
       el('div', { className: 'card-header' }, el('strong', {}, clip.source)),
       el('p', {}, clip.text),
@@ -157,26 +201,19 @@ export function createSermonStudio({ store, archive, modalManager, callbacks }) 
           if (!sermon.outline?.length) sermon.outline = [{ id: generateId('sec'), section: '본론', title: '', content: '' }];
           const target = sermon.outline[sermon.outline.length - 1];
           target.content = target.content ? `${target.content}\n\n[${clip.source}] ${clip.text}` : `[${clip.source}] ${clip.text}`;
-          scheduleSave(sermon);
-          renderEditor();
-          showToast('마지막 대지에 본문을 넣었습니다.');
+          scheduleSave(sermon); renderEditor(); showToast('마지막 대지에 본문을 넣었습니다.');
         }, iconEl('icon-plus'), '대지에 넣기'),
         btn('btn btn-ghost', async () => {
           const ok = await showConfirm(modalManager, { message: '담아둔 참고 자료를 지우시겠습니까?', okLabel: '지우기', cancelLabel: '취소', danger: true });
           if (!ok) return;
           const backup = { ...clip };
           sermon.clips = sermon.clips.filter((c) => c.id !== clip.id);
-          scheduleSave(sermon);
-          renderClips();
+          scheduleSave(sermon); renderClips();
           showToast('참고 자료를 지웠습니다.', {
             undoLabel: '되돌리기', durationMs: 5000,
             onUndo: () => {
-              const next = [...sermon.clips];
-              next.splice(idx, 0, backup);
-              sermon.clips = next;
-              scheduleSave(sermon);
-              renderClips();
-              showToast('참고 자료를 복원했습니다.');
+              const next = [...sermon.clips]; next.splice(idx, 0, backup); sermon.clips = next;
+              scheduleSave(sermon); renderClips(); showToast('참고 자료를 복원했습니다.');
             },
           });
         }, iconEl('icon-trash'), '지우기')
@@ -275,5 +312,5 @@ export function createSermonStudio({ store, archive, modalManager, callbacks }) 
     document.getElementById('btnSermonPulpit')?.addEventListener('click', () => callbacks.onLaunchPulpit?.(buildPulpitDeck()));
   }
 
-  return { bindEvents, render, addClip, buildPulpitDeck, exportFullBackup, updateSaveStatus };
+  return { bindEvents, render, addClip, applyPassageSelection, buildPulpitDeck, exportFullBackup, updateSaveStatus };
 }

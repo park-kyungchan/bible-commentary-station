@@ -793,6 +793,12 @@ class BibleDatabaseBuilder:
             if vid != "nkrv" and vid in extra_version_entries:
                 versions_list.append(extra_version_entries[vid])
 
+        # Export exact KRV per-chapter verse counts so the web client can render
+        # click-to-select verse range pickers offline without fetching every book chunk first.
+        from .canon import KRV_CHAPTER_VERSE_COUNTS
+        for bm in book_manifest:
+            bm["chapterVerses"] = list(KRV_CHAPTER_VERSE_COUNTS.get(bm["id"], ()))
+
         default_ver = next((v["id"] for v in versions_list if v.get("default")), "krv")
         manifest_payload: Dict[str, Any] = {
             "schemaVersion": WEB_MANIFEST_SCHEMA_VERSION,

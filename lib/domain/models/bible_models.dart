@@ -441,4 +441,117 @@ const List<WorshipLiturgy> kOfflineWorshipLiturgies = [
       ),
     ],
   ),
+  WorshipLiturgy(
+    id: 'benediction_aaronic',
+    title: '축도 · 아론의 제사장 축복',
+    category: '축도',
+    citation: '민수기 6:24-26 (개역한글)',
+    slides: [
+      WorshipLiturgySlide(
+        heading: '축도 (민수기 6:24-26)',
+        lines: [
+          '여호와는 네게 복을 주시고 너를 지키시기를 원하며',
+          '여호와는 그 얼굴로 네게 비취사 은혜 베푸시기를 원하며',
+          '여호와는 그 얼굴을 네게로 향하여 드사',
+          '평강 주시기를 원하노라. 아멘.',
+        ],
+      ),
+    ],
+  ),
+  WorshipLiturgy(
+    id: 'benediction_hebrews',
+    title: '축도 · 평강의 하나님의 축복',
+    category: '축도',
+    citation: '히브리서 13:20-21 (개역한글)',
+    slides: [
+      WorshipLiturgySlide(
+        heading: '축도 (히브리서 13:20-21)',
+        lines: [
+          '양의 큰 목자이신 우리 주 예수를',
+          '영원한 언약의 피로 죽은 자 가운데서 이끌어 내신 평강의 하나님이',
+          '모든 선한 일에 너희를 온전케 하사 자기 뜻을 행하게 하시고',
+          '예수 그리스도로 말미암아 우리 속에 이루시기를 원하노라.',
+          '영광이 그에게 세세무궁토록 있을지어다. 아멘.',
+        ],
+      ),
+    ],
+  ),
+  WorshipLiturgy(
+    id: 'ten_commandments_standard',
+    title: '십계명 (출애굽기 20:1-17)',
+    category: '신앙고백',
+    citation: '출애굽기 20:1-17 (개역한글 · 열 가지 언약의 말씀)',
+    slides: [
+      WorshipLiturgySlide(
+        heading: '십계명 · 제1~4계명 (하나님 사랑)',
+        lines: [
+          '제1계명: 너는 나 외에는 다른 신들을 네게 있게 말지니라.',
+          '제2계명: 너를 위하여 새긴 우상을 만들지 말고 절하지 말라.',
+          '제3계명: 너는 네 하나님 여호와의 이름을 망령되이 일컫지 말라.',
+          '제4계명: 안식일을 기억하여 거룩히 지키라.',
+        ],
+      ),
+      WorshipLiturgySlide(
+        heading: '십계명 · 제5~10계명 (이웃 사랑)',
+        lines: [
+          '제5계명: 네 부모를 공경하라.',
+          '제6계명: 살인하지 말지니라.',
+          '제7계명: 간음하지 말지니라.',
+          '제8계명: 도적질하지 말지니라.',
+          '제9계명: 네 이웃에 대하여 거짓 증거하지 말지니라.',
+          '제10계명: 네 이웃의 집을 탐내지 말지니라. 아멘.',
+        ],
+      ),
+    ],
+  ),
+  WorshipLiturgy(
+    id: 'call_to_worship_psalm100',
+    title: '예배로의 부름 · 초청과 기원',
+    category: '예배기원',
+    citation: '시편 100:1-5 · 요한복음 4:24',
+    slides: [
+      WorshipLiturgySlide(
+        heading: '예배로의 부름 (시편 100:1-5)',
+        lines: [
+          '온 땅이여 여호와께 즐거이 부를지어다.',
+          '기쁨으로 여호와를 섬기며 노래하면서 그 앞에 나아갈지어다.',
+          '감사함으로 그 문에 들어가며 찬송함으로 그 궁정에 들어가서',
+          '그에게 감사하며 그 이름을 송축할지어다. 아멘.',
+        ],
+      ),
+    ],
+  ),
+  WorshipLiturgy(
+    id: 'baptism_vows_standard',
+    title: '세례 · 입교 문답과 서약 예식',
+    category: '성례전',
+    citation: '마태복음 28:19 · 로마서 10:9-10',
+    slides: [
+      WorshipLiturgySlide(
+        heading: '세례 · 입교 서약',
+        lines: [
+          '1. 천지의 창조주 하나님과 구주 예수 그리스도와 성령을 믿습니까?',
+          '2. 오직 예수 그리스도의 보혈과 은혜로만 구원받는 줄 믿습니까?',
+          '3. 하나님의 말씀대로 거룩하게 살며 교회에 충성하기로 서약합니까? (아멘)',
+        ],
+      ),
+    ],
+  ),
+  WorshipLiturgy(
+    id: 'benediction_jude_doxology',
+    title: '축도 · 유다서 영광의 송영',
+    category: '축도',
+    citation: '유다서 1:24-25 (개역한글)',
+    slides: [
+      WorshipLiturgySlide(
+        heading: '축도 (유다서 1:24-25)',
+        lines: [
+          '능히 너희를 보호하사 거침이 없게 하시고',
+          '너희로 그 영광 앞에 흠이 없이 기쁨으로 서게 하실 자',
+          '곧 우리 구주 홀로 하나이신 하나님께',
+          '영광과 위엄과 권세와 권능이 영원토록 있을지어다. 아멘.',
+        ],
+      ),
+    ],
+  ),
 ];

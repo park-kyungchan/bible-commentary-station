@@ -973,6 +973,16 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildSermonPrepTab(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final curBookName = _ctrl.currentBook?.nameKr ?? '창세기';
+    final curRef = '$curBookName ${_ctrl.selectedChapter}:${_ctrl.selectedVerseNumber}';
+    const quickRefs = <String>[
+      '창세기 22:1-14',
+      '시편 23:1-6',
+      '이사야 40:27-31',
+      '마태복음 11:28-30',
+      '요한복음 3:16-17',
+      '로마서 8:28-32',
+    ];
 
     return ListView(
       padding: const EdgeInsets.all(14),
@@ -985,7 +995,39 @@ class _HomeScreenState extends State<HomeScreen> {
             color: cs.onSurface,
           ),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 8),
+        OutlinedButton.icon(
+          key: const Key('btn_sermon_pick_scripture'),
+          onPressed: () => _openBookPickerModal(context),
+          icon: const Icon(Icons.menu_book, size: 18),
+          label: Text('본문 말씀 선택: ${_ctrl.activeSermon.scriptureRef}'),
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            OutlinedButton(
+              key: const Key('btn_sermon_use_current_verse'),
+              onPressed: () => unawaited(
+                _ctrl.updateActiveSermon(
+                  _ctrl.activeSermon.copyWith(scriptureRef: curRef),
+                ),
+              ),
+              child: Text('현재 말씀 ($curRef)'),
+            ),
+            for (final ref in quickRefs)
+              OutlinedButton(
+                onPressed: () => unawaited(
+                  _ctrl.updateActiveSermon(
+                    _ctrl.activeSermon.copyWith(scriptureRef: ref),
+                  ),
+                ),
+                child: Text(ref),
+              ),
+          ],
+        ),
+        const SizedBox(height: 8),
         Text(
           '${_ctrl.activeSermon.scriptureRef} · ${_ctrl.activeSermon.sermonDate}',
           style: TextStyle(

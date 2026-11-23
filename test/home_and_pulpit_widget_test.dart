@@ -391,7 +391,7 @@ void main() {
     expect(controller.chapterVerses[1].versionCode, equals('KRV'));
     expect(controller.chapterVerses[1].text, contains('여호와께서 가라사대'));
 
-    expect(kOfflineWorshipLiturgies.length, equals(6));
+    expect(kOfflineWorshipLiturgies.length, equals(12));
   });
 
   testWidgets('F-005: version picker modal switches version & search modal navigates to verse', (

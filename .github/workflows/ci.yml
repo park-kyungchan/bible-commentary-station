@@ -100,3 +100,8 @@ jobs:
           if ls tests/web/*.test.js >/dev/null 2>&1; then
             SW_STRICT_DISK=1 node --test tests/web/*.test.js
           fi
+
+      - name: Run Headless Chromium V2-UX Regression Gate (Desktop 1440x900 & Mobile 390x844)
+        run: |
+          set -o pipefail
+          node tests/v2_ux_ci.mjs

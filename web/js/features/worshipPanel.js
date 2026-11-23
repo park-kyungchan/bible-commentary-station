@@ -1,45 +1,32 @@
 import { bindTablistKeyboard, btn, el, iconEl, setPrintDocument } from '../core/dom.js';
 import { matchWorshipItem, normalizeWorshipQuery } from '../core/koreanQuery.js';
-import {
-  buildDrivePreviewUrl,
-  buildDriveViewUrl,
-  sanitizeDrivePreviewUrl,
-  sanitizeDriveViewUrl,
-} from '../core/urlSafety.js';
+import { buildDrivePreviewUrl, buildDriveViewUrl, sanitizeDrivePreviewUrl, sanitizeDriveViewUrl } from '../core/urlSafety.js';
 
 const ROLE_LABELS = Object.freeze({ leader: '인도자', congregation: '회중', unison: '다같이' });
 
 export function createWorshipPanel({ store, service, callbacks }) {
   const { state, guards } = store;
-  let debounceTimer = null;
-  let isComposing = false;
-  let activeDetailDeck = null;
+  let debounceTimer = null; let isComposing = false; let activeDetailDeck = null;
 
   function buildOfflineFallbackCard(onOpenPulpit, onPrint) {
     return el('div', { className: 'card offline-fallback-card' },
       el('p', {}, '인터넷 연결이 필요하거나 공유 설정을 확인해 주세요. 아래 큰 글씨 본문이나 강단 화면은 인터넷 없이 바로 쓰실 수 있습니다.'),
       el('div', { className: 'action-row' },
         onOpenPulpit ? btn('btn btn-primary', onOpenPulpit, iconEl('icon-pulpit'), '강단 화면으로 열기') : null,
-        onPrint ? btn('btn btn-secondary', onPrint, iconEl('icon-print'), '큰 글씨 인쇄') : null
-      )
-    );
+        onPrint ? btn('btn btn-secondary', onPrint, iconEl('icon-print'), '큰 글씨 인쇄') : null));
   }
 
   function buildDrivePreviewSection(item, onOpenPulpit, onPrint) {
     const previewUrl = sanitizeDrivePreviewUrl(item.pptPreviewUrl) || (item.driveId ? buildDrivePreviewUrl(item.driveId) : null);
     const viewUrl = sanitizeDriveViewUrl(item.pptViewUrl) || (item.driveId ? buildDriveViewUrl(item.driveId) : null);
-
     if (!previewUrl) return null;
-    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
-      return buildOfflineFallbackCard(onOpenPulpit, onPrint);
-    }
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) return buildOfflineFallbackCard(onOpenPulpit, onPrint);
 
     const wrap = el('div', { className: 'embed-frame-wrap' });
     wrap.appendChild(el('iframe', {
       className: 'embed-frame', src: previewUrl, title: `${item.title} 발표 화면`, loading: 'lazy',
       onError: () => wrap.replaceChildren(buildOfflineFallbackCard(onOpenPulpit, onPrint)),
     }));
-
     return el('div', {},
       wrap,
       el('div', { className: 'action-row' },
@@ -49,22 +36,37 @@ export function createWorshipPanel({ store, service, callbacks }) {
     );
   }
 
+  function buildSongCards(item, stanzas, isCustom = false) {
+    const guidance = (item.usageTiming || item.pastoralNote)
+      ? el('section', { className: 'card' },
+          el('div', { className: 'card-header' }, el('h3', {}, '목회 활용 안내'), item.usageTiming ? el('span', { className: 'tag-accent' }, item.usageTiming) : null),
+          item.pastoralNote ? el('p', { className: 'callout' }, item.pastoralNote) : null)
+      : null;
+    const lyrics = stanzas.length
+      ? el('section', { className: 'card' },
+          el('div', { className: 'card-header' },
+            el('h3', {}, isCustom ? '내 기기에 저장된 찬송가 가사' : '찬송가 가사'),
+            el('span', { className: 'tag-success' }, `${stanzas.length}절 수록`)),
+          ...stanzas.map((st, idx) => el('div', { className: 'card' }, el('strong', {}, `${idx + 1}절`), el('p', {}, st))))
+      : null;
+    return [guidance, lyrics];
+  }
+
   function renderHymnDetail(detailEl, hymn) {
     const viewEl = document.getElementById('viewWorship');
     if (viewEl) viewEl.dataset.hasDetail = 'true';
+    const isCustom = Boolean(state.customHymns?.[hymn.num]);
     const lyrics = state.customHymns?.[hymn.num] || hymn.publicLyrics || '';
     const stanzas = lyrics ? lyrics.split(/\n{2,}/).map((st) => st.trim()).filter(Boolean) : [];
     const noteLines = [hymn.usageTiming ? `예배 활용: ${hymn.usageTiming}` : '', hymn.pastoralNote || ''].filter(Boolean);
     const fallbackBody = [hymn.ref?.label ? `관련 말씀: ${hymn.ref.label}` : '', ...noteLines].filter(Boolean).join('\n\n') || '성도님들과 함께 찬송합니다.';
     const deck = {
-      title: `새찬송가 ${hymn.num}장 · ${hymn.title}`,
-      targetDurationMins: 5,
+      title: `새찬송가 ${hymn.num}장 · ${hymn.title}`, targetDurationMins: 5,
       slides: stanzas.length
         ? stanzas.map((st, idx) => ({ heading: `새찬송가 ${hymn.num}장 ${hymn.title} (${idx + 1}절)`, body: st }))
         : [{ heading: `새찬송가 ${hymn.num}장 · ${hymn.title}`, body: fallbackBody }],
     };
     activeDetailDeck = deck;
-
     const doPulpit = () => callbacks.onLaunchPulpit?.(deck);
     const doPrint = () => {
       const sections = [];
@@ -76,28 +78,10 @@ export function createWorshipPanel({ store, service, callbacks }) {
       setPrintDocument(`새찬송가 ${hymn.num}장 · ${hymn.title}`, hymn.old ? `통일찬송가 ${hymn.old}장 · ${hymn.category || ''}` : (hymn.category || ''), sections);
       window.print();
     };
-
     const backBtn = el('button', {
       type: 'button', className: 'btn btn-ghost', dataset: { action: 'worship-back' },
       onClick: () => { activeDetailDeck = null; if (viewEl) viewEl.dataset.hasDetail = 'false'; detailEl.replaceChildren(); },
     }, iconEl('icon-back'), '찬송가 목록으로');
-
-    const guidanceCard = (hymn.usageTiming || hymn.pastoralNote)
-      ? el('section', { className: 'card' },
-          el('div', { className: 'card-header' }, el('h3', {}, '목회 활용 안내'), hymn.usageTiming ? el('span', { className: 'tag-accent' }, hymn.usageTiming) : null),
-          hymn.pastoralNote ? el('p', { className: 'callout' }, hymn.pastoralNote) : null
-        )
-      : null;
-
-    const lyricsCard = stanzas.length
-      ? el('section', { className: 'card' },
-          el('div', { className: 'card-header' },
-            el('h3', {}, state.customHymns?.[hymn.num] ? '내 기기에 저장된 찬송가 가사' : '찬송가 가사'),
-            el('span', { className: 'tag-success' }, `${stanzas.length}절 수록`)
-          ),
-          ...stanzas.map((st, idx) => el('div', { className: 'card' }, el('strong', {}, `${idx + 1}절`), el('p', {}, st)))
-        )
-      : null;
 
     detailEl.replaceChildren(...[
       el('div', { className: 'card-header' }, backBtn, el('h2', {}, `${hymn.num}장 · ${hymn.title}`), hymn.old ? el('span', { className: 'tag-provenance' }, `통일 ${hymn.old}장`) : null),
@@ -106,8 +90,7 @@ export function createWorshipPanel({ store, service, callbacks }) {
         btn('btn btn-secondary', doPrint, iconEl('icon-print'), '큰 글씨 인쇄'),
         hymn.ref?.osis ? btn('btn btn-secondary', () => callbacks.onJumpToPassage?.(hymn.ref.osis, hymn.ref.ch || 1, hymn.ref.vs || 1), iconEl('icon-bible'), `관련 말씀 (${hymn.ref.label || hymn.ref.osis})`) : null
       ),
-      guidanceCard,
-      lyricsCard,
+      ...buildSongCards(hymn, stanzas, isCustom),
       buildDrivePreviewSection(hymn, doPulpit, doPrint),
     ].filter(Boolean));
   }
@@ -218,15 +201,25 @@ export function createWorshipPanel({ store, service, callbacks }) {
   function renderCcmDetail(detailEl, song) {
     const viewEl = document.getElementById('viewWorship');
     if (viewEl) viewEl.dataset.hasDetail = 'true';
+    const stanzas = (song.publicLyrics || '').split(/\n{2,}/).map((st) => st.trim()).filter(Boolean);
+    const noteLines = [song.usageTiming ? `예배 활용: ${song.usageTiming}` : '', song.pastoralNote || ''].filter(Boolean);
+    const fallbackBody = noteLines.join('\n\n') || `${song.category || '경배·찬양'} 찬양 시간입니다.`;
     const deck = {
-      title: song.title,
-      targetDurationMins: 5,
-      slides: [{ heading: song.title, body: `${song.category || '경배·찬양'} 찬양 시간입니다.\n아래 발표 화면 또는 새 창에서 악보와 가사를 보실 수 있습니다.` }],
+      title: song.title, targetDurationMins: 5,
+      slides: stanzas.length
+        ? stanzas.map((st, idx) => ({ heading: `${song.title} (${idx + 1}절)`, body: st }))
+        : [{ heading: song.title, body: fallbackBody }],
     };
     activeDetailDeck = deck;
     const doPulpit = () => callbacks.onLaunchPulpit?.(deck);
     const doPrint = () => {
-      setPrintDocument(song.title, song.category || '복음성가 · 찬양', [{ heading: '찬양 안내', lines: [song.title] }]);
+      const sections = [];
+      if (noteLines.length) sections.push({ heading: '목회 활용 안내', lines: noteLines });
+      sections.push({
+        heading: stanzas.length ? '찬양 가사' : '찬양 안내',
+        lines: stanzas.length ? stanzas.flatMap((st, idx) => [`[${idx + 1}절]`, ...st.split('\n')]) : [song.title],
+      });
+      setPrintDocument(song.title, song.category || '복음성가 · 찬양', sections);
       window.print();
     };
     const backBtn = el('button', {
@@ -240,6 +233,7 @@ export function createWorshipPanel({ store, service, callbacks }) {
         btn('btn btn-primary', doPulpit, iconEl('icon-pulpit'), '강단 화면으로 열기'),
         btn('btn btn-secondary', doPrint, iconEl('icon-print'), '큰 글씨 인쇄')
       ),
+      ...buildSongCards(song, stanzas, false),
       buildDrivePreviewSection(song, doPulpit, doPrint),
     ].filter(Boolean));
   }
@@ -253,8 +247,12 @@ export function createWorshipPanel({ store, service, callbacks }) {
     const frag = document.createDocumentFragment();
     for (const song of songs) {
       frag.appendChild(btn('card hymn-card', () => renderCcmDetail(detailEl, song),
-        el('div', { className: 'card-header' }, song.category ? el('span', { className: 'tag-accent' }, song.category) : null),
-        el('strong', {}, song.title)
+        el('div', { className: 'card-header' },
+          song.category ? el('span', { className: 'tag-accent' }, song.category) : null,
+          song.publicLyrics ? el('span', { className: 'tag-success' }, '가사 내장') : null
+        ),
+        el('strong', {}, song.title),
+        song.usageTiming ? el('p', { className: 'card-note' }, song.usageTiming) : null
       ));
     }
     listEl.replaceChildren(frag);

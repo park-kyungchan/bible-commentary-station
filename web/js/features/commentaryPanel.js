@@ -198,9 +198,18 @@ export function createCommentaryPanel({ store, service, callbacks }) {
     }
 
     const bhUrl = buildBibleHubCommentaryUrl(verseObj.osis, verseObj.chapter, verseObj.verse);
+    const chEntries = service.getCommentariesForChapter?.(verseObj.bookId, verseObj.chapter) || [];
+    const chVerses = Array.from(new Set(chEntries.map((c) => c.verse_start))).sort((a, b) => a - b);
     body.appendChild(el('div', { className: 'card' },
       el('h3', {}, `${verseObj.bookName} ${verseObj.chapter}:${verseObj.verse} 참고 안내`),
-      el('p', {}, `핵심 말씀 참고 요약은 대표 말씀 ${stats.coveredVerses}절에 우선 수록되어 있습니다. 아래 고전 영문 주석을 불러오거나 대표 말씀을 바로 열어 보실 수 있습니다.`),
+      el('p', {}, chVerses.length
+        ? `이 장(${verseObj.bookName} ${verseObj.chapter}장)에는 ${chVerses.map((v) => `${v}절`).join(', ')}에 핵심 주석 요약이 수록되어 있습니다. 아래 버튼을 누르시면 바로 열립니다.`
+        : `성경 전 66권(${stats.coveredVerses}절)에 핵심 말씀 참고 요약이 수록되어 있습니다. 아래 고전 영문 주석을 불러오거나 대표 말씀을 바로 열어 보실 수 있습니다.`),
+      chVerses.length
+        ? el('div', { className: 'action-row' },
+            ...chVerses.map((vs) => btn('btn btn-primary', () => callbacks.onJumpToPassage?.(verseObj.osis, verseObj.chapter, vs), `${verseObj.bookName} ${verseObj.chapter}:${vs} 주석 보기`))
+          )
+        : null,
       el('div', { className: 'action-row' },
         el('a', { className: 'btn btn-primary', href: bhUrl, target: '_blank' }, iconEl('icon-external'), '바이블허브 영문 주석 열기'),
         ...FEATURED_PASSAGES.map((p) => btn('btn btn-secondary', () => callbacks.onJumpToPassage?.(p.osis, p.ch, p.vs), p.label))

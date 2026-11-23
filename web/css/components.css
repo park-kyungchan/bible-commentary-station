@@ -967,6 +967,40 @@ textarea.input-field {
   flex: 1 1 160px;
 }
 
+.sermon-passage-box {
+  margin-top: 14px;
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-hairline);
+}
+
+.sermon-passage-btn {
+  width: 100%;
+  min-height: 54px;
+  justify-content: space-between;
+  font-size: calc(var(--study-size) * 1.06);
+  font-weight: 800;
+  padding: 10px 16px;
+  background: var(--bg-surface);
+  color: var(--brand-primary);
+  border: 2px solid var(--brand-primary);
+}
+
+.sermon-passage-btn:hover {
+  background: var(--brand-soft);
+}
+
+.picker-range-bar {
+  margin-top: 10px;
+  background: var(--bg-subtle);
+  border: 2px solid var(--brand-primary);
+}
+
+.verse-tile[data-in-range="true"] {
+  border-width: 2px;
+}
+
 /* ===== Sermon Studio ===== */
 .save-status-badge {
   display: inline-flex;
