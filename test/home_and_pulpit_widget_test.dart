@@ -141,10 +141,10 @@ void main() {
   testWidgets('R-FL-01: fresh empty dir renders real bootstrap error UI, never fake ready badge', (
     tester,
   ) async {
-    final emptyDir = await Directory.systemTemp.createTemp('bcs_empty_app_');
-    addTearDown(() async {
-      if (await emptyDir.exists()) {
-        await emptyDir.delete(recursive: true);
+    final emptyDir = Directory.systemTemp.createTempSync('bcs_empty_app_');
+    addTearDown(() {
+      if (emptyDir.existsSync()) {
+        emptyDir.deleteSync(recursive: true);
       }
     });
 
@@ -162,7 +162,7 @@ void main() {
       syncService: failingSync,
       repositoryOpener: (_) async => _FakeBibleRepository(),
     );
-    await controller.bootstrapAndInitialize();
+    await tester.runAsync(() => controller.bootstrapAndInitialize());
 
     await tester.pumpWidget(BiblicalWorkstationApp(controller: controller));
     await tester.pumpAndSettle();
