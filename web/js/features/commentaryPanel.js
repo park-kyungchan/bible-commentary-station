@@ -2,13 +2,6 @@ import { btn, el, iconEl } from '../core/dom.js';
 import { buildBibleHubCommentaryUrl, buildTranslateAssistUrl, sanitizeUrl } from '../core/urlSafety.js';
 import { LIVE_COMMENTARY_SOURCES } from '../services/bibleService.js';
 
-const COMM_CATEGORIES = [
-  { key: 'ALL', label: '전체' },
-  { key: 'CLASSIC', label: '고전·경건' },
-  { key: 'ACADEMIC', label: '원어·학술' },
-  { key: 'EXPOSITORY', label: '강해·설교' },
-];
-
 const FEATURED_PASSAGES = [
   { osis: 'GEN', ch: 22, vs: 2, label: '창세기 22:2' },
   { osis: 'PSA', ch: 23, vs: 1, label: '시편 23:1' },
@@ -142,48 +135,57 @@ export function createCommentaryPanel({ store, service, callbacks }) {
     const hasMultiple = entries.length > 1;
 
     body.appendChild(el('div', { className: 'card-header' },
-      el('strong', {}, `${verseObj.bookName} ${verseObj.chapter}장 ${verseObj.verse}절 · 핵심 말씀 참고 요약 (${entries.length}건)`),
-      el('span', { className: 'tag-provenance' }, `전체 ${stats.coveredVerses}절 제공`),
-      hasMultiple
-        ? btn(`btn ${state.compareMode ? 'btn-primary' : 'btn-secondary'}`, () => { state.compareMode = !state.compareMode; callbacks.onRequestRerender?.(); },
-            state.compareMode ? '하나씩 크게 보기' : '두 주석 나란히 보기')
-        : null
+      el('strong', {}, `${verseObj.bookName} ${verseObj.chapter}:${verseObj.verse} 참고 요약 (${entries.length}건)`),
+      el('span', { className: 'tag-provenance' }, `전체 ${stats.coveredVerses}절 제공`)
     ));
-
-    if (hasMultiple && state.compareMode) {
-      const availCodes = new Set(entries.map((e) => e.source_code));
-      const selectable = allSources.filter((s) => availCodes.has(s.source_code));
-      if (!availCodes.has(state.compareLeft) && selectable[0]) state.compareLeft = selectable[0].source_code;
-      if (!availCodes.has(state.compareRight) && selectable[1]) state.compareRight = selectable[1].source_code;
-      const makeSel = (val, onCh) => el('select', { className: 'select-field', onChange: (e) => { onCh(e.target.value); callbacks.onRequestRerender?.(); } },
-        ...selectable.map((s) => el('option', { value: s.source_code, selected: s.source_code === val }, s.name_kr)));
-      body.appendChild(el('div', { className: 'action-row' }, makeSel(state.compareLeft, (v) => { state.compareLeft = v; }), makeSel(state.compareRight, (v) => { state.compareRight = v; })));
-      body.appendChild(buildCommentaryCard(entries.find((e) => e.source_code === state.compareLeft), state.compareLeft, allSources));
-      body.appendChild(buildCommentaryCard(entries.find((e) => e.source_code === state.compareRight), state.compareRight, allSources));
-      renderLiveCommentarySection(body, verseObj);
-      return;
-    }
 
     if (hasMultiple) {
       const entryCodes = new Set(entries.map((e) => e.source_code));
       const matchedSources = allSources.filter((s) => entryCodes.has(s.source_code));
-      body.appendChild(el('div', { className: 'filter-strip' },
-        ...COMM_CATEGORIES.map((cat) => el('button', {
-          type: 'button', className: `filter-pill ${state.commCategory === cat.key ? 'btn-primary' : 'btn-ghost'}`,
-          'aria-pressed': state.commCategory === cat.key ? 'true' : 'false',
-          onClick: () => { state.commCategory = cat.key; state.selectedSource = 'ALL'; callbacks.onRequestRerender?.(); },
-        }, cat.label))
+      if (state.selectedSource !== 'ALL' && !entryCodes.has(state.selectedSource)) {
+        state.selectedSource = 'ALL';
+      }
+
+      if (state.compareMode) {
+        if (!entryCodes.has(state.compareLeft) && matchedSources[0]) state.compareLeft = matchedSources[0].source_code;
+        if (!entryCodes.has(state.compareRight) && matchedSources[1]) state.compareRight = matchedSources[1].source_code;
+        const makeSel = (val, label, onCh) => el('select', { className: 'select-field', 'aria-label': label, onChange: (e) => { onCh(e.target.value); callbacks.onRequestRerender?.(); } },
+          ...matchedSources.map((s) => el('option', { value: s.source_code, selected: s.source_code === val }, s.name_kr)));
+        body.appendChild(el('div', { className: 'action-row' },
+          makeSel(state.compareLeft, '첫 번째 주석 선택', (v) => { state.compareLeft = v; }),
+          makeSel(state.compareRight, '두 번째 주석 선택', (v) => { state.compareRight = v; }),
+          btn('btn btn-primary', () => { state.compareMode = false; callbacks.onRequestRerender?.(); }, '하나씩 크게 보기')
+        ));
+        body.appendChild(buildCommentaryCard(entries.find((e) => e.source_code === state.compareLeft), state.compareLeft, allSources));
+        body.appendChild(buildCommentaryCard(entries.find((e) => e.source_code === state.compareRight), state.compareRight, allSources));
+        renderLiveCommentarySection(body, verseObj);
+        return;
+      }
+
+      const sourceSelect = el('select', {
+        className: 'select-field',
+        'aria-label': '주석 선택',
+        onChange: (e) => {
+          state.selectedSource = e.target.value;
+          callbacks.onRequestRerender?.();
+        },
+      },
+        el('option', { value: 'ALL', selected: state.selectedSource === 'ALL' }, `주석 선택: 전체 (${entries.length}건)`),
+        ...matchedSources.map((s) => el('option', {
+          value: s.source_code,
+          selected: state.selectedSource === s.source_code,
+        }, s.category_kr ? `[${s.category_kr}] ${s.name_kr}` : s.name_kr))
+      );
+      sourceSelect.value = state.selectedSource;
+
+      body.appendChild(el('div', { className: 'action-row' },
+        sourceSelect,
+        btn('btn btn-secondary', () => { state.compareMode = true; callbacks.onRequestRerender?.(); }, '두 주석 비교')
       ));
 
-      const visibleSources = state.commCategory === 'ALL' ? matchedSources : matchedSources.filter((s) => s.category === state.commCategory);
-      if (visibleSources.length > 1) {
-        body.appendChild(el('div', { className: 'filter-strip' },
-          btn(`filter-pill ${state.selectedSource === 'ALL' ? 'btn-primary' : 'btn-ghost'}`, () => { state.selectedSource = 'ALL'; callbacks.onRequestRerender?.(); }, '전체 보기'),
-          ...visibleSources.map((s) => btn(`filter-pill ${state.selectedSource === s.source_code ? 'btn-primary' : 'btn-ghost'}`, () => { state.selectedSource = s.source_code; callbacks.onRequestRerender?.(); }, s.name_kr))
-        ));
-      }
-      const allowed = new Set(visibleSources.map((s) => s.source_code));
-      const filtered = entries.filter((e) => allowed.has(e.source_code) && (state.selectedSource === 'ALL' || e.source_code === state.selectedSource));
+      const filtered = state.selectedSource === 'ALL'
+        ? entries
+        : entries.filter((e) => e.source_code === state.selectedSource);
       for (const item of filtered) body.appendChild(buildCommentaryCard(item, item.source_code, allSources));
       renderLiveCommentarySection(body, verseObj);
       return;

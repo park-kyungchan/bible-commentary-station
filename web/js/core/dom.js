@@ -229,19 +229,23 @@ export function showConfirm(modalManager, { message, okLabel = '확인', cancelL
       okBtn.removeEventListener('click', onOk);
       cancelBtn.removeEventListener('click', onCancel);
       document.removeEventListener('keydown', onEsc, true);
-      overlay.removeEventListener('click', onBackdrop);
+      overlay.removeEventListener('click', onOverlayClick);
       modalManager.close('confirmModal');
       resolve(answer);
     };
     const onOk = () => finish(true);
     const onCancel = () => finish(false);
     const onEsc = (e) => { if (e.key === 'Escape') finish(false); };
-    const onBackdrop = (e) => { if (e.target === overlay) finish(false); };
+    const onOverlayClick = (e) => {
+      if (e.target === overlay || e.target?.closest?.('.modal-close') || e.target?.classList?.contains?.('modal-close')) {
+        finish(false);
+      }
+    };
 
     okBtn.addEventListener('click', onOk);
     cancelBtn.addEventListener('click', onCancel);
     document.addEventListener('keydown', onEsc, true);
-    overlay.addEventListener('click', onBackdrop);
+    overlay.addEventListener('click', onOverlayClick);
     modalManager.open('confirmModal');
   });
 }

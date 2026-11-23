@@ -96,8 +96,12 @@ export function createStore(storageRef = globalThis.localStorage) {
     theme: savedPrefs.theme === 'dark' ? 'dark' : 'light',
     fontStepIndex: clampFontStep(savedPrefs.fontStepIndex ?? 1),
     pulpitFontPt: clampPulpitPt(savedPrefs.pulpitFontPt ?? 34),
-    primaryVersion: typeof savedPrefs.primaryVersion === 'string' ? savedPrefs.primaryVersion : 'krv',
-    parallelVersion: typeof savedPrefs.parallelVersion === 'string' ? savedPrefs.parallelVersion : 'none',
+    primaryVersion: typeof savedPrefs.primaryVersion === 'string'
+      ? (savedPrefs.primaryVersion === 'nrsv' ? 'rnksv' : savedPrefs.primaryVersion)
+      : '',
+    parallelVersion: typeof savedPrefs.parallelVersion === 'string'
+      ? (savedPrefs.parallelVersion === 'nrsv' ? 'rnksv' : savedPrefs.parallelVersion)
+      : 'none',
 
     osis: 'GEN',
     chapter: 22,

@@ -15,6 +15,51 @@ const SLOT_TYPE_LABELS = Object.freeze({
   scripture: '성경 봉독', sermon: '설교 말씀', prayer: '기도', note: '순서 메모',
 });
 
+export function normalizeSlotValue(slotType, rawRef, service = null) {
+  const trimmed = String(rawRef || '').trim();
+  if (!trimmed) return '';
+  if (slotType === 'liturgy') return trimmed.replace(/^liturgy:/i, '').trim();
+  if (slotType === 'hymn') {
+    const m = trimmed.match(/^hymn:(\d+)$/i);
+    return m ? `${m[1]}장` : trimmed;
+  }
+  if (slotType === 'responsive') {
+    const m = trimmed.match(/^responsive:(\d+)$/i);
+    return m ? `${m[1]}번` : trimmed;
+  }
+  if (slotType === 'scripture' && service) {
+    const m = trimmed.match(/^([1-3]?[A-Z]{2,3})\s+(.+)$/);
+    if (m) {
+      const meta = service.getBookMeta?.(m[1]);
+      if (meta?.name) return `${meta.name} ${m[2]}`;
+    }
+  }
+  return trimmed;
+}
+
+export function formatSlotPrintLines(slot, worship = {}, service = null) {
+  const val = normalizeSlotValue(slot.slotType, slot.value ?? slot.defaultRef ?? '', service);
+  if (!val) return [''];
+  if (slot.slotType === 'liturgy') {
+    const lit = (worship.liturgies || []).find((l) => l.id === val || l.title.includes(val));
+    if (lit) {
+      const slideLines = (lit.slides || []).flatMap((sl) => sl.lines || []);
+      return slideLines.length ? [lit.title, ...slideLines] : [lit.title];
+    }
+  }
+  if (slot.slotType === 'hymn') {
+    const num = Number(val.replace(/[^\d]/g, ''));
+    const h = (worship.hymns || []).find((x) => x.num === num);
+    if (h) return [`새찬송가 ${h.num}장 · ${h.title}`];
+  }
+  if (slot.slotType === 'responsive') {
+    const num = Number(val.replace(/[^\d]/g, ''));
+    const rr = (worship.responsiveReadings || []).find((r) => r.num === num);
+    if (rr) return [`교독문 ${rr.num}번 · ${rr.title}`];
+  }
+  return [val];
+}
+
 export function createLiturgyPanel({ store, service, archive, modalManager, callbacks }) {
   const { state } = store;
   let liturgyCategory = '전체';
@@ -107,7 +152,7 @@ export function createLiturgyPanel({ store, service, archive, modalManager, call
     const rrs = service.worship?.responsiveReadings || [];
 
     for (const slot of order.slots || []) {
-      const val = String(slot.value || slot.defaultRef || '').trim();
+      const val = normalizeSlotValue(slot.slotType, slot.value ?? slot.defaultRef ?? '', service);
       if (slot.slotType === 'liturgy' && val) {
         const lit = liturgies.find((l) => l.id === val || l.title.includes(val));
         if (lit) {
@@ -142,7 +187,10 @@ export function createLiturgyPanel({ store, service, archive, modalManager, call
     setPrintDocument(
       order.title,
       order.date || order.description || '',
-      (order.slots || []).map((s) => ({ heading: `${s.order}. ${s.label}`, lines: [s.value || s.defaultRef || ''] }))
+      (order.slots || []).map((s) => ({
+        heading: `${s.order}. ${s.label}`,
+        lines: formatSlotPrintLines(s, service.worship, service),
+      }))
     );
     window.print();
   }
@@ -152,7 +200,10 @@ export function createLiturgyPanel({ store, service, archive, modalManager, call
       ...orderObj,
       id: orderObj.id || generateId('order'),
       date: orderObj.date || new Date().toISOString().slice(0, 10),
-      slots: (orderObj.slots || []).map((s) => ({ ...s, value: s.value ?? s.defaultRef ?? '' })),
+      slots: (orderObj.slots || []).map((s) => ({
+        ...s,
+        value: normalizeSlotValue(s.slotType, s.value ?? s.defaultRef ?? '', service),
+      })),
     };
     const viewEl = document.getElementById('viewWorship');
     if (viewEl) viewEl.dataset.hasDetail = 'true';
@@ -254,6 +305,7 @@ export function createLiturgyPanel({ store, service, archive, modalManager, call
   return {
     renderLiturgies,
     renderTemplates,
+    buildOrderDeck,
     getActivePulpitDeck: async () => (activeLiturgy ? buildLiturgyDeck(activeLiturgy) : activeOrder ? buildOrderDeck(activeOrder) : null),
     clearActiveDetail: () => { activeLiturgy = null; activeOrder = null; },
   };
