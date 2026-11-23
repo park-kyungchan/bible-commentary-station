@@ -41,9 +41,37 @@ class WorkstationController extends ChangeNotifier {
   List<CrossRefItem> crossRefs = const [];
   List<ChainReference> chains = const [];
 
+  static const Map<String, String> supportedVersions = {
+    'NKRV': '개역개정',
+    'KRV': '개역한글',
+    'RNKSV': '새번역',
+    'EASY': '쉬운성경',
+    'DOB': '우리말성경',
+    'KLB': '현대인의 성경',
+    'NKCB': '공동번역개정판',
+    'KTV': '바른성경',
+    'HKJV': '킹제임스 흠정역',
+    'KKJV': '한글킹제임스',
+    'TKV': '현대어성경',
+    'HCHV': '개역한글 국한문',
+    'KCB': '공동번역',
+    'CATH': '가톨릭성경',
+    'ESV': '영어 표준역 (ESV)',
+    'TNIV': '영어 신국제역 (TNIV)',
+    'NASB': '영어 신미국표준역 (NASB)',
+    'NLT': '영어 새번역 (NLT)',
+    'NKJV': '영어 신킹제임스',
+    'EN_NRSV': '영어 신개정표준역 (NRSV)',
+    'MSG': '영어 메시지 성경 (MSG)',
+    'HCSB': '영어 홀만 표준역 (HCSB)',
+    'GNT': '영어 굿뉴스 성경 (GNT)',
+  };
+
   int selectedBookId = 1;
   int selectedChapter = 22;
   int selectedVerseNumber = 2;
+  String selectedVersionCode = 'KRV';
+  bool isUsingFallbackKrv = false;
   bool isLoading = false;
   DatabaseStatus dbStatus = DatabaseStatus.idle;
   SyncProgress? syncProgress;
@@ -102,6 +130,9 @@ class WorkstationController extends ChangeNotifier {
   bool get canDecreaseFont => fontStepIndex > 0;
 
   bool get canIncreaseFont => fontStepIndex < PastoralTheme.scriptureFontSteps.length - 1;
+
+  String get selectedVersionName =>
+      supportedVersions[selectedVersionCode] ?? selectedVersionCode;
 
   BibleBook? get currentBook {
     for (final b in books) {
@@ -225,17 +256,42 @@ class WorkstationController extends ChangeNotifier {
     }
   }
 
+  Future<void> setVersionCode(String code) async {
+    if (!supportedVersions.containsKey(code)) return;
+    selectedVersionCode = code;
+    if (_repository == null) {
+      notifyListeners();
+      return;
+    }
+    await loadChapter(
+      selectedBookId,
+      selectedChapter,
+      verseNumber: selectedVerseNumber,
+    );
+  }
+
   Future<void> loadChapter(int bookId, int chapter, {int verseNumber = 1}) async {
     final repo = _repository;
     if (repo == null) return;
 
     selectedBookId = bookId;
     selectedChapter = chapter;
-    chapterVerses = await repo.getChapterVerses(
-      versionCode: 'KRV',
+    var verses = await repo.getChapterVerses(
+      versionCode: selectedVersionCode,
       bookId: bookId,
       chapter: chapter,
     );
+    if (verses.isEmpty && selectedVersionCode != 'KRV') {
+      verses = await repo.getChapterVerses(
+        versionCode: 'KRV',
+        bookId: bookId,
+        chapter: chapter,
+      );
+      isUsingFallbackKrv = verses.isNotEmpty;
+    } else {
+      isUsingFallbackKrv = false;
+    }
+    chapterVerses = verses;
     if (chapterVerses.isNotEmpty) {
       final hasTarget = chapterVerses.any((v) => v.verse == verseNumber);
       selectedVerseNumber = hasTarget ? verseNumber : chapterVerses.first.verse;
@@ -274,7 +330,17 @@ class WorkstationController extends ChangeNotifier {
       notifyListeners();
       return;
     }
-    searchResults = await repo.searchVerses(query: searchQuery);
+    var results = await repo.searchVerses(
+      query: searchQuery,
+      versionCode: selectedVersionCode,
+    );
+    if (results.isEmpty && selectedVersionCode != 'KRV') {
+      results = await repo.searchVerses(
+        query: searchQuery,
+        versionCode: 'KRV',
+      );
+    }
+    searchResults = results;
     notifyListeners();
   }
 
@@ -309,8 +375,12 @@ class WorkstationController extends ChangeNotifier {
     final repo = _repository;
     if (repo == null) return;
     final verseId = selectedBookId * 1000000 + selectedChapter * 1000 + selectedVerseNumber;
+    final effectiveVersion = isUsingFallbackKrv ? 'KRV' : selectedVersionCode;
     commentaries = await repo.getCommentariesForVerse(verseId);
-    crossRefs = await repo.getCrossReferencesForVerse(verseId);
+    crossRefs = await repo.getCrossReferencesForVerse(
+      verseId,
+      versionCode: effectiveVersion,
+    );
   }
 
   void scrapCitation(String source, String text) {
@@ -340,6 +410,19 @@ class WorkstationController extends ChangeNotifier {
         ),
       ),
     ];
+  }
+
+  /// Builds pulpit slides for an offline Korean worship liturgy.
+  List<PulpitSlide> buildLiturgySlides(WorshipLiturgy liturgy) {
+    return liturgy.slides
+        .map(
+          (slide) => PulpitSlide(
+            section: liturgy.title,
+            header: slide.heading,
+            body: slide.body,
+          ),
+        )
+        .toList();
   }
 
   Future<void> closeDatabase() async {
