@@ -380,6 +380,22 @@ class TestCorpusWorshipProvenanceAndSecurity(unittest.TestCase):
         self.assertIsNone(src_by_code["HOKMA"]["official_url"])
         self.assertIsNone(src_by_code["GRAND"]["official_url"])
 
+        # DEF-UX-03 / R-UX-07 regression: zero banned jargon acronyms in user-visible Korean fields
+        banned_ui_jargon = (
+            "HelloAO", "API", "PPT", "GAE", "BSB", "KJV", "WLC", "SBL",
+            "JFB", "TSK", "JSON", ".txt", "HTTP 404", "FTS5", "PWA", "PROPHECY_FULFILLMENT",
+        )
+        for s in exegesis["sources"]:
+            for field in ("name_kr", "description", "theological_stance", "category_kr"):
+                val = str(s.get(field) or "")
+                for term in banned_ui_jargon:
+                    self.assertNotIn(term, val, f"Banned UI jargon {term!r} in source {s['source_code']}.{field}: {val!r}")
+        for c in exegesis["commentaries"]:
+            for field in ("passage_display", "title", "content_markdown", "theological_tags", "practical_points", "attributionLabel"):
+                val = str(c.get(field) or "")
+                for term in banned_ui_jargon:
+                    self.assertNotIn(term, val, f"Banned UI jargon {term!r} in commentary {c['source_code']}.{field}: {val!r}")
+
     def test_03_worship_hymns_responsive_liturgies_templates_and_zero_pii(self) -> None:
         worship = json.loads((WEB_DIR / "data" / "worship.json").read_text(encoding="utf-8"))
         h645 = json.loads((REPO_ROOT / "bible_station" / "hymns_645.json").read_text(encoding="utf-8"))
