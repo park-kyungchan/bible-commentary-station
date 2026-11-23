@@ -241,7 +241,7 @@ COMMENTARY_SOURCES_MASTER: List[Dict[str, object]] = [
         "author": "토마스 컨스터블 (달라스 신학교)",
         "description": "전 66권의 문맥 흐름과 강해 대지를 쉽고 명쾌하게 정리한 공식 무료 공개 강해 주석",
         "theological_stance": "문맥 중심 강해 설교",
-        "official_url": "https://planobiblechapel.org/soniclight/",
+        "official_url": "https://planobiblechapel.org/constable-notes/",
         "is_public_domain": True,
         "access_type": "PUBLIC_DOMAIN",
         "sort_order": 9,
