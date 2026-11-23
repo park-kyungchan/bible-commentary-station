@@ -1,4 +1,4 @@
-/// Domain models for Bible Exegesis, Commentaries, Cross-References & Sermons.
+// Domain models for Bible Exegesis, Commentaries, Cross-References & Sermons.
 
 class BibleBook {
   final int bookId;
