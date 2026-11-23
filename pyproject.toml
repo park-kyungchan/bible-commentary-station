@@ -4,16 +4,20 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "bible-commentary-station"
-version = "2.0.0"
-description = "Offline-first Biblical Exegesis, 8-Commentary Comparison, Cross-Reference & Pastoral Sermon Workstation"
+dynamic = ["version"]
+description = "Offline-first Biblical Exegesis, 12-Commentary Reference, Worship/Liturgy & Pastoral Sermon Workstation"
 readme = "README.md"
 requires-python = ">=3.10"
-dependencies = [
-    "beautifulsoup4>=4.12.0",
-]
+dependencies = []
 
 [project.scripts]
 bible-station = "bible_station.cli:main"
 
+[tool.setuptools.dynamic]
+version = { attr = "bible_station.__version__" }
+
 [tool.setuptools.packages.find]
 include = ["bible_station*"]
+
+[tool.setuptools.package-data]
+bible_station = ["*.json"]

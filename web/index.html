@@ -1,196 +1,561 @@
 <!DOCTYPE html>
-<html lang="ko" data-theme="light">
+<html lang="ko" data-theme="light" data-font-step="1" data-mode="bible">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>큰글씨 성경주혜주석 — 다역본 성경 · 전 66권 공식 주석 · 새찬송가 645장 · 설교 노트</title>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://bible.helloao.org; frame-src https://drive.google.com; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <meta name="theme-color" content="#1B365D" />
+  <title>말씀 서재 — 큰글씨 성경 · 주석 · 예배 · 설교 준비</title>
   <link rel="manifest" href="./manifest.json" />
   <link rel="icon" href="./icon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="./css/workstation.css" />
+  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&family=Noto+Serif+KR:wght@400;600;700&display=swap" />
+  <link rel="stylesheet" href="./css/tokens.css" />
+  <link rel="stylesheet" href="./css/base.css" />
+  <link rel="stylesheet" href="./css/layout.css" />
+  <link rel="stylesheet" href="./css/components.css" />
+  <link rel="stylesheet" href="./css/pulpit.css" />
+  <link rel="stylesheet" href="./css/print.css" />
+  <link rel="stylesheet" href="./css/motion.css" />
 </head>
 <body>
+  <!-- Inline SVG Icon Sprite (21 Frozen Editorial Symbols) -->
+  <svg class="svg-sprite" aria-hidden="true" hidden>
+    <symbol id="icon-bible" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+      <path d="M12 6v6" />
+      <path d="M9.5 8.5h5" />
+    </symbol>
+    <symbol id="icon-study" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M2 5.5A2.5 2.5 0 0 1 4.5 3H10a3 3 0 0 1 2 1 3 3 0 0 1 2-1h5.5A2.5 2.5 0 0 1 22 5.5v13a1.5 1.5 0 0 1-1.5 1.5H14a2 2 0 0 0-2 2 2 2 0 0 0-2-2H3.5A1.5 1.5 0 0 1 2 18.5z" />
+      <path d="M12 4v18" />
+    </symbol>
+    <symbol id="icon-worship" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M9 18V5l12-2v13" />
+      <circle cx="6" cy="18" r="3" />
+      <circle cx="18" cy="16" r="3" />
+    </symbol>
+    <symbol id="icon-sermon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 20h9" />
+      <path d="M16.5 3.5a2.12 2.12 0 1 1 3 3L7 19l-4 1 1-4Z" />
+    </symbol>
+    <symbol id="icon-pulpit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="4" width="18" height="12" rx="2" />
+      <path d="M8 20h8" />
+      <path d="M12 16v4" />
+      <path d="M7 9h10" />
+      <path d="M7 12h6" />
+    </symbol>
+    <symbol id="icon-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="11" cy="11" r="7" />
+      <path d="m20 20-3.8-3.8" />
+    </symbol>
+    <symbol id="icon-bookmark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1z" />
+    </symbol>
+    <symbol id="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 2v2.5M12 19.5V22M4.93 4.93l1.77 1.77M17.3 17.3l1.77 1.77M2 12h2.5M19.5 12H22M4.93 19.07l1.77-1.77M17.3 6.7l1.77-1.77" />
+    </symbol>
+    <symbol id="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M20.5 14.5A8.5 8.5 0 1 1 9.5 3.5a7 7 0 0 0 11 11z" />
+    </symbol>
+    <symbol id="icon-help" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="9.5" />
+      <path d="M9.2 9.2a3 3 0 0 1 5.6 1.3c0 2-2.8 2.2-2.8 4" />
+      <circle cx="12" cy="17.5" r="0.6" fill="currentColor" />
+    </symbol>
+    <symbol id="icon-settings" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 6h16M4 12h16M4 18h16" />
+      <circle cx="9" cy="6" r="2" fill="var(--bg-surface, #FFFDF9)" />
+      <circle cx="15" cy="12" r="2" fill="var(--bg-surface, #FFFDF9)" />
+      <circle cx="10" cy="18" r="2" fill="var(--bg-surface, #FFFDF9)" />
+    </symbol>
+    <symbol id="icon-chevron-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="m15 18-6-6 6-6" />
+    </symbol>
+    <symbol id="icon-chevron-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="m9 6 6 6-6 6" />
+    </symbol>
+    <symbol id="icon-print" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M6 9V3h12v6" />
+      <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+      <rect x="6" y="14" width="12" height="7" rx="1" />
+    </symbol>
+    <symbol id="icon-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M18 6 6 18M6 6l12 12" />
+    </symbol>
+    <symbol id="icon-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 5v14M5 12h14" />
+    </symbol>
+    <symbol id="icon-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 6h18" />
+      <path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2" />
+      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+      <path d="M10 11v6M14 11v6" />
+    </symbol>
+    <symbol id="icon-download" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 3v12" />
+      <path d="m7 10 5 5 5-5" />
+      <path d="M4 20h16" />
+    </symbol>
+    <symbol id="icon-upload" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 15V3" />
+      <path d="m7 8 5-5 5 5" />
+      <path d="M4 20h16" />
+    </symbol>
+    <symbol id="icon-external" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M14 4h6v6" />
+      <path d="M10 14 20 4" />
+      <path d="M20 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h5" />
+    </symbol>
+    <symbol id="icon-back" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M19 12H5" />
+      <path d="m12 19-7-7 7-7" />
+    </symbol>
+  </svg>
+
   <div class="app-shell">
-    <!-- 1. 상단 안내 바 (PC 최적화) -->
+    <!-- Global Notification Banners (collapsed to 0px when data-open="false") -->
+    <div id="swUpdateBanner" class="global-banner global-banner-info" data-open="false" role="status" aria-live="polite">
+      <span class="global-banner-text">새 버전이 준비되었습니다. 새로고침하면 최신 화면을 쓰실 수 있습니다.</span>
+      <button id="btnSwReload" type="button" class="btn btn-primary">새로고침</button>
+    </div>
+
+    <div id="storageWarningBanner" class="global-banner global-banner-warn" data-open="false" role="alert">
+      <span id="storageWarningText" class="global-banner-text">브라우저 저장 공간에 문제가 생겨 임시 저장 중입니다. 설교 노트를 파일로 백업해 두세요.</span>
+      <button id="btnStorageBackupNow" type="button" class="btn btn-warm">
+        <svg class="icon" aria-hidden="true"><use href="#icon-download" /></svg>
+        <span>지금 백업 저장</span>
+      </button>
+    </div>
+
+    <!-- 1. Calm Single-Row Top Header -->
     <header class="topbar">
       <div class="brand">
-        <span class="brand-icon">📖</span>
-        <span>성경주혜주석</span>
+        <img src="./icon.svg" alt="" class="brand-mark" width="36" height="36" />
+        <span class="brand-title">말씀 서재</span>
       </div>
 
-      <div class="search-bar">
-        <input id="searchInput" type="search" placeholder="성경 찾기 (예: 요한복음 3장, 시편 23장, 독생자)" aria-label="성경 말씀 찾기" />
-        <button id="btnSearch" type="button" class="btn btn-primary">찾기</button>
-      </div>
+      <nav class="mode-nav" aria-label="주요 화면 선택">
+        <button type="button" class="mode-btn" data-action="set-mode" data-mode-target="bible" aria-current="page">
+          <svg class="icon" aria-hidden="true"><use href="#icon-bible" /></svg>
+          <span>성경 · 주석</span>
+        </button>
+        <button type="button" class="mode-btn" data-action="set-mode" data-mode-target="worship">
+          <svg class="icon" aria-hidden="true"><use href="#icon-worship" /></svg>
+          <span>예배 · 찬송</span>
+        </button>
+        <button type="button" class="mode-btn" data-action="set-mode" data-mode-target="sermon">
+          <svg class="icon" aria-hidden="true"><use href="#icon-sermon" /></svg>
+          <span>설교 준비</span>
+        </button>
+      </nav>
 
       <div class="topbar-controls">
-        <div class="font-stepper" aria-label="글자 크기 조절">
-          <button id="btnFontDec" type="button" title="글자 작게">작게 -</button>
-          <span id="fontSizeLabel">크게</span>
-          <button id="btnFontInc" type="button" title="글자 크게">크게 +</button>
+        <div class="font-stepper" role="group" aria-label="글자 크기 조절">
+          <button id="btnFontDec" type="button" class="stepper-btn" aria-label="글자 작게">가-</button>
+          <span id="fontSizeLabel" class="stepper-label" aria-live="polite">크게</span>
+          <button id="btnFontInc" type="button" class="stepper-btn" aria-label="글자 크게">가+</button>
         </div>
-        <button id="btnThemeToggle" type="button" class="btn">🌙 어둡게</button>
-        <button id="btnHelp" type="button" class="btn">❓ 사용법</button>
-        <button id="btnPulpitTop" type="button" class="btn btn-accent">🎤 강단 큰 화면</button>
+
+        <button id="btnThemeToggle" type="button" class="btn btn-ghost topbar-btn" aria-pressed="false" aria-label="화면 밝기 전환">
+          <svg class="icon icon-moon-glyph" aria-hidden="true"><use href="#icon-moon" /></svg>
+          <svg class="icon icon-sun-glyph" aria-hidden="true"><use href="#icon-sun" /></svg>
+          <span>화면</span>
+        </button>
+
+        <button id="btnHelp" type="button" class="btn btn-ghost topbar-btn">
+          <svg class="icon" aria-hidden="true"><use href="#icon-help" /></svg>
+          <span>도움말</span>
+        </button>
+
+        <button id="btnPulpitTop" type="button" class="btn btn-warm topbar-pulpit-btn" data-action="open-pulpit">
+          <svg class="icon" aria-hidden="true"><use href="#icon-pulpit" /></svg>
+          <span>강단 화면</span>
+        </button>
       </div>
     </header>
 
-    <!-- 2. 현재 성경 위치 · 다역본 대조 · 찬송/교독문 빠른 이동 바 -->
-    <div class="location-strip">
-      <button id="btnOpenPicker" type="button" class="current-place-btn">
-        <span id="currentPlaceText">창세기 22장</span>
-        <span style="font-size:14px;">▼ 성경 고르기</span>
-      </button>
-      <button id="btnPrevChap" type="button" class="btn">◀ 이전 장</button>
-      <button id="btnNextChap" type="button" class="btn">다음 장 ▶</button>
+    <!-- 2. Unified Main Mode Views -->
+    <main class="app-main">
+      <!-- Mode 1: 성경 · 주석 -->
+      <section id="viewBible" class="mode-view" data-view="bible" aria-label="성경과 주석">
+        <div class="context-bar" role="region" aria-label="성경 이동과 찾기">
+          <button id="btnOpenPicker" type="button" class="current-place-btn" aria-haspopup="dialog">
+            <span id="currentPlaceText">창세기 22장</span>
+            <span class="place-caret" aria-hidden="true">▾</span>
+          </button>
 
-      <div class="version-bar" aria-label="성경 역본 선택 및 대조">
-        <select id="primaryVersionSelect" class="version-select" title="기본 성경 역본"></select>
-        <select id="parallelVersionSelect" class="version-select" title="나란히 비교할 역본"></select>
-        <button id="btnBibleImport" type="button" class="btn btn-sm">📂 내 성경(개역개정) 추가</button>
-      </div>
+          <button id="btnPrevChap" type="button" class="btn btn-secondary nav-chap-btn" aria-label="이전 장">
+            <svg class="icon" aria-hidden="true"><use href="#icon-chevron-left" /></svg>
+            <span>이전</span>
+          </button>
+          <button id="btnNextChap" type="button" class="btn btn-secondary nav-chap-btn" aria-label="다음 장">
+            <span>다음</span>
+            <svg class="icon" aria-hidden="true"><use href="#icon-chevron-right" /></svg>
+          </button>
 
-      <button id="btnWorshipQuick" type="button" class="btn btn-soft">🎵 찬송가 645장 · 교독문</button>
-      <button id="btnBookmarks" type="button" class="btn">📌 표시한 말씀</button>
-      <button id="btnResume" type="button" class="resume-pill" style="display:none;">어제 읽던 곳 이어 읽기</button>
-    </div>
+          <form id="searchForm" class="search-form" role="search">
+            <input id="searchInput" type="search" class="input-field search-input" placeholder="말씀 찾기 (예: 시편 23편, 독생자)" aria-label="성경 말씀 찾기" />
+            <button id="btnSearch" type="submit" class="btn btn-primary search-submit-btn">
+              <svg class="icon" aria-hidden="true"><use href="#icon-search" /></svg>
+              <span>찾기</span>
+            </button>
+          </form>
 
-    <!-- 3. PC 최적화 2단 화면: 왼쪽 다역본 성경 읽기 | 오른쪽 12대·전66권 주석 · 연결 말씀 · 찬송645장/교독문 · 설교 노트 -->
-    <main class="workspace">
-      <section id="paneScripture" class="pane pane-scripture mobile-active" aria-label="성경 본문">
-        <div id="verseList" class="pane-scroll"></div>
+          <button id="btnVersionSettings" type="button" class="btn btn-secondary context-util-btn" aria-haspopup="dialog">
+            <svg class="icon" aria-hidden="true"><use href="#icon-settings" /></svg>
+            <span class="version-btn-prefix">역본</span>
+            <span id="activeVersionLabel" class="version-btn-value">개역개정</span>
+          </button>
+
+          <button id="btnBookmarks" type="button" class="btn btn-secondary context-util-btn">
+            <svg class="icon" aria-hidden="true"><use href="#icon-bookmark" /></svg>
+            <span>표시<span class="hide-mobile-inline">한 말씀</span></span>
+          </button>
+        </div>
+
+        <div class="bible-workspace">
+          <section id="paneScripture" class="pane-scripture" aria-label="성경 본문">
+            <div class="scripture-inner">
+              <div id="chapterHeading" class="chapter-heading"></div>
+              <div id="verseList" class="verse-list" data-loading="false" data-chapter-dir="none"></div>
+            </div>
+          </section>
+
+          <aside id="paneStudy" class="pane-study" data-mobile-open="false" data-study-overlay="none" aria-label="주석과 연결 말씀">
+            <div id="mobileStudyBackBar" class="mobile-study-back-bar">
+              <button id="btnCloseMobileStudy" type="button" class="btn btn-secondary">
+                <svg class="icon" aria-hidden="true"><use href="#icon-back" /></svg>
+                <span>성경 본문으로 돌아가기</span>
+              </button>
+            </div>
+
+            <div id="studyTabList" class="study-tabs" role="tablist" aria-label="말씀 연구 분류">
+              <button type="button" class="study-tab" role="tab" data-study-tab="commentary" aria-selected="true">
+                <svg class="icon" aria-hidden="true"><use href="#icon-study" /></svg>
+                <span>주석</span>
+              </button>
+              <button type="button" class="study-tab" role="tab" data-study-tab="crossref" aria-selected="false">
+                <svg class="icon" aria-hidden="true"><use href="#icon-bible" /></svg>
+                <span>연결 말씀</span>
+              </button>
+              <button type="button" class="study-tab" role="tab" data-study-tab="strongs" aria-selected="false">
+                <svg class="icon" aria-hidden="true"><use href="#icon-search" /></svg>
+                <span>원어 풀이</span>
+              </button>
+            </div>
+
+            <div id="studyOverlayHeader" class="study-overlay-header">
+              <h2 id="studyOverlayTitle" class="study-overlay-title"></h2>
+              <button id="btnCloseStudyOverlay" type="button" class="btn btn-secondary" data-action="close-study-overlay">
+                <svg class="icon" aria-hidden="true"><use href="#icon-back" /></svg>
+                <span>주석으로 돌아가기</span>
+              </button>
+            </div>
+
+            <div id="studyBody" class="study-body"></div>
+          </aside>
+        </div>
       </section>
 
-      <section id="paneStudy" class="pane pane-study" aria-label="주석 · 찬송 · 설교 노트">
-        <div class="study-tabs" style="grid-template-columns: repeat(5, 1fr);">
-          <button type="button" class="study-tab active" data-study-tab="commentary">📚 12대 주석</button>
-          <button type="button" class="study-tab" data-study-tab="crossref">🔗 연결 말씀</button>
-          <button type="button" class="study-tab" data-study-tab="worship">🎵 찬송·교독문</button>
-          <button type="button" class="study-tab" data-study-tab="strongs">🔤 원어 뜻</button>
-          <button type="button" class="study-tab" data-study-tab="studio">✍️ 설교 노트</button>
+      <!-- Mode 2: 예배 · 찬송 -->
+      <section id="viewWorship" class="mode-view" data-view="worship" data-has-detail="false" aria-label="예배와 찬송">
+        <div class="worship-shell">
+          <div class="worship-top">
+            <div id="worshipSubTabs" class="worship-subtabs" role="tablist" aria-label="예배 자료 선택">
+              <button type="button" class="worship-tab" role="tab" data-worship-tab="liturgy" aria-selected="true">예배 예전</button>
+              <button type="button" class="worship-tab" role="tab" data-worship-tab="hymns" aria-selected="false">찬송가</button>
+              <button type="button" class="worship-tab" role="tab" data-worship-tab="responsive" aria-selected="false">교독문</button>
+              <button type="button" class="worship-tab" role="tab" data-worship-tab="templates" aria-selected="false">예배 순서</button>
+            </div>
+
+            <div id="worshipSearchWrap" class="worship-search-wrap">
+              <svg class="icon worship-search-icon" aria-hidden="true"><use href="#icon-search" /></svg>
+              <input id="worshipSearchInput" type="search" class="input-field worship-search-input" placeholder="찬송가 번호·제목 또는 교독문·주제로 찾기 (예: 305장, 시편 23)" aria-label="예배와 찬송 찾기" />
+            </div>
+
+            <div id="worshipFilterBar" class="filter-strip worship-filter-bar" aria-label="예배 자료 분류"></div>
+          </div>
+
+          <div class="worship-scroll">
+            <div id="worshipListContainer" class="worship-container"></div>
+            <div id="worshipDetailContainer" class="worship-container"></div>
+          </div>
         </div>
-        <div id="studyBody" class="pane-scroll"></div>
+      </section>
+
+      <!-- Mode 3: 설교 준비 -->
+      <section id="viewSermon" class="mode-view" data-view="sermon" aria-label="설교 준비">
+        <div class="sermon-toolbar" role="region" aria-label="설교 관리 도구">
+          <div class="sermon-toolbar-group">
+            <label for="sermonSelect" class="sr-only">설교 선택</label>
+            <select id="sermonSelect" class="select-field sermon-select" aria-label="저장된 설교 선택"></select>
+            <button id="btnNewSermon" type="button" class="btn btn-primary">
+              <svg class="icon" aria-hidden="true"><use href="#icon-plus" /></svg>
+              <span>새 설교</span>
+            </button>
+            <button id="btnDuplicateSermon" type="button" class="btn btn-secondary">복제</button>
+            <button id="btnDeleteSermon" type="button" class="btn btn-danger">
+              <svg class="icon" aria-hidden="true"><use href="#icon-trash" /></svg>
+              <span>삭제</span>
+            </button>
+          </div>
+
+          <div class="sermon-toolbar-group sermon-toolbar-actions">
+            <span id="sermonSaveStatus" class="save-status-badge" aria-live="polite">자동 저장 준비됨</span>
+            <button id="btnSermonPrint" type="button" class="btn btn-secondary">
+              <svg class="icon" aria-hidden="true"><use href="#icon-print" /></svg>
+              <span>큰 글씨 인쇄</span>
+            </button>
+            <button id="btnSermonExportMd" type="button" class="btn btn-secondary">
+              <svg class="icon" aria-hidden="true"><use href="#icon-download" /></svg>
+              <span>문서 내보내기</span>
+            </button>
+            <button id="btnSermonBackupJson" type="button" class="btn btn-secondary">
+              <svg class="icon" aria-hidden="true"><use href="#icon-download" /></svg>
+              <span>전체 백업</span>
+            </button>
+            <button id="btnSermonRestoreJson" type="button" class="btn btn-secondary">
+              <svg class="icon" aria-hidden="true"><use href="#icon-upload" /></svg>
+              <span>백업 복원</span>
+            </button>
+            <input id="sermonRestoreInput" type="file" accept=".json,application/json" hidden />
+            <button id="btnSermonPulpit" type="button" class="btn btn-warm" data-action="open-pulpit">
+              <svg class="icon" aria-hidden="true"><use href="#icon-pulpit" /></svg>
+              <span>강단 화면</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="sermon-workspace">
+          <section id="sermonEditorPane" class="sermon-editor-pane" aria-label="설교 원고 작성"></section>
+          <aside id="sermonClipsPane" class="sermon-clips-pane" aria-label="담아둔 말씀과 주석"></aside>
+        </div>
       </section>
     </main>
 
-    <!-- 모바일 대응 하단 전환 바 -->
-    <nav class="mobile-nav" aria-label="화면 전환">
-      <button type="button" class="btn btn-primary" data-mobile-pane="paneScripture">📖 성경 읽기</button>
-      <button type="button" class="btn" data-mobile-pane="paneStudy">📚 주석 · 찬송 · 설교</button>
+    <!-- 3. Mobile 4-Mode Bottom Navigation -->
+    <nav id="mobileNav" class="mobile-nav" aria-label="주요 화면 전환">
+      <button type="button" class="mobile-nav-btn" data-action="set-mode" data-mode-target="bible" aria-current="page">
+        <svg class="icon" aria-hidden="true"><use href="#icon-bible" /></svg>
+        <span>성경·주석</span>
+      </button>
+      <button type="button" class="mobile-nav-btn" data-action="set-mode" data-mode-target="worship">
+        <svg class="icon" aria-hidden="true"><use href="#icon-worship" /></svg>
+        <span>예배·찬송</span>
+      </button>
+      <button type="button" class="mobile-nav-btn" data-action="set-mode" data-mode-target="sermon">
+        <svg class="icon" aria-hidden="true"><use href="#icon-sermon" /></svg>
+        <span>설교 준비</span>
+      </button>
+      <button id="btnPulpitMobile" type="button" class="mobile-nav-btn mobile-nav-pulpit" data-action="open-pulpit">
+        <svg class="icon" aria-hidden="true"><use href="#icon-pulpit" /></svg>
+        <span>강단 화면</span>
+      </button>
     </nav>
   </div>
 
-  <!-- 성경 66권 · 장 고르기 쉬운 큰 모달 -->
-  <div id="pickerModal" class="modal-overlay" role="dialog" aria-modal="true" aria-label="성경과 장 고르기">
-    <div class="modal-box">
+  <!-- Modal 1: 성경 66권 및 장 고르기 -->
+  <div id="pickerModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="pickerModalTitle" data-open="false" aria-hidden="true">
+    <div class="modal-box modal-box-wide">
       <div class="modal-head">
-        <h2 id="pickerTitle">1단계: 읽으실 성경을 눌러주세요</h2>
-        <button id="btnClosePicker" type="button" class="btn">닫기 ✕</button>
+        <h2 id="pickerModalTitle" class="modal-title">성경과 장 고르기</h2>
+        <button type="button" class="btn btn-ghost modal-close" aria-label="성경 고르기 닫기">
+          <svg class="icon" aria-hidden="true"><use href="#icon-close" /></svg>
+          <span>닫기</span>
+        </button>
       </div>
-      <div class="modal-body">
-        <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
-          <button type="button" class="btn btn-primary" data-picker-test="OT">구약 성경 (39권)</button>
-          <button type="button" class="btn" data-picker-test="NT">신약 성경 (27권)</button>
-          <button id="btnBackToBooks" type="button" class="btn" style="display:none;margin-left:auto;">◀ 성경 목록으로</button>
-        </div>
-        <div id="pickerGrid"></div>
-      </div>
+      <div id="pickerBody" class="modal-body"></div>
     </div>
   </div>
 
-  <!-- 내 성경(개역개정 등) 로컬 불러오기 모달 (100% 내 PC 브라우저에만 저장) -->
-  <div id="bibleImportModal" class="modal-overlay" role="dialog" aria-modal="true" aria-label="내 성경 역본 불러오기">
-    <div class="modal-box" style="max-width:680px;">
+  <!-- Modal 2: 역본 설정 및 개인 성경·찬송 불러오기 -->
+  <div id="versionModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="versionModalTitle" data-open="false" aria-hidden="true">
+    <div class="modal-box modal-box-medium">
       <div class="modal-head">
-        <h2>📂 내 성경 역본 불러오기 (개역개정 · 새번역 등)</h2>
-        <button id="btnCloseBibleImport" type="button" class="btn">닫기 ✕</button>
+        <h2 id="versionModalTitle" class="modal-title">성경 역본 설정</h2>
+        <button type="button" class="btn btn-ghost modal-close" aria-label="역본 설정 닫기">
+          <svg class="icon" aria-hidden="true"><use href="#icon-close" /></svg>
+          <span>닫기</span>
+        </button>
       </div>
       <div class="modal-body">
-        <div class="card" style="background:var(--surface-soft);">
-          <h3 style="margin-top:0;">저작권 안전 안내 (100% 내 PC에만 저장)</h3>
-          <p style="font-size:15.5px;line-height:1.7;">
-            <strong>개역개정(GAE)</strong>·새번역 등은 대한성서공회 저작권 보호 역본이므로 공개 웹에 직접 올리지 않습니다.
-            개인적으로 소장하신 성경 텍스트(<code>.txt</code>) 또는 <code>.json</code> 파일을 아래에서 불러오시면
-            <strong>외부 서버로 전송되지 않고 내 컴퓨터 브라우저에만 안전하게 저장</strong>되어,
-            개역한글·영어·원어 성경과 나란히 대조해 읽으실 수 있습니다.
-          </p>
-        </div>
-
         <div class="card">
-          <h3>새 역본 파일 불러오기</h3>
-          <label style="display:block;font-weight:700;margin-bottom:6px;">역본 이름 (예: 개역개정, 새번역)</label>
-          <input id="customBibleNameInput" type="text" class="input-lg" value="개역개정 (내 파일)" style="margin-bottom:12px;" />
-          <label style="display:block;font-weight:700;margin-bottom:6px;">성경 파일 선택 (<code>.txt</code> 또는 <code>.json</code>)</label>
-          <p style="font-size:14px;color:var(--text-muted);margin-bottom:10px;">
-            지원 형식: 한 줄에 한 절씩 <code>창1:1 태초에 하나님이 천지를 창조하시니라</code> 또는 <code>창세기 1:1 ...</code> 또는 <code>GEN 1:1 ...</code>, 혹은 JSON 형식
-          </p>
-          <input id="customBibleFileInput" type="file" accept=".txt,.json" style="font-size:16px;margin-bottom:12px;width:100%;" />
-          <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <button id="btnDoBibleImport" type="button" class="btn btn-primary">📥 이 파일 불러와 저장하기</button>
+          <div class="card-header">
+            <h3>읽기 역본 및 대조 역본</h3>
           </div>
-          <p id="bibleImportStatus" style="margin-top:10px;font-weight:700;color:var(--primary);"></p>
+          <div class="form-stack">
+            <div class="form-field">
+              <label for="primaryVersionSelect" class="field-label">기본으로 읽을 성경</label>
+              <select id="primaryVersionSelect" class="select-field"></select>
+            </div>
+            <div class="form-field">
+              <label for="parallelVersionSelect" class="field-label">아래에 나란히 비교할 성경 (선택)</label>
+              <select id="parallelVersionSelect" class="select-field"></select>
+            </div>
+          </div>
         </div>
 
         <div class="card">
-          <h3>내 PC에 저장된 역본 목록</h3>
-          <div id="customBibleList"></div>
+          <div class="card-header">
+            <h3>내 성경 파일 가져오기</h3>
+          </div>
+          <p class="card-note">
+            <strong>개역개정 · 개역한글 · 새번역</strong> 전 66권이 기본 내장되어 바로 대조해 읽으실 수 있습니다.
+            개인적으로 소장하신 다른 역본 문서 파일(메모장 파일)이 있으시면 아래에서 추가로 불러오실 수 있으며,
+            불러온 파일은 외부로 전송되지 않고 <strong>목사님 기기 안에만 안전하게 보관</strong>됩니다.
+          </p>
+          <div class="form-field">
+            <label for="customBibleFileInput" class="field-label">내 성경 문서 파일 선택</label>
+            <input id="customBibleFileInput" type="file" class="input-field file-input" accept=".txt,.json,text/plain,application/json" />
+          </div>
+          <div id="customBibleList" class="saved-file-list"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h3>내 찬송가 가사 파일 가져오기</h3>
+          </div>
+          <p class="card-note">
+            개인 소장 찬송가 가사 문서 파일을 불러오시면 찬송가 화면과 강단 큰 화면에서 인터넷 없이도 바로 보실 수 있습니다.
+          </p>
+          <div class="form-field">
+            <label for="customHymnFileInput" class="field-label">내 찬송가 문서 파일 선택</label>
+            <input id="customHymnFileInput" type="file" class="input-field file-input" accept=".txt,.json,text/plain,application/json" />
+          </div>
+          <div id="customHymnList" class="saved-file-list"></div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- 쉬운 사용 안내 모달 -->
-  <div id="helpModal" class="modal-overlay" role="dialog" aria-modal="true" aria-label="쉬운 사용 안내">
-    <div class="modal-box" style="max-width:640px;">
+  <!-- Modal 3: 쉬운 사용 안내 -->
+  <div id="helpModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="helpModalTitle" data-open="false" aria-hidden="true">
+    <div class="modal-box modal-box-medium">
       <div class="modal-head">
-        <h2>쉬운 사용 안내</h2>
-        <button id="btnCloseHelp" type="button" class="btn">닫기 ✕</button>
+        <h2 id="helpModalTitle" class="modal-title">쉬운 사용 안내</h2>
+        <button type="button" class="btn btn-ghost modal-close" aria-label="사용 안내 닫기">
+          <svg class="icon" aria-hidden="true"><use href="#icon-close" /></svg>
+          <span>닫기</span>
+        </button>
       </div>
       <div class="modal-body">
         <div class="card">
-          <h3>1. 다역본 성경 대조 읽기 &amp; 내 개역개정 추가</h3>
-          <p>상단 역본 선택기에서 <strong>개역한글 · 현대영어(BSB) · 킹제임스(KJV) · 히브리어/헬라어 원문</strong>을 나란히 비교할 수 있습니다. <strong>[📂 내 성경(개역개정) 추가]</strong>로 개인 소장 개역개정 파일을 불러와 바로 읽으실 수 있습니다.</p>
+          <div class="card-header">
+            <h3>1. 큰 글씨로 성경 읽고 비교하기</h3>
+          </div>
+          <p>
+            위쪽 <strong>가- / 가+</strong> 버튼으로 본문과 주석 글자 크기를 4단계로 키울 수 있으며, 선택한 크기와 마지막 읽던 곳은 자동으로 기억됩니다.
+            <strong>역본</strong> 버튼을 누르면 기본 내장된 <strong>개역개정 · 개역한글 · 새번역</strong> 성경과 개인 소장 성경 파일을 자유롭게 선택해 나란히 대조해 읽으실 수 있습니다.
+          </p>
         </div>
+
         <div class="card">
-          <h3>2. 12대 한글 주석 + 전 66권 실시간 공식 원문 주석</h3>
-          <p>성경 <strong>31,102절 어느 절을 눌러도</strong> 12대 한글 요약 주석과 함께, 아래쪽 <strong>매튜 헨리·존 칼빈·JFB·아담 클라크·카일&amp;델리취·틴데일·TSK 관주</strong> 공식 원문 주석을 실시간으로 바로 열람하실 수 있습니다.</p>
+          <div class="card-header">
+            <h3>2. 핵심 말씀 참고 요약과 고전 영문 주석</h3>
+          </div>
+          <p>
+            성경 절을 누르면 오른쪽에 핵심 말씀 참고 요약, 연결 말씀, 원어 풀이가 나타납니다.
+            원하실 때 <strong>고전 영문 주석 원문 불러오기</strong> 버튼을 눌러 추가 참고 자료를 보실 수도 있습니다.
+          </p>
         </div>
+
         <div class="card">
-          <h3>3. 새찬송가 1~645장 전체 &amp; 교독문 큰 화면</h3>
-          <p><strong>[🎵 찬송·교독문]</strong> 탭에서 새찬송가 <strong>1장부터 645장 전곡</strong>을 번호·제목·주제별로 찾고, 개인 찬송가 가사 파일도 불러올 수 있습니다. 교독문은 <strong>사회자·회중</strong> 큰 글씨와 강단 화면을 지원합니다.</p>
+          <div class="card-header">
+            <h3>3. 예배 예전 · 찬송가 · 교독문 · 예배 순서</h3>
+          </div>
+          <p>
+            <strong>예배 · 찬송</strong> 화면에서 사도신경, 주기도문, 성찬 예식, 축도와 645곡 새찬송가 색인, 137편 교독문, 주일 예배 순서를 한곳에서 준비하고 바로 <strong>강단 화면</strong>으로 띄울 수 있습니다.
+          </p>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h3>4. 강단 화면 단축키 안내</h3>
+          </div>
+          <p>
+            강단 화면에서는 프레젠터 리모컨이나 키보드 <strong>오른쪽 화살표 · 스페이스바</strong>로 다음 대지, <strong>왼쪽 화살표</strong>로 이전 대지, <strong>+ / -</strong>로 글자 크기 조절, <strong>ESC</strong>로 나가실 수 있습니다.
+          </p>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- 강단 큰 화면 프롬프터 (검정 바탕 · 흰 글씨 · 40pt 기본) -->
-  <div id="pulpitOverlay" class="pulpit-overlay" role="dialog" aria-modal="true" aria-label="강단 큰 화면 모드">
-    <div class="pulpit-bar">
-      <span id="pulpitProgress" style="font-size:20px;font-weight:800;color:#fbbf24;">1 / 1</span>
-      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-        <button id="btnPulpitSmaller" type="button" class="btn btn-sm">글자 작게</button>
-        <button id="btnPulpitBigger" type="button" class="btn btn-sm">글자 크게</button>
-        <span id="pulpitTimer" style="font-size:26px;font-weight:800;font-family:monospace;color:#fbbf24;">30:00</span>
-        <button id="btnTimerToggle" type="button" class="btn btn-sm">일시정지</button>
-        <button id="btnPulpitClose" type="button" class="btn btn-accent btn-sm">강단 화면 닫기</button>
+  <!-- Modal 4: 안전한 삭제 확인 -->
+  <div id="confirmModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="confirmModalTitle" data-open="false" aria-hidden="true">
+    <div class="modal-box modal-box-compact">
+      <div class="modal-head">
+        <h2 id="confirmModalTitle" class="modal-title">한 번 더 확인해 주세요</h2>
+        <button type="button" class="btn btn-ghost modal-close" aria-label="확인 창 닫기">
+          <svg class="icon" aria-hidden="true"><use href="#icon-close" /></svg>
+          <span>닫기</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p id="confirmMessage" class="confirm-message"></p>
+      </div>
+      <div class="modal-footer">
+        <button id="btnConfirmCancel" type="button" class="btn btn-secondary">취소</button>
+        <button id="btnConfirmOk" type="button" class="btn btn-danger">확인하고 삭제</button>
       </div>
     </div>
-    <div class="pulpit-stage">
-      <div class="pulpit-zones">
-        <div id="pulpitPrevZone" class="pulpit-zone" title="이전 페이지"></div>
-        <div id="pulpitNextZone" class="pulpit-zone" title="다음 페이지"></div>
+  </div>
+
+  <!-- 4. Zero-Glare Pulpit Presentation Overlay -->
+  <div id="pulpitOverlay" class="pulpit-overlay" role="dialog" aria-modal="true" aria-label="강단 큰 화면" data-open="false" aria-hidden="true">
+    <div class="pulpit-progress-track" aria-hidden="true">
+      <div id="pulpitProgressBar" class="pulpit-progress-bar"></div>
+    </div>
+
+    <div class="pulpit-bar">
+      <div class="pulpit-bar-left">
+        <span id="pulpitProgress" class="pulpit-progress-text">1 / 1</span>
+        <span id="pulpitTimer" class="pulpit-timer" data-warning="false" data-overtime="false">30:00</span>
+        <button id="btnPulpitTimerToggle" type="button" class="pulpit-btn">일시정지</button>
+        <button id="btnPulpitTimerReset" type="button" class="pulpit-btn">초기화</button>
       </div>
+      <div class="pulpit-bar-right">
+        <button id="btnPulpitSmaller" type="button" class="pulpit-btn" aria-label="강단 글자 작게">가- 작게</button>
+        <button id="btnPulpitBigger" type="button" class="pulpit-btn" aria-label="강단 글자 크게">가+ 크게</button>
+        <button id="btnPulpitFullscreen" type="button" class="pulpit-btn">전체 화면</button>
+        <button id="btnPulpitExit" type="button" class="pulpit-btn pulpit-btn-accent">
+          <svg class="icon" aria-hidden="true"><use href="#icon-close" /></svg>
+          <span>나가기</span>
+        </button>
+      </div>
+    </div>
+
+    <div id="pulpitStage" class="pulpit-stage" data-slide-dir="none" tabindex="0">
       <div class="pulpit-content">
         <h1 id="pulpitTitle" class="pulpit-title"></h1>
         <div id="pulpitBody" class="pulpit-body"></div>
+        <p id="pulpitNextHint" class="pulpit-next-hint"></p>
       </div>
     </div>
+
     <div class="pulpit-footer">
-      <button id="btnPulpitPrev" type="button" class="btn">◀ 이전 대지</button>
-      <button id="btnPulpitNext" type="button" class="btn btn-accent">다음 대지 ▶</button>
+      <button id="btnPulpitPrev" type="button" class="pulpit-btn pulpit-nav-btn">
+        <svg class="icon" aria-hidden="true"><use href="#icon-chevron-left" /></svg>
+        <span>이전 대지</span>
+      </button>
+      <button id="btnPulpitNext" type="button" class="pulpit-btn pulpit-nav-btn pulpit-btn-accent">
+        <span>다음 대지</span>
+        <svg class="icon" aria-hidden="true"><use href="#icon-chevron-right" /></svg>
+      </button>
     </div>
   </div>
 
-  <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <script type="module" src="./js/app.js"></script>
+  <!-- Toast Status Notification -->
+  <div id="toast" class="toast" data-open="false" role="status" aria-live="polite"></div>
+
+  <!-- Dedicated A4 Large-Print Sheet (hidden on screen, shown in @media print) -->
+  <div id="printSheet" class="print-sheet" aria-hidden="true"></div>
+
+  <script type="module" src="./js/main.js"></script>
 </body>
 </html>

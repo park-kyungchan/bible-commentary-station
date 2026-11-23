@@ -1,0 +1,52 @@
+name: Weekly Operational Health Check
+
+on:
+  schedule:
+    # Every Monday 02:00 UTC (11:00 KST)
+    - cron: "0 2 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  health-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run Operational Health Probes
+        id: probe
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          python3 -m bible_station.health_check --report-out /tmp/health-report.md
+
+      - name: Report or Resolve Deduplicated ops-health Issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PROBE_OUTCOME: ${{ steps.probe.outcome }}
+        run: |
+          set -o pipefail
+          ISSUE_NUM=$(gh issue list --label "ops-health" --state open --json number --jq '.[0].number // ""')
+          if [ "$PROBE_OUTCOME" != "success" ]; then
+            gh label create "ops-health" --color "B60205" --description "Automated operational health alerts" 2>/dev/null || true
+            if [ -n "$ISSUE_NUM" ]; then
+              gh issue comment "$ISSUE_NUM" --body-file /tmp/health-report.md
+            else
+              gh issue create --title "[ops-health] Weekly Operational Health Check Failed" --label "ops-health" --body-file /tmp/health-report.md
+            fi
+            exit 1
+          else
+            if [ -n "$ISSUE_NUM" ]; then
+              gh issue comment "$ISSUE_NUM" --body-file /tmp/health-report.md
+              gh issue close "$ISSUE_NUM" --reason completed
+            fi
+          fi

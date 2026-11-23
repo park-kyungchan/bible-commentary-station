@@ -1,0 +1,81 @@
+[
+  {
+    "id": "sunday-morning",
+    "title": "주일 오전예배",
+    "description": "전통 한국 개신교 주일 낮 대예배 표준 순서 (기원찬양 · 사도신경 · 교독문 · 말씀 · 봉헌 · 축도)",
+    "slots": [
+      { "order": 1, "label": "기원 찬양", "slotType": "hymn", "defaultRef": "hymn:23" },
+      { "order": 2, "label": "신앙고백 (사도신경)", "slotType": "liturgy", "defaultRef": "liturgy:apostles-creed-ecumenical" },
+      { "order": 3, "label": "경배 찬송", "slotType": "hymn", "defaultRef": "hymn:28" },
+      { "order": 4, "label": "교독문", "slotType": "responsive", "defaultRef": "responsive:1" },
+      { "order": 5, "label": "대표기도", "slotType": "prayer" },
+      { "order": 6, "label": "주기도문", "slotType": "liturgy", "defaultRef": "liturgy:lords-prayer-ecumenical" },
+      { "order": 7, "label": "성경봉독", "slotType": "scripture", "defaultRef": "PSA 23:1-6" },
+      { "order": 8, "label": "말씀선포", "slotType": "sermon" },
+      { "order": 9, "label": "봉헌 찬송", "slotType": "hymn", "defaultRef": "hymn:213" },
+      { "order": 10, "label": "송영 찬송", "slotType": "hymn", "defaultRef": "hymn:620" },
+      { "order": 11, "label": "축도", "slotType": "liturgy", "defaultRef": "liturgy:benediction-pauline" }
+    ]
+  },
+  {
+    "id": "sunday-afternoon",
+    "title": "주일 오후예배",
+    "description": "찬양과 말씀, 합심기도와 결단으로 드리는 주일 오후·찬양예배 순서",
+    "slots": [
+      { "order": 1, "label": "묵도 및 기원", "slotType": "note" },
+      { "order": 2, "label": "경배 찬송", "slotType": "hymn", "defaultRef": "hymn:64" },
+      { "order": 3, "label": "합심기도", "slotType": "prayer" },
+      { "order": 4, "label": "성경봉독", "slotType": "scripture", "defaultRef": "ROM 8:1-8" },
+      { "order": 5, "label": "말씀선포", "slotType": "sermon" },
+      { "order": 6, "label": "결단 찬송", "slotType": "hymn", "defaultRef": "hymn:323" },
+      { "order": 7, "label": "축도", "slotType": "liturgy", "defaultRef": "liturgy:benediction-pauline" }
+    ]
+  },
+  {
+    "id": "communion-service",
+    "title": "성찬예배",
+    "description": "성찬 제정의 말씀과 분병·분잔이 포함된 성찬 주일예배 순서",
+    "slots": [
+      { "order": 1, "label": "신앙고백 (사도신경)", "slotType": "liturgy", "defaultRef": "liturgy:apostles-creed-ecumenical" },
+      { "order": 2, "label": "찬송", "slotType": "hymn", "defaultRef": "hymn:144" },
+      { "order": 3, "label": "성찬 교독문", "slotType": "responsive", "defaultRef": "responsive:92" },
+      { "order": 4, "label": "대표기도", "slotType": "prayer" },
+      { "order": 5, "label": "성경봉독", "slotType": "scripture", "defaultRef": "1CO 11:23-26" },
+      { "order": 6, "label": "말씀선포", "slotType": "sermon" },
+      { "order": 7, "label": "성찬 예식 (제정의 말씀)", "slotType": "liturgy", "defaultRef": "liturgy:communion-institution" },
+      { "order": 8, "label": "성찬 찬송", "slotType": "hymn", "defaultRef": "hymn:252" },
+      { "order": 9, "label": "축도", "slotType": "liturgy", "defaultRef": "liturgy:benediction-hebrews" }
+    ]
+  },
+  {
+    "id": "seasonal-service",
+    "title": "절기예배",
+    "description": "성탄절 · 부활절 · 추수감사절 등 교회 절기 감사예배 표준 순서",
+    "slots": [
+      { "order": 1, "label": "절기 경배 찬송", "slotType": "hymn", "defaultRef": "hymn:115" },
+      { "order": 2, "label": "신앙고백 (사도신경)", "slotType": "liturgy", "defaultRef": "liturgy:apostles-creed-ecumenical" },
+      { "order": 3, "label": "절기 교독문", "slotType": "responsive", "defaultRef": "responsive:119" },
+      { "order": 4, "label": "감사 대표기도", "slotType": "prayer" },
+      { "order": 5, "label": "절기 찬송", "slotType": "hymn", "defaultRef": "hymn:109" },
+      { "order": 6, "label": "성경봉독", "slotType": "scripture", "defaultRef": "LUK 2:8-14" },
+      { "order": 7, "label": "절기 말씀선포", "slotType": "sermon" },
+      { "order": 8, "label": "감사 봉헌 찬송", "slotType": "hymn", "defaultRef": "hymn:587" },
+      { "order": 9, "label": "축도", "slotType": "liturgy", "defaultRef": "liturgy:benediction-aaronic" }
+    ]
+  },
+  {
+    "id": "dedication-midweek",
+    "title": "헌신예배·수요기도회",
+    "description": "기관 헌신예배 및 수요 기도회를 위한 간결한 말씀·기도·헌신 순서",
+    "slots": [
+      { "order": 1, "label": "묵도", "slotType": "note" },
+      { "order": 2, "label": "찬송", "slotType": "hymn", "defaultRef": "hymn:364" },
+      { "order": 3, "label": "대표기도", "slotType": "prayer" },
+      { "order": 4, "label": "성경봉독", "slotType": "scripture", "defaultRef": "MAT 28:18-20" },
+      { "order": 5, "label": "말씀선포", "slotType": "sermon" },
+      { "order": 6, "label": "헌신 · 봉헌 찬송", "slotType": "hymn", "defaultRef": "hymn:212" },
+      { "order": 7, "label": "합심 및 봉헌기도", "slotType": "prayer" },
+      { "order": 8, "label": "축도", "slotType": "liturgy", "defaultRef": "liturgy:benediction-pauline" }
+    ]
+  }
+]

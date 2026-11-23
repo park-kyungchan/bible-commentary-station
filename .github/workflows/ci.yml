@@ -1,0 +1,100 @@
+name: Bible Commentary Station CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.12 (zero third-party runtime deps)
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Verify zero bs4 runtime dependency & package-data install
+        run: |
+          set -o pipefail
+          python3 -c "import importlib.util; assert importlib.util.find_spec('bs4') is None"
+          python3 -m pip install --no-deps --no-build-isolation .
+          python3 -c "from bible_station.catalog_worship import get_worship_catalog; c = get_worship_catalog(); assert len(c['hymns']) == 645 and len(c['responsiveReadings']) == 137 and len(c['liturgies']) >= 6"
+
+      - name: Build SQLite Dual-FTS5 DB, Deterministic Web Exports & Zero-Cost Bundle
+        run: |
+          set -o pipefail
+          python3 -m bible_station.cli build --export-web --export-bundle
+          python3 -m bible_station.cli build --db-path /tmp/bcs-det1.db --web-data-dir /tmp/bcs-det1 --export-web
+          python3 -m bible_station.cli build --db-path /tmp/bcs-det2.db --web-data-dir /tmp/bcs-det2 --export-web
+          diff -rq /tmp/bcs-det1 /tmp/bcs-det2
+
+      - name: Verify SQLite .db.gz Read-Only Integrity & 5-Table FTS5
+        run: |
+          set -o pipefail
+          python3 -c "
+          import gzip, json, os, shutil, sqlite3, tempfile
+          from pathlib import Path
+          d = Path(tempfile.mkdtemp()); ro = d / 'ro'; rw = d / 'rw'; ro.mkdir(); rw.mkdir()
+          out_ro = ro / 'core.db'; out_rw = rw / 'core.db'
+          with gzip.open('dist/bible_pastoral_core.db.gz', 'rb') as f, open(out_ro, 'wb') as o:
+              shutil.copyfileobj(f, o)
+          shutil.copy2(out_ro, out_rw)
+          assert out_ro.read_bytes()[18:20] == b'\x01\x01'
+          os.chmod(out_ro, 0o444); os.chmod(ro, 0o555)
+          con = sqlite3.connect(f'file:{out_ro}?mode=ro', uri=True)
+          assert con.execute('PRAGMA integrity_check').fetchone()[0] == 'ok'
+          assert con.execute('PRAGMA freelist_count').fetchone()[0] == 0
+          cnt = con.execute('SELECT COUNT(*) FROM bible_verses').fetchone()[0]
+          mf = json.load(open('dist/release_manifest.json'))
+          assert cnt == mf['actual_record_counts']['bible_verses'] == 31102
+          con.close()
+          con_rw = sqlite3.connect(str(out_rw))
+          for fts in ['fts_bible_verses_unicode','fts_bible_verses_trigram','fts_commentaries_unicode','fts_commentaries_trigram','fts_strong_lexicon']:
+              con_rw.execute(f\"INSERT INTO {fts}({fts}) VALUES('integrity-check')\")
+          con_rw.close()
+          "
+
+      - name: Run Python Unit Tests & Non-Mutating Engineering Harness
+        run: |
+          set -o pipefail
+          python3 -m unittest discover -s tests -p 'test_suite.py' -v
+          python3 tests/run_harness.py
+          test -z "$(git status --porcelain docs/HARNESS_REPORT.md)"
+
+      - name: Enforce web/data Allowlist, Corpus Validation & Zero PII/Watermark Guardrail
+        run: |
+          set -o pipefail
+          python3 -m bible_station.cli validate --web-data-dir web/data
+          python3 -c "
+          import json
+          from pathlib import Path
+          mf = json.loads(Path('web/data/manifest.json').read_text(encoding='utf-8'))
+          allowed_dirs = {v['id'] for v in mf['versions']} | {'search'}
+          actual_dirs = {p.name for p in Path('web/data').iterdir() if p.is_dir()}
+          assert actual_dirs == allowed_dirs == {'nkrv', 'krv', 'rnksv', 'search'}, f'Unexpected web/data dirs: {actual_dirs}'
+          assert not (Path('web/data') / 'nrsv').exists()
+          "
+          ! grep -rnE '복령교회|박우호|cwy0675' bible_station/ web/data/ web/index.html web/js/
+
+      - name: Setup Node.js v24 & Run Web Module Checks
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Verify JS Syntax & Web Contract Tests
+        run: |
+          set -o pipefail
+          for f in $(find web/js -name '*.js') web/sw.js; do node --check "$f"; done
+          if ls tests/web/*.test.js >/dev/null 2>&1; then
+            SW_STRICT_DISK=1 node --test tests/web/*.test.js
+          fi
