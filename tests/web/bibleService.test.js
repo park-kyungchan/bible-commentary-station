@@ -269,7 +269,7 @@ test('worship.json carries usageTiming and pastoralNote on all 645 hymns and >= 
       publicLyricsCount += 1;
     }
   }
-  assert.ok(publicLyricsCount >= 25, `Expected >= 25 hymns with publicLyrics, got ${publicLyricsCount}`);
+  assert.equal(publicLyricsCount, 645, `Expected all 645 hymns with publicLyrics, got ${publicLyricsCount}`);
 
   const amazingGrace = hymns.find((h) => h.num === 305);
   assert.ok(amazingGrace?.publicLyrics?.includes('\n\n'), 'Hymn #305 must have multi-stanza publicLyrics');
@@ -320,14 +320,19 @@ test('worship.json carries usageTiming and pastoralNote on all 645 hymns and >= 
   try {
     const store = createStore(null);
     store.state.worshipTab = 'hymns';
-    store.state.worshipSearch = '305';
+    store.state.worshipSearch = '';
     const panel = createWorshipPanel({ store, service: { worship }, callbacks: {} });
+    panel.render();
+    assert.equal(listEl.children.length, 645);
+
+    store.state.worshipSearch = '305';
     panel.render();
     assert.ok(listEl.children.length >= 1);
     const firstCard = listEl.children[0];
     assert.ok(collectText(firstCard).includes('가사 내장'));
     assert.ok(collectText(firstCard).includes(amazingGrace.usageTiming));
     firstCard.listeners.click[0]();
+    assert.ok(detailEl.children.every((c) => c !== null && c !== undefined));
     const detailText = collectText(detailEl);
     assert.ok(detailText.includes(amazingGrace.pastoralNote));
     assert.ok(detailText.includes('4절 수록'));
@@ -335,6 +340,14 @@ test('worship.json carries usageTiming and pastoralNote on all 645 hymns and >= 
     assert.equal(deck.slides.length, 4);
     assert.ok(deck.slides[0].heading.includes('(1절)'));
     assert.ok(deck.slides[3].heading.includes('(4절)'));
+
+    const noDriveHymn = hymns.find((h) => !h.driveId);
+    assert.ok(noDriveHymn);
+    store.state.worshipSearch = String(noDriveHymn.num);
+    panel.render();
+    listEl.children[0].listeners.click[0]();
+    assert.ok(detailEl.children.every((c) => c !== null && c !== undefined));
+    assert.equal(collectText(detailEl).includes('인터넷 연결이 필요하거나'), false);
   } finally {
     globalThis.document = prevDoc;
   }
