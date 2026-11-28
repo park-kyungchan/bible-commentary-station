@@ -1,5 +1,15 @@
-import { bindTablistKeyboard, createModalManager, showToast } from './core/dom.js';
-import { createStore, FONT_STEPS } from './core/state.js';
+/**
+ * Bible Commentary Station v4.0 — Spatial Scriptorium Micro-Kernel Entrypoint
+ * Orchestrates 5 spatial lenses via Reactive Signals, Event Bus, Command Registry,
+ * Plugin Host, and Dual-Screen BroadcastChannel Sync.
+ */
+
+import { bindTablistKeyboard, createModalManager, el, showToast } from './core/dom.js';
+import { createStore, FONT_STEPS, THEMES } from './core/state.js';
+import { createEventBus } from './kernel/eventBus.js';
+import { createCommandRegistry } from './kernel/commandRegistry.js';
+import { createPluginHost } from './kernel/pluginHost.js';
+import { createBroadcastSync } from './kernel/broadcastSync.js';
 import { BibleDataService } from './services/bibleService.js';
 import { SermonArchiveStore } from './services/storage.js';
 import { createScriptureReader } from './features/scriptureReader.js';
@@ -12,12 +22,16 @@ import { createPulpitPrompter } from './features/pulpitPrompter.js';
 import { createBiblePickerModal } from './features/biblePickerModal.js';
 import { createVersionSettingsModal } from './features/versionSettingsModal.js';
 import { createBookmarksSearchPanel } from './features/bookmarksSearchPanel.js';
+import { createPolyglotMatrix } from './features/polyglotMatrix.js';
+import { createConstellationGraph } from './features/constellationGraph.js';
+import { createCommandPalette } from './features/commandPalette.js';
 
 function applyRootState(state) {
   const root = document.documentElement;
   root.dataset.theme = state.theme;
   root.dataset.fontStep = String(state.fontStepIndex);
   root.dataset.mode = state.mode;
+  root.dataset.zen = state.zenMode ? 'true' : 'false';
 
   const fontLabel = document.getElementById('fontSizeLabel');
   if (fontLabel) fontLabel.textContent = FONT_STEPS[state.fontStepIndex]?.label || '크게';
@@ -25,7 +39,12 @@ function applyRootState(state) {
   const incBtn = document.getElementById('btnFontInc');
   if (decBtn) decBtn.disabled = state.fontStepIndex <= 0;
   if (incBtn) incBtn.disabled = state.fontStepIndex >= FONT_STEPS.length - 1;
-  document.getElementById('btnThemeToggle')?.setAttribute('aria-pressed', state.theme === 'dark' ? 'true' : 'false');
+
+  const themeObj = THEMES.find((t) => t.id === state.theme) || THEMES[0];
+  const themeLabel = document.getElementById('themeCycleLabel');
+  if (themeLabel) themeLabel.textContent = themeObj.label.split(' ')[0];
+  document.getElementById('btnThemeToggle')?.setAttribute('aria-pressed', themeObj.dark ? 'true' : 'false');
+  document.getElementById('btnZenToggle')?.setAttribute('aria-pressed', state.zenMode ? 'true' : 'false');
 
   document.querySelectorAll('[data-action="set-mode"]').forEach((btn) => {
     if (btn.dataset.modeTarget === state.mode) btn.setAttribute('aria-current', 'page');
@@ -81,9 +100,46 @@ function registerServiceWorker() {
   }).catch(() => {});
 }
 
+function bootStageMirrorMode() {
+  document.documentElement.dataset.theme = 'sanctuary';
+  document.body.replaceChildren();
+  const stage = el(
+    'div',
+    { className: 'stage-mirror' },
+    el('div', { id: 'mirrorTitle', className: 'stage-mirror-title' }, '강단 보조 화면 대기 중'),
+    el('div', { id: 'mirrorBody', className: 'stage-mirror-body' }, '기본 창에서 [강단 화면]을 열면 본문과 대지가 실시간 동기화됩니다.')
+  );
+  document.body.appendChild(stage);
+
+  createBroadcastSync({
+    onMessage: (msg) => {
+      if (msg.type !== 'pulpit:sync') return;
+      const p = msg.payload || {};
+      stage.dataset.blackout = p.blackout ? 'true' : 'false';
+      stage.style.setProperty('--pulpit-font-pt', `${p.fontPt || 42}pt`);
+      const tEl = document.getElementById('mirrorTitle');
+      const bEl = document.getElementById('mirrorBody');
+      if (tEl) tEl.textContent = p.open ? (p.heading || '') : '강단 화면 대기 중';
+      if (bEl) {
+        const lines = String(p.open ? (p.body || '') : '기본 창에서 강단 화면을 시작해 주세요.').split('\n').filter(Boolean);
+        bEl.replaceChildren(...lines.map((l) => el('p', {}, l)));
+      }
+    },
+  });
+}
+
 async function initApp() {
+  if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('view') === 'stage') {
+    bootStageMirrorMode();
+    return;
+  }
+
   const store = createStore();
   const { state } = store;
+  const bus = createEventBus();
+  const registry = createCommandRegistry();
+  const pluginHost = createPluginHost({ bus });
+  const broadcast = createBroadcastSync();
   const service = new BibleDataService('./data');
   const modalManager = createModalManager();
   modalManager.bindGlobalEvents();
@@ -97,7 +153,7 @@ async function initApp() {
     },
   });
 
-  const pulpit = createPulpitPrompter({ store });
+  const pulpit = createPulpitPrompter({ store, broadcast });
   pulpit.bindEvents();
 
   let scriptureReader;
@@ -108,6 +164,9 @@ async function initApp() {
   let bookmarksSearch;
   let pickerModal;
   let versionModal;
+  let polyglotMatrix;
+  let constellationGraph;
+  let commandPalette;
 
   const setMobileStudy = (open) => {
     const pane = document.getElementById('paneStudy');
@@ -132,17 +191,41 @@ async function initApp() {
   }
 
   function setMode(nextMode) {
-    if (!['bible', 'worship', 'sermon'].includes(nextMode)) return;
+    if (!['bible', 'matrix', 'graph', 'worship', 'sermon'].includes(nextMode)) return;
     state.mode = nextMode;
+    store.signals.mode.set(nextMode);
     applyRootState(state);
-    if (nextMode === 'worship') worshipPanel.render();
-    else if (nextMode === 'sermon') sermonStudio.render();
+    pluginHost.activate(nextMode);
   }
 
-  const jumpToPassage = (osis, ch, vs) => {
-    setMode('bible');
+  function cycleTheme(explicitTheme = null) {
+    if (explicitTheme && THEMES.some((t) => t.id === explicitTheme)) {
+      state.theme = explicitTheme;
+    } else {
+      const idx = THEMES.findIndex((t) => t.id === state.theme);
+      state.theme = THEMES[(idx + 1) % THEMES.length].id;
+    }
+    store.signals.theme.set(state.theme);
+    store.savePrefs();
+    applyRootState(state);
+    const tObj = THEMES.find((t) => t.id === state.theme);
+    if (tObj) showToast(`테마 전환: ${tObj.label}`);
+  }
+
+  function toggleZenMode() {
+    state.zenMode = !state.zenMode;
+    store.signals.zenMode.set(state.zenMode);
+    store.savePrefs();
+    applyRootState(state);
+    showToast(state.zenMode ? '몰입 읽기(Zen) 모드를 켰습니다.' : '몰입 읽기 모드를 해제했습니다.');
+  }
+
+  const jumpToPassage = (osis, ch, vs, targetMode = 'bible') => {
+    setMode(targetMode);
     setMobileStudy(false);
-    scriptureReader.loadChapter(osis, ch, vs, { scrollToVerse: true });
+    scriptureReader.loadChapter(osis, ch, vs, { scrollToVerse: true }).then(() => {
+      if (state.mode === 'matrix') polyglotMatrix.render();
+    });
   };
 
   async function launchContextPulpit(triggerEl = null) {
@@ -155,10 +238,11 @@ async function initApp() {
     pulpit.open(sermonStudio.buildPulpitDeck(), triggerEl);
   }
 
+  // Instantiate Features
   scriptureReader = createScriptureReader({
     store, service,
     callbacks: {
-      onChapterLoaded: renderStudyPane,
+      onChapterLoaded: () => { renderStudyPane(); if (state.mode === 'matrix') polyglotMatrix.render(); },
       onVerseSelected: renderStudyPane,
       onClipVerse: (src, txt) => sermonStudio.addClip(src, txt),
       onOpenMobileStudy: () => { if (state.studyOverlay !== 'none') bookmarksSearch.closeOverlay(); setMobileStudy(true); renderStudyPane(); },
@@ -176,6 +260,9 @@ async function initApp() {
     service,
     callbacks: { onClip: (src, txt) => sermonStudio.addClip(src, txt), onJumpToPassage: jumpToPassage },
   });
+
+  polyglotMatrix = createPolyglotMatrix({ store, service, bus });
+  constellationGraph = createConstellationGraph({ store, service, bus });
 
   liturgyPanel = createLiturgyPanel({
     store, service, archive, modalManager,
@@ -204,11 +291,14 @@ async function initApp() {
   });
   sermonStudio.bindEvents();
 
-  pickerModal = createBiblePickerModal({ store, service, modalManager, callbacks: { onSelectChapter: jumpToPassage } });
+  pickerModal = createBiblePickerModal({ store, service, modalManager, callbacks: { onSelectChapter: (osis, ch, vs) => jumpToPassage(osis, ch, vs, state.mode === 'matrix' ? 'matrix' : 'bible') } });
   versionModal = createVersionSettingsModal({
     store, service, archive, modalManager,
     callbacks: {
-      onVersionChanged: () => scriptureReader.loadChapter(state.osis, state.chapter, state.selectedVerse),
+      onVersionChanged: () => {
+        scriptureReader.loadChapter(state.osis, state.chapter, state.selectedVerse);
+        if (state.mode === 'matrix') polyglotMatrix.render();
+      },
       onCustomHymnsChanged: () => { if (state.mode === 'worship') worshipPanel.renderListOnly(); },
     },
   });
@@ -219,16 +309,97 @@ async function initApp() {
     callbacks: { onOverlayClosed: renderStudyPane, onHighlightRemoved: (vid) => scriptureReader.syncHighlightDom(vid), onJumpToPassage: jumpToPassage },
   });
 
+  // Register 5 Spatial Lenses in Plugin Host
+  pluginHost.register({ id: 'bible', title: '몰입 서재', render: () => renderStudyPane() });
+  pluginHost.register({ id: 'matrix', title: '다중 역본 매트릭스', render: () => polyglotMatrix.render() });
+  pluginHost.register({ id: 'graph', title: '성경 지식 성좌도', render: () => constellationGraph.render() });
+  pluginHost.register({ id: 'worship', title: '예배 · 찬송', render: () => worshipPanel.render() });
+  pluginHost.register({ id: 'sermon', title: '설교 공방', render: () => sermonStudio.render() });
+
+  // Event Bus Wiring (Decoupled Cross-Lens Communication)
+  bus.on('passage:jump', ({ osis, chapter, verse, mode = 'bible' }) => jumpToPassage(osis, chapter, verse, mode));
+  bus.on('clip:add', ({ source, text }) => sermonStudio.addClip(source, text));
+  bus.on('picker:open', () => pickerModal.open());
+  bus.on('chapter:step', ({ dir }) => scriptureReader.stepChapter(dir));
+
+  // Register Universal Command Palette Actions
+  registry.register({ id: 'lens:bible', title: '몰입 서재 (성경 · 주석)', subtitle: '성경 본문과 12대 주석·원어 풀이', category: '공간 렌즈', shortcut: '1', icon: 'icon-bible', priority: 30, run: () => setMode('bible') });
+  registry.register({ id: 'lens:matrix', title: '다중 역본 매트릭스 (2~4열 대조)', subtitle: '23개 역본 중 최대 4종 동시 비교', category: '공간 렌즈', shortcut: '2', icon: 'icon-matrix', priority: 29, run: () => setMode('matrix') });
+  registry.register({ id: 'lens:graph', title: '성경 지식 성좌도 (Knowledge Graph)', subtitle: '상호 관주와 구속사 인물 축 시각화', category: '공간 렌즈', shortcut: '3', icon: 'icon-graph', priority: 28, run: () => setMode('graph') });
+  registry.register({ id: 'lens:worship', title: '예배 · 찬송 성소', subtitle: '예전 · 645찬송가 · 137교독문 · 95복음성가', category: '공간 렌즈', shortcut: '4', icon: 'icon-worship', priority: 27, run: () => setMode('worship') });
+  registry.register({ id: 'lens:sermon', title: '설교 공방 (Homiletics Studio)', subtitle: '실시간 시간 예측 · 대지 편집 · 인쇄/백업', category: '공간 렌즈', shortcut: '5', icon: 'icon-sermon', priority: 26, run: () => setMode('sermon') });
+  registry.register({ id: 'action:pulpit', title: '강단 텔레프롬프터 열기', subtitle: '무눈부심 OLED · 자동 스크롤 · 보조 화면 동기화', category: '강단', shortcut: 'P', icon: 'icon-pulpit', priority: 25, run: () => launchContextPulpit() });
+  registry.register({ id: 'action:zen', title: '몰입 읽기(Zen) 모드 전환', subtitle: '상단/보조 도구를 숨기고 성경 본문에만 집중', category: '보기', shortcut: 'Z', icon: 'icon-study', priority: 20, run: toggleZenMode });
+
+  for (const t of THEMES) {
+    registry.register({
+      id: `theme:${t.id}`,
+      title: `테마: ${t.label}`,
+      subtitle: t.desc,
+      category: '테마',
+      keywords: [t.id, '테마', '다크', '라이트', '색상'],
+      icon: t.dark ? 'icon-moon' : 'icon-sun',
+      priority: 12,
+      run: () => cycleTheme(t.id),
+    });
+  }
+
+  // Dynamic Command Providers (645 Hymns, 137 Responsive Readings, 66 Books)
+  registry.registerProvider((raw, norm) => {
+    if (!norm) return [];
+    const out = [];
+    const hymns = service.worship?.hymns || [];
+    for (const h of hymns) {
+      if (String(h.num) === raw.replace(/[^0-9]/g, '') || String(h.title || '').includes(raw)) {
+        out.push({
+          id: `hymn:${h.num}`,
+          title: `새찬송가 ${h.num}장 · ${h.title}`,
+          subtitle: `${h.category || '찬송가'} · 예배 화면에서 바로 열기`,
+          category: '찬송가',
+          icon: 'icon-worship',
+          score: String(h.num) === raw.replace(/[^0-9]/g, '') ? 130 : 80,
+          run: () => {
+            state.worshipTab = 'hymns';
+            state.worshipSearch = String(h.num);
+            setMode('worship');
+          },
+        });
+        if (out.length >= 5) break;
+      }
+    }
+    const books = service.getBooks();
+    for (const b of books) {
+      if (b.name.includes(raw) || b.abbr === raw || b.id.toLowerCase() === raw.toLowerCase()) {
+        out.push({
+          id: `book:${b.id}`,
+          title: `${b.name} 1장 열기`,
+          subtitle: `${b.testament === 'OT' ? '구약' : '신약'} · 총 ${b.totalChapters}장`,
+          category: '성경 66권',
+          icon: 'icon-bible',
+          score: 88,
+          run: () => jumpToPassage(b.id, 1, 1, 'bible'),
+        });
+      }
+    }
+    return out;
+  });
+
+  commandPalette = createCommandPalette({ registry, service, store, bus });
+  commandPalette.bindEvents();
+
   applyRootState(state);
 
+  // Bind UI Controls
   document.querySelectorAll('[data-action="set-mode"]').forEach((b) => b.addEventListener('click', () => setMode(b.dataset.modeTarget)));
   document.querySelectorAll('[data-action="open-pulpit"]').forEach((b) => {
     if (b.id !== 'btnSermonPulpit') b.addEventListener('click', () => launchContextPulpit(b));
   });
-
+  document.getElementById('btnOpenCommand')?.addEventListener('click', (e) => commandPalette.open(e.currentTarget));
+  document.getElementById('btnZenToggle')?.addEventListener('click', toggleZenMode);
+  document.getElementById('btnExitZen')?.addEventListener('click', toggleZenMode);
   document.getElementById('btnFontDec')?.addEventListener('click', () => { state.fontStepIndex = Math.max(0, state.fontStepIndex - 1); store.savePrefs(); applyRootState(state); });
   document.getElementById('btnFontInc')?.addEventListener('click', () => { state.fontStepIndex = Math.min(FONT_STEPS.length - 1, state.fontStepIndex + 1); store.savePrefs(); applyRootState(state); });
-  document.getElementById('btnThemeToggle')?.addEventListener('click', () => { state.theme = state.theme === 'dark' ? 'light' : 'dark'; store.savePrefs(); applyRootState(state); });
+  document.getElementById('btnThemeToggle')?.addEventListener('click', () => cycleTheme());
   document.getElementById('btnHelp')?.addEventListener('click', (e) => modalManager.open('helpModal', e.currentTarget));
   document.getElementById('btnOpenPicker')?.addEventListener('click', (e) => pickerModal.open(e.currentTarget));
   document.getElementById('btnPrevChap')?.addEventListener('click', () => scriptureReader.stepChapter('prev'));

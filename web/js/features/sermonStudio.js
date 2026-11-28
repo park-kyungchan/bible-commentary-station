@@ -1,5 +1,14 @@
+/**
+ * Lens 5: Homiletics Studio v4.0 (설교 공방)
+ * Features: Real-time Korean/English speaking time estimator (280 chars/min),
+ * visual pacing bar vs target duration, reorderable homiletic blocks (↑/↓),
+ * auto-save, A4 large-print sheet, Markdown export, and full JSON backup/restore.
+ */
+
 import { btn, downloadTextFile, el, generateId, iconEl, setPrintDocument, showConfirm, showToast } from '../core/dom.js';
 import { createDefaultSermon, SermonArchiveStore } from '../services/storage.js';
+
+const CHARS_PER_MIN = 280;
 
 const QUICK_PASSAGES = Object.freeze([
   { osis: 'GEN', ch: 22, s: 1, e: 14, label: '창세기 22:1-14' },
@@ -14,6 +23,20 @@ function formatSavedTime(iso) {
   if (!iso) return '';
   const d = new Date(iso);
   return Number.isNaN(d.getTime()) ? '' : `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+
+export function estimateSpeakingStats(sermon) {
+  const outline = sermon?.outline || [];
+  let totalChars = 0;
+  const perBlock = outline.map((pt) => {
+    const chars = String(pt.content || '').replace(/\s+/g, '').length;
+    totalChars += chars;
+    return { id: pt.id, chars, mins: +(chars / CHARS_PER_MIN).toFixed(1) };
+  });
+  const estimatedMins = +(totalChars / CHARS_PER_MIN).toFixed(1);
+  const targetMins = Math.max(5, Number(sermon?.targetDurationMins) || 30);
+  const ratio = Math.min(1.35, estimatedMins / targetMins);
+  return { totalChars, estimatedMins, targetMins, ratio, perBlock };
 }
 
 export function createSermonStudio({ store, service, archive, modalManager, callbacks }) {
@@ -36,7 +59,26 @@ export function createSermonStudio({ store, service, archive, modalManager, call
     badge.textContent = mode === 'memory' ? '임시 저장 모드 (백업 필요)' : (t ? `자동 저장됨 · ${t}` : '자동 저장 준비됨');
   }
 
+  function refreshPacingMeter(sermon) {
+    const meter = document.getElementById('sermonPacingMeter');
+    if (!meter) return;
+    const stats = estimateSpeakingStats(sermon);
+    const pct = Math.min(100, Math.round((stats.estimatedMins / stats.targetMins) * 100));
+    const over = stats.estimatedMins > stats.targetMins;
+    meter.replaceChildren(
+      el(
+        'div',
+        { className: 'pacing-head' },
+        el('strong', {}, `실시간 설교 분량 예측 · 약 ${stats.estimatedMins}분 / 목표 ${stats.targetMins}분`),
+        el('span', { className: `pacing-badge ${over ? 'is-over' : 'is-ok'}` },
+          over ? `${(stats.estimatedMins - stats.targetMins).toFixed(1)}분 초과` : `${stats.totalChars.toLocaleString('ko-KR')}자 · 여유 ${(stats.targetMins - stats.estimatedMins).toFixed(1)}분`)
+      ),
+      el('progress', { className: `pacing-progress ${over ? 'is-over' : ''}`, max: '100', value: String(pct) })
+    );
+  }
+
   function scheduleSave(sermon) {
+    refreshPacingMeter(sermon);
     archive.scheduleSermonSave(sermon, 400, (res) => {
       state.persistenceMode = res.persisted;
       state.lastSavedAt = res.savedAt;
@@ -96,6 +138,17 @@ export function createSermonStudio({ store, service, archive, modalManager, call
     showToast(`설교 본문을 "${sel.refLabel}" 말씀으로 선택했습니다.`);
   }
 
+  function moveOutlineBlock(sermon, idx, delta) {
+    const target = idx + delta;
+    if (target < 0 || target >= (sermon.outline || []).length) return;
+    const next = [...sermon.outline];
+    const [moved] = next.splice(idx, 1);
+    next.splice(target, 0, moved);
+    sermon.outline = next;
+    scheduleSave(sermon);
+    renderEditor();
+  }
+
   function renderSelect() {
     const sel = document.getElementById('sermonSelect');
     if (!sel) return;
@@ -110,6 +163,8 @@ export function createSermonStudio({ store, service, archive, modalManager, call
     const sermon = getActiveSermon();
     const curBook = service?.getBookMeta?.(state.osis);
     const curPlaceLabel = `${curBook?.name || state.osis} ${state.chapter}:${state.selectedVerse || 1}`;
+
+    const pacingCard = el('section', { id: 'sermonPacingMeter', className: 'card pacing-card', 'aria-live': 'polite' });
 
     const pickerTrigger = el('button', {
       id: 'btnSermonPickPassage', type: 'button', className: 'current-place-btn sermon-passage-btn', 'aria-haspopup': 'dialog',
@@ -152,27 +207,34 @@ export function createSermonStudio({ store, service, archive, modalManager, call
       )
     );
 
-    const outlineCards = (sermon.outline || []).map((pt, idx) => el('article', { className: 'card outline-card' },
-      el('div', { className: 'card-header' },
-        el('input', { type: 'text', className: 'input-field', value: pt.section || '', 'aria-label': `구분 ${idx + 1}`, onInput: (e) => { pt.section = e.target.value; scheduleSave(sermon); } }),
-        el('input', { type: 'text', className: 'input-field', value: pt.title || '', placeholder: '소제목을 입력하세요', 'aria-label': `소제목 ${idx + 1}`, onInput: (e) => { pt.title = e.target.value; scheduleSave(sermon); } }),
-        btn('btn btn-danger', async () => {
-          const ok = await showConfirm(modalManager, { message: `"${pt.title || pt.section || '이 대지'}" 항목을 삭제하시겠습니까?`, okLabel: '삭제', cancelLabel: '취소', danger: true });
-          if (!ok) return;
-          const removed = { ...pt };
-          sermon.outline = sermon.outline.filter((x) => x.id !== pt.id);
-          scheduleSave(sermon); renderEditor();
-          showToast('대지 항목을 삭제했습니다.', {
-            undoLabel: '되돌리기', durationMs: 5000,
-            onUndo: () => {
-              const next = [...sermon.outline]; next.splice(idx, 0, removed); sermon.outline = next;
-              scheduleSave(sermon); renderEditor(); showToast('삭제한 대지를 복원했습니다.');
-            },
-          });
-        }, iconEl('icon-trash'), '삭제')
-      ),
-      el('textarea', { className: 'input-field', rows: '4', 'aria-label': `대지 내용 ${idx + 1}`, placeholder: '설교 내용을 자유롭게 적어 주세요.', onInput: (e) => { pt.content = e.target.value; scheduleSave(sermon); } }, pt.content || '')
-    ));
+    const outlineLen = (sermon.outline || []).length;
+    const outlineCards = (sermon.outline || []).map((pt, idx) => {
+      const blockMins = +(String(pt.content || '').replace(/\s+/g, '').length / CHARS_PER_MIN).toFixed(1);
+      return el('article', { className: 'card outline-card' },
+        el('div', { className: 'card-header' },
+          el('input', { type: 'text', className: 'input-field', value: pt.section || '', 'aria-label': `구분 ${idx + 1}`, onInput: (e) => { pt.section = e.target.value; scheduleSave(sermon); } }),
+          el('input', { type: 'text', className: 'input-field', value: pt.title || '', placeholder: '소제목을 입력하세요', 'aria-label': `소제목 ${idx + 1}`, onInput: (e) => { pt.title = e.target.value; scheduleSave(sermon); } }),
+          el('span', { className: 'tag-provenance' }, `~${blockMins}분`),
+          el('button', { type: 'button', className: 'btn btn-ghost btn-icon-sm', disabled: idx === 0, 'aria-label': '위로 이동', onClick: () => moveOutlineBlock(sermon, idx, -1) }, '↑'),
+          el('button', { type: 'button', className: 'btn btn-ghost btn-icon-sm', disabled: idx === outlineLen - 1, 'aria-label': '아래로 이동', onClick: () => moveOutlineBlock(sermon, idx, 1) }, '↓'),
+          btn('btn btn-danger', async () => {
+            const ok = await showConfirm(modalManager, { message: `"${pt.title || pt.section || '이 대지'}" 항목을 삭제하시겠습니까?`, okLabel: '삭제', cancelLabel: '취소', danger: true });
+            if (!ok) return;
+            const removed = { ...pt };
+            sermon.outline = sermon.outline.filter((x) => x.id !== pt.id);
+            scheduleSave(sermon); renderEditor();
+            showToast('대지 항목을 삭제했습니다.', {
+              undoLabel: '되돌리기', durationMs: 5000,
+              onUndo: () => {
+                const next = [...sermon.outline]; next.splice(idx, 0, removed); sermon.outline = next;
+                scheduleSave(sermon); renderEditor(); showToast('삭제한 대지를 복원했습니다.');
+              },
+            });
+          }, iconEl('icon-trash'), '삭제')
+        ),
+        el('textarea', { className: 'input-field', rows: '4', 'aria-label': `대지 내용 ${idx + 1}`, placeholder: '설교 내용을 자유롭게 적어 주세요.', onInput: (e) => { pt.content = e.target.value; scheduleSave(sermon); } }, pt.content || '')
+      );
+    });
 
     const addBtn = btn('btn btn-secondary', () => {
       sermon.outline = [...(sermon.outline || []), { id: generateId('sec'), section: `대지 ${(sermon.outline?.length || 0) + 1}`, title: '', content: '' }];
@@ -180,7 +242,8 @@ export function createSermonStudio({ store, service, archive, modalManager, call
       renderEditor();
     }, iconEl('icon-plus'), '새 대지 추가');
 
-    pane.replaceChildren(metaCard, ...outlineCards, addBtn);
+    pane.replaceChildren(pacingCard, metaCard, ...outlineCards, addBtn);
+    refreshPacingMeter(sermon);
   }
 
   function renderClips() {
@@ -190,7 +253,7 @@ export function createSermonStudio({ store, service, archive, modalManager, call
     const clips = sermon.clips || [];
     const heading = el('h3', {}, `담아둔 말씀·참고 자료 (${clips.length}건)`);
     if (!clips.length) {
-      pane.replaceChildren(heading, el('div', { className: 'card empty-state' }, '성경이나 주석에서 [노트에 담기]를 누르면 이곳에 모아집니다.'));
+      pane.replaceChildren(heading, el('div', { className: 'card empty-state' }, '성경·주석·다중 역본·성좌도에서 [노트에 담기]를 누르면 이곳에 모아집니다.'));
       return;
     }
     const cards = clips.map((clip, idx) => el('article', { className: 'card clip-card' },

@@ -37,44 +37,69 @@ export function extractHelloAoText(contentArr) {
   }
   return parts.join(' ').replace(/[ \t]+\n/g, '\n').replace(/[ \t]{2,}/g, ' ').trim();
 }
+
 class LruCache {
   constructor(maxSize) { this.maxSize = maxSize; this.map = new Map(); }
   get(k) { if (!this.map.has(k)) return undefined; const v = this.map.get(k); this.map.delete(k); this.map.set(k, v); return v; }
   set(k, v) { if (this.map.has(k)) this.map.delete(k); else if (this.map.size >= this.maxSize) this.map.delete(this.map.keys().next().value); this.map.set(k, v); }
   get size() { return this.map.size; }
 }
+
 export class BibleDataService {
   constructor(baseUrl = './data', fetcher = (...args) => fetch(...args)) {
-    this.baseUrl = baseUrl.replace(/\/$/, ''); this.fetcher = fetcher;
-    this.manifest = null; this.exegesis = null; this.worship = null;
-    this.bookCache = new LruCache(24); this.liveChapterCache = new LruCache(100);
-    this.liveCommentaryCache = new LruCache(60); this.searchIndexCache = new LruCache(4);
-    this._inflightBooks = new Map(); this._commentaryByVerse = new Map(); this._bookMetaByOsis = new Map();
+    this.baseUrl = baseUrl.replace(/\/$/, '');
+    this.fetcher = fetcher;
+    this.manifest = null;
+    this.exegesis = null;
+    this.worship = null;
+    this.graph = null;
+    this.bookCache = new LruCache(32);
+    this.liveChapterCache = new LruCache(100);
+    this.liveCommentaryCache = new LruCache(60);
+    this.searchIndexCache = new LruCache(4);
+    this._inflightBooks = new Map();
+    this._commentaryByVerse = new Map();
+    this._bookMetaByOsis = new Map();
   }
+
   async init() {
-    const [mResp, eResp, wResp] = await Promise.all([
-      this.fetcher(`${this.baseUrl}/manifest.json`), this.fetcher(`${this.baseUrl}/exegesis.json`), this.fetcher(`${this.baseUrl}/worship.json`),
+    const [mResp, eResp, wResp, gResp] = await Promise.all([
+      this.fetcher(`${this.baseUrl}/manifest.json`),
+      this.fetcher(`${this.baseUrl}/exegesis.json`),
+      this.fetcher(`${this.baseUrl}/worship.json`),
+      this.fetcher(`${this.baseUrl}/graph.json`).catch(() => ({ ok: false })),
     ]);
     if (!mResp.ok || !eResp.ok) throw new Error('성경 기본 자료를 불러오지 못했습니다.');
-    this.manifest = await mResp.json(); this.exegesis = await eResp.json();
-    this.worship = wResp.ok ? await wResp.json() : { hymnGroups: [], responsiveGroups: [], hymns: [], responsiveReadings: [], liturgies: [], templates: [] };
-    this._bookMetaByOsis.clear(); for (const b of this.getBooks()) this._bookMetaByOsis.set(b.id, b);
+    this.manifest = await mResp.json();
+    this.exegesis = await eResp.json();
+    this.worship = wResp.ok
+      ? await wResp.json()
+      : { hymnGroups: [], responsiveGroups: [], hymns: [], responsiveReadings: [], liturgies: [], templates: [] };
+    this.graph = gResp && gResp.ok ? await gResp.json() : null;
+
+    this._bookMetaByOsis.clear();
+    for (const b of this.getBooks()) this._bookMetaByOsis.set(b.id, b);
     this._commentaryByVerse.clear();
     for (const c of this.exegesis?.commentaries || []) {
-      const start = Number(c.verse_start_id); const span = Math.min(Number(c.verse_end_id || start) - start, 200);
+      const start = Number(c.verse_start_id);
+      const span = Math.min(Number(c.verse_end_id || start) - start, 200);
       for (let vid = start; vid <= start + span; vid += 1) {
         if (!this._commentaryByVerse.has(vid)) this._commentaryByVerse.set(vid, []);
         this._commentaryByVerse.get(vid).push(c);
       }
     }
-    return { manifest: this.manifest, exegesis: this.exegesis, worship: this.worship };
+    return { manifest: this.manifest, exegesis: this.exegesis, worship: this.worship, graph: this.graph };
   }
+
+  getGraph() { return this.graph; }
   getBooks() { return this.manifest?.books || []; }
   getBookMeta(osis) { return this._bookMetaByOsis.get(osis) || this.getBooks().find((b) => b.id === osis) || null; }
+
   getChapterVerseCount(osis, ch) {
     return this.getBookMeta(osis)?.chapterVerses?.[Number(ch) - 1]
       || this.bookCache.get(`${this.getDefaultVersionId()}:${osis}`)?.chapters?.[String(ch)]?.length || 50;
   }
+
   getBookBoundsMap() {
     const out = Object.create(null);
     for (const b of this.getBooks()) {
@@ -90,25 +115,41 @@ export class BibleDataService {
       ? this.manifest.versions
       : [{ id: 'krv', nameKr: '개역한글', attribution: '대한성서공회 1961 (저작권 보호기간 만료)', license: 'PUBLIC_DOMAIN' }];
     return list.map((v) => ({
-      id: v.id, label: `${v.nameKr} (기본 내장 · 66권)`, shortLabel: v.nameKr, isDefault: Boolean(v.default),
-      attribution: v.attribution || '', license: v.license || 'PUBLIC_DOMAIN',
+      id: v.id,
+      label: `${v.nameKr} (기본 내장 · 66권)`,
+      shortLabel: v.nameKr,
+      isDefault: Boolean(v.default),
+      attribution: v.attribution || '',
+      license: v.license || 'PUBLIC_DOMAIN',
       pathPrefix: v.pathPrefix || `${this.baseUrl}/${v.id}/`,
-      searchIndexPath: v.searchIndexPath || `${this.baseUrl}/search/${v.id}.json`, lang: v.lang || 'ko', source: 'local',
+      searchIndexPath: v.searchIndexPath || `${this.baseUrl}/search/${v.id}.json`,
+      lang: v.lang || 'ko',
+      source: 'local',
     }));
   }
 
   getDefaultVersionId() {
     const locals = this.getLocalVersions();
     return locals.find((v) => v.isDefault)?.id
-      || (this.manifest?.defaultVersion && locals.some((v) => v.id === this.manifest.defaultVersion) ? this.manifest.defaultVersion : (locals[0]?.id || 'nkrv'));
+      || (this.manifest?.defaultVersion && locals.some((v) => v.id === this.manifest.defaultVersion)
+        ? this.manifest.defaultVersion
+        : (locals[0]?.id || 'nkrv'));
   }
 
   getAvailableVersions(customBibles = []) {
-    const customs = (customBibles || []).map((b) => ({ id: b.id, label: `${b.name} (내 기기 저장 · ${b.bookCount || 0}권)`, shortLabel: b.shortName || b.name, lang: 'ko', source: 'custom' }));
+    const customs = (customBibles || []).map((b) => ({
+      id: b.id,
+      label: `${b.name} (내 기기 저장 · ${b.bookCount || 0}권)`,
+      shortLabel: b.shortName || b.name,
+      lang: 'ko',
+      source: 'custom',
+    }));
     return [...this.getLocalVersions(), ...customs, ...LIVE_TRANSLATIONS];
   }
 
-  getVersionInfo(versionId, customBibles = []) { return this.getAvailableVersions(customBibles).find((v) => v.id === versionId) || null; }
+  getVersionInfo(versionId, customBibles = []) {
+    return this.getAvailableVersions(customBibles).find((v) => v.id === versionId) || null;
+  }
 
   async loadBook(versionId, osis, signal) {
     const localVer = this.getLocalVersions().find((v) => v.id === versionId);
@@ -170,12 +211,60 @@ export class BibleDataService {
       const rawPrimary = primaryMap && Object.prototype.hasOwnProperty.call(primaryMap, vs) ? String(primaryMap[vs] || '').trim() : '';
       const rawParallel = parallelMap && Object.prototype.hasOwnProperty.call(parallelMap, vs) ? String(parallelMap[vs] || '').trim() : '';
       return {
-        verseId: calculateVerseId(meta?.bookId || 1, chapterNum, vs), bookId: meta?.bookId || 1, osis,
-        bookName: meta?.name || osis, chapter: chapterNum, verse: vs, primaryText: rawPrimary, isEmptyPrimary: !rawPrimary,
-        parallelText: rawParallel, primaryLabel: primaryInfo?.shortLabel || primaryVersionId, parallelLabel: parallelInfo?.shortLabel || '',
+        verseId: calculateVerseId(meta?.bookId || 1, chapterNum, vs),
+        bookId: meta?.bookId || 1,
+        osis,
+        bookName: meta?.name || osis,
+        chapter: chapterNum,
+        verse: vs,
+        primaryText: rawPrimary,
+        isEmptyPrimary: !rawPrimary,
+        parallelText: rawParallel,
+        primaryLabel: primaryInfo?.shortLabel || primaryVersionId,
+        parallelLabel: parallelInfo?.shortLabel || '',
         footnotes: Array.isArray(chFootnotes?.[String(vs)]) ? chFootnotes[String(vs)] : [],
       };
     });
+  }
+
+  /**
+   * v4.0 Polyglot Synoptic Matrix loader: fetches up to 4 translations concurrently
+   * and aligns every verse across all selected columns.
+   */
+  async getPolyglotChapterVerses(versionIds, osis, chapterNum, customBibles = [], signal) {
+    const cleanIds = Array.from(new Set((versionIds || []).filter((id) => id && id !== 'none'))).slice(0, 4);
+    if (!cleanIds.length) cleanIds.push(this.getDefaultVersionId());
+    const meta = this.getBookMeta(osis);
+    const maps = await Promise.all(
+      cleanIds.map((vid) => this.getVersionChapterMap(vid, osis, chapterNum, customBibles, signal).catch(() => null))
+    );
+    const columns = cleanIds.map((vid, idx) => {
+      const info = this.getVersionInfo(vid, customBibles);
+      return {
+        id: vid,
+        label: info?.shortLabel || vid,
+        lang: info?.lang || 'ko',
+        loaded: Boolean(maps[idx]),
+      };
+    });
+    const nums = new Set();
+    for (const m of maps) {
+      if (!m) continue;
+      for (const k of Object.keys(m)) {
+        const n = Number(k);
+        if (Number.isInteger(n) && n > 0) nums.add(n);
+      }
+    }
+    const rows = Array.from(nums).sort((a, b) => a - b).map((vs) => ({
+      verseId: calculateVerseId(meta?.bookId || 1, chapterNum, vs),
+      bookId: meta?.bookId || 1,
+      osis,
+      bookName: meta?.name || osis,
+      chapter: chapterNum,
+      verse: vs,
+      texts: maps.map((m) => (m && Object.prototype.hasOwnProperty.call(m, vs) ? String(m[vs] || '').trim() : '')),
+    }));
+    return { meta, chapter: chapterNum, columns, rows };
   }
 
   async _loadSearchIndex(versionId, signal) {

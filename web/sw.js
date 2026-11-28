@@ -1,5 +1,5 @@
-const SHELL_CACHE = 'bible-station-shell-v4';
-const CORPUS_CACHE = 'bible-station-corpus-v4';
+const SHELL_CACHE = 'bible-station-shell-v5';
+const CORPUS_CACHE = 'bible-station-corpus-v5';
 
 const SHELL_ASSETS = [
   './',
@@ -12,11 +12,17 @@ const SHELL_ASSETS = [
   './css/pulpit.css',
   './css/print.css',
   './css/motion.css',
+  './css/v4-spatial.css',
   './icon.svg',
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/apple-touch-icon.png',
   './js/main.js',
+  './js/kernel/signals.js',
+  './js/kernel/eventBus.js',
+  './js/kernel/commandRegistry.js',
+  './js/kernel/pluginHost.js',
+  './js/kernel/broadcastSync.js',
   './js/core/state.js',
   './js/core/dom.js',
   './js/core/urlSafety.js',
@@ -26,6 +32,9 @@ const SHELL_ASSETS = [
   './js/features/scriptureReader.js',
   './js/features/commentaryPanel.js',
   './js/features/crossRefPanel.js',
+  './js/features/polyglotMatrix.js',
+  './js/features/constellationGraph.js',
+  './js/features/commandPalette.js',
   './js/features/worshipPanel.js',
   './js/features/liturgyPanel.js',
   './js/features/sermonStudio.js',
@@ -39,10 +48,11 @@ const INITIAL_DATA_ASSETS = [
   './data/manifest.json',
   './data/exegesis.json',
   './data/worship.json',
+  './data/graph.json',
 ];
 
-const CORPUS_PATH_RE = /\/data\/(?!manifest\.json|exegesis\.json|worship\.json)[^/]+\//;
-const METADATA_PATH_RE = /\/data\/(manifest|exegesis|worship)\.json$/;
+const CORPUS_PATH_RE = /\/data\/(?!manifest\.json|exegesis\.json|worship\.json|graph\.json)[^/]+\//;
+const METADATA_PATH_RE = /\/data\/(manifest|exegesis|worship|graph)\.json$/;
 
 function offlineJsonResponse(path) {
   return new Response(
@@ -124,7 +134,7 @@ self.addEventListener('fetch', (event) => {
         if (cached) return cached;
         try {
           const resp = await fetch(event.request);
-          if (resp && resp.ok) {
+          if (resp && resp.ok && resp.type === 'basic') {
             cache.put(event.request, resp.clone());
           }
           return resp;
@@ -139,15 +149,14 @@ self.addEventListener('fetch', (event) => {
   if (METADATA_PATH_RE.test(url.pathname)) {
     event.respondWith(
       caches.open(CORPUS_CACHE).then(async (cache) => {
-        const cached = await cache.match(event.request);
         try {
           const resp = await fetch(event.request);
-          if (resp && resp.ok) {
+          if (resp && resp.ok && resp.type === 'basic') {
             cache.put(event.request, resp.clone());
-            return resp;
           }
-          return cached || resp;
+          return resp;
         } catch {
+          const cached = await cache.match(event.request);
           return cached || offlineJsonResponse(url.pathname);
         }
       })
@@ -158,6 +167,7 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.open(SHELL_CACHE).then(async (cache) => {
       const cached = await cache.match(event.request);
+      if (cached) return cached;
       try {
         const resp = await fetch(event.request);
         if (resp && resp.ok && resp.type === 'basic') {
@@ -165,7 +175,7 @@ self.addEventListener('fetch', (event) => {
         }
         return resp;
       } catch {
-        return cached || new Response('', { status: 503, statusText: 'Offline' });
+        return new Response('오프라인 상태입니다.', { status: 503 });
       }
     })
   );

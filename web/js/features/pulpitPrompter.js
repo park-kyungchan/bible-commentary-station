@@ -1,4 +1,11 @@
-import { el } from '../core/dom.js';
+/**
+ * Next-Gen Pulpit Teleprompter & Dual-Screen Broadcast v4.0
+ * Features: Zero-glare OLED stage, Teleprompter smooth auto-scroll,
+ * Pacing Gauge (elapsed time vs slide progress), Blackout (B) mode,
+ * and BroadcastChannel dual-screen sync (?view=stage).
+ */
+
+import { el, showToast } from '../core/dom.js';
 
 function formatTimer(secondsRemaining) {
   const overtime = secondsRemaining < 0;
@@ -8,7 +15,7 @@ function formatTimer(secondsRemaining) {
   return `${overtime ? '+' : ''}${mm}:${ss}`;
 }
 
-export function createPulpitPrompter({ store }) {
+export function createPulpitPrompter({ store, broadcast = null }) {
   const { state } = store;
   let isOpen = false;
   let slides = [];
@@ -17,8 +24,27 @@ export function createPulpitPrompter({ store }) {
   let remainingSeconds = 1800;
   let timerRunning = false;
   let timerInterval = null;
+  let autoScrolling = false;
+  let scrollRaf = null;
+  let lastScrollTs = 0;
+  let blackout = false;
   let wakeLock = null;
   let triggerFocusEl = null;
+
+  function broadcastState() {
+    if (!broadcast) return;
+    const slide = slides[currentIndex] || { heading: '', body: '' };
+    broadcast.send('pulpit:sync', {
+      open: isOpen,
+      blackout,
+      index: currentIndex,
+      total: slides.length,
+      heading: slide.heading || '',
+      body: slide.body || '',
+      fontPt: state.pulpitFontPt,
+      remainingSeconds,
+    });
+  }
 
   function applyFontSize() {
     const overlay = document.getElementById('pulpitOverlay');
@@ -29,12 +55,27 @@ export function createPulpitPrompter({ store }) {
   function applyProgress() {
     const overlay = document.getElementById('pulpitOverlay');
     const label = document.getElementById('pulpitProgress');
-    const ratio = slides.length > 0 ? (currentIndex + 1) / slides.length : 0;
-    if (overlay) {
-      overlay.style.setProperty('--pulpit-progress', String(ratio));
-    }
-    if (label) {
-      label.textContent = `${slides.length ? currentIndex + 1 : 0} / ${slides.length}`;
+    const paceEl = document.getElementById('pulpitPaceBadge');
+    const slideRatio = slides.length > 0 ? (currentIndex + 1) / slides.length : 0;
+    const elapsedRatio = totalSeconds > 0 ? Math.max(0, Math.min(1.5, (totalSeconds - remainingSeconds) / totalSeconds)) : 0;
+
+    if (overlay) overlay.style.setProperty('--pulpit-progress', String(slideRatio));
+    if (label) label.textContent = `${slides.length ? currentIndex + 1 : 0} / ${slides.length}`;
+    if (paceEl) {
+      const diff = slideRatio - elapsedRatio;
+      if (remainingSeconds < 0) {
+        paceEl.textContent = '마무리 권장';
+        paceEl.dataset.pace = 'over';
+      } else if (diff < -0.18) {
+        paceEl.textContent = '속도 조절';
+        paceEl.dataset.pace = 'behind';
+      } else if (diff > 0.22) {
+        paceEl.textContent = '여유 있음';
+        paceEl.dataset.pace = 'ahead';
+      } else {
+        paceEl.textContent = '순조로움';
+        paceEl.dataset.pace = 'steady';
+      }
     }
   }
 
@@ -46,9 +87,54 @@ export function createPulpitPrompter({ store }) {
       timerEl.dataset.warning = remainingSeconds <= 300 && remainingSeconds >= 0 ? 'true' : 'false';
       timerEl.dataset.overtime = remainingSeconds < 0 ? 'true' : 'false';
     }
-    if (toggleBtn) {
-      toggleBtn.textContent = timerRunning ? '일시 정지' : '시간 시작';
+    if (toggleBtn) toggleBtn.textContent = timerRunning ? '일시 정지' : '시간 시작';
+    applyProgress();
+  }
+
+  function stopAutoScroll() {
+    autoScrolling = false;
+    if (scrollRaf) {
+      cancelAnimationFrame(scrollRaf);
+      scrollRaf = null;
     }
+    const scrollBtn = document.getElementById('btnPulpitAutoScroll');
+    if (scrollBtn) scrollBtn.textContent = '자동 스크롤';
+  }
+
+  function toggleAutoScroll() {
+    if (autoScrolling) {
+      stopAutoScroll();
+      return;
+    }
+    const stage = document.getElementById('pulpitStage');
+    if (!stage) return;
+    autoScrolling = true;
+    lastScrollTs = performance.now();
+    const scrollBtn = document.getElementById('btnPulpitAutoScroll');
+    if (scrollBtn) scrollBtn.textContent = '스크롤 정지';
+
+    const tick = (now) => {
+      if (!autoScrolling || !isOpen) return;
+      const dt = Math.min(100, now - lastScrollTs) / 1000;
+      lastScrollTs = now;
+      const pxPerSec = Math.max(18, Math.round((state.pulpitAutoScrollWpm || 240) * 0.16));
+      stage.scrollTop += pxPerSec * dt;
+      if (stage.scrollTop + stage.clientHeight >= stage.scrollHeight - 2) {
+        stopAutoScroll();
+        return;
+      }
+      scrollRaf = requestAnimationFrame(tick);
+    };
+    scrollRaf = requestAnimationFrame(tick);
+  }
+
+  function toggleBlackout() {
+    blackout = !blackout;
+    const overlay = document.getElementById('pulpitOverlay');
+    if (overlay) overlay.dataset.blackout = blackout ? 'true' : 'false';
+    const btnB = document.getElementById('btnPulpitBlackout');
+    if (btnB) btnB.textContent = blackout ? '화면 복귀 (B)' : '암전 (B)';
+    broadcastState();
   }
 
   function stopTimer() {
@@ -75,22 +161,17 @@ export function createPulpitPrompter({ store }) {
       if (navigator.wakeLock && typeof navigator.wakeLock.request === 'function') {
         wakeLock = await navigator.wakeLock.request('screen');
       }
-    } catch {
-      wakeLock = null;
-    }
+    } catch { wakeLock = null; }
   }
 
   async function releaseWakeLock() {
     if (!wakeLock) return;
-    try {
-      await wakeLock.release();
-    } catch {
-      // Ignore already released lock
-    }
+    try { await wakeLock.release(); } catch { /* ignore */ }
     wakeLock = null;
   }
 
   function renderSlide(direction = 'next') {
+    stopAutoScroll();
     const stage = document.getElementById('pulpitStage');
     const titleEl = document.getElementById('pulpitTitle');
     const bodyEl = document.getElementById('pulpitBody');
@@ -107,10 +188,7 @@ export function createPulpitPrompter({ store }) {
     }
     if (titleEl) titleEl.textContent = slide.heading || '';
     if (bodyEl) {
-      const paras = String(slide.body || '')
-        .split('\n')
-        .map((line) => line.trim())
-        .filter(Boolean);
+      const paras = String(slide.body || '').split('\n').map((line) => line.trim()).filter(Boolean);
       bodyEl.replaceChildren(...paras.map((p) => el('p', {}, p)));
     }
     if (nextHintEl) {
@@ -119,6 +197,7 @@ export function createPulpitPrompter({ store }) {
     if (prevBtn) prevBtn.disabled = currentIndex <= 0;
     if (nextBtn) nextBtn.disabled = currentIndex >= slides.length - 1;
     applyProgress();
+    broadcastState();
   }
 
   function step(delta) {
@@ -129,9 +208,10 @@ export function createPulpitPrompter({ store }) {
   }
 
   function adjustFont(deltaPt) {
-    state.pulpitFontPt = Math.max(24, Math.min(60, state.pulpitFontPt + deltaPt));
+    state.pulpitFontPt = Math.max(24, Math.min(64, state.pulpitFontPt + deltaPt));
     store.savePrefs();
     applyFontSize();
+    broadcastState();
   }
 
   function open(deck, triggerEl = null) {
@@ -141,6 +221,8 @@ export function createPulpitPrompter({ store }) {
       ? deck.slides
       : [{ heading: deck?.title || '강단 화면', body: '' }];
     currentIndex = 0;
+    blackout = false;
+    overlay.dataset.blackout = 'false';
     totalSeconds = Math.max(60, Math.round((Number(deck?.targetDurationMins) || 30) * 60));
     remainingSeconds = totalSeconds;
     isOpen = true;
@@ -158,21 +240,22 @@ export function createPulpitPrompter({ store }) {
 
   function close() {
     if (!isOpen) return;
+    const overlay = document.getElementById('pulpitOverlay');
     isOpen = false;
+    blackout = false;
+    stopAutoScroll();
     stopTimer();
     releaseWakeLock();
     if (document.fullscreenElement && typeof document.exitFullscreen === 'function') {
       document.exitFullscreen().catch(() => {});
     }
-    const overlay = document.getElementById('pulpitOverlay');
     if (overlay) {
       overlay.dataset.open = 'false';
+      overlay.dataset.blackout = 'false';
       overlay.setAttribute('aria-hidden', 'true');
     }
-    if (triggerFocusEl && typeof triggerFocusEl.focus === 'function') {
-      triggerFocusEl.focus();
-    }
-    triggerFocusEl = null;
+    broadcastState();
+    if (triggerFocusEl && typeof triggerFocusEl.focus === 'function') triggerFocusEl.focus();
   }
 
   function toggleFullscreen() {
@@ -180,18 +263,29 @@ export function createPulpitPrompter({ store }) {
     if (!overlay) return;
     if (document.fullscreenElement) {
       document.exitFullscreen?.().catch(() => {});
-    } else if (typeof overlay.requestFullscreen === 'function') {
+    } else if (overlay.requestFullscreen) {
       overlay.requestFullscreen().catch(() => {});
     }
   }
 
   function bindEvents() {
+    document.getElementById('btnPulpitExit')?.addEventListener('click', close);
     document.getElementById('btnPulpitPrev')?.addEventListener('click', () => step(-1));
     document.getElementById('btnPulpitNext')?.addEventListener('click', () => step(1));
-    document.getElementById('btnPulpitExit')?.addEventListener('click', close);
-    document.getElementById('btnPulpitSmaller')?.addEventListener('click', () => adjustFont(-3));
-    document.getElementById('btnPulpitBigger')?.addEventListener('click', () => adjustFont(3));
+    document.getElementById('btnPulpitSmaller')?.addEventListener('click', () => adjustFont(-4));
+    document.getElementById('btnPulpitBigger')?.addEventListener('click', () => adjustFont(4));
     document.getElementById('btnPulpitFullscreen')?.addEventListener('click', toggleFullscreen);
+    document.getElementById('btnPulpitAutoScroll')?.addEventListener('click', toggleAutoScroll);
+    document.getElementById('btnPulpitBlackout')?.addEventListener('click', toggleBlackout);
+    document.getElementById('btnPulpitDualScreen')?.addEventListener('click', () => {
+      if (!broadcast?.supported) {
+        showToast('이 브라우저에서는 보조 화면 동기화를 지원하지 않습니다.');
+        return;
+      }
+      broadcast.openStageWindow();
+      setTimeout(broadcastState, 400);
+      showToast('보조 강단 화면 창을 열었습니다.');
+    });
     document.getElementById('btnPulpitTimerToggle')?.addEventListener('click', () => {
       if (timerRunning) stopTimer();
       else startTimer();
@@ -203,33 +297,15 @@ export function createPulpitPrompter({ store }) {
 
     document.addEventListener('keydown', (e) => {
       if (!isOpen) return;
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        close();
-      } else if (e.key === 'ArrowRight' || e.key === 'PageDown') {
-        e.preventDefault();
-        step(1);
-      } else if (e.key === ' ' && e.target?.tagName !== 'BUTTON') {
-        e.preventDefault();
-        step(1);
-      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
-        e.preventDefault();
-        step(-1);
-      } else if (e.key === '+' || e.key === '=') {
-        e.preventDefault();
-        adjustFont(3);
-      } else if (e.key === '-' || e.key === '_') {
-        e.preventDefault();
-        adjustFont(-3);
-      }
-    });
-
-    document.addEventListener('visibilitychange', () => {
-      if (isOpen && document.visibilityState === 'visible') {
-        requestWakeLock();
-      }
+      if (e.key === 'Escape') { e.preventDefault(); close(); }
+      else if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); step(1); }
+      else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); step(-1); }
+      else if (e.key === '+' || e.key === '=') { e.preventDefault(); adjustFont(4); }
+      else if (e.key === '-') { e.preventDefault(); adjustFont(-4); }
+      else if (e.key.toLowerCase() === 'b') { e.preventDefault(); toggleBlackout(); }
+      else if (e.key.toLowerCase() === 's') { e.preventDefault(); toggleAutoScroll(); }
     });
   }
 
-  return { bindEvents, open, close, step, isOpen: () => isOpen };
+  return { open, close, step, bindEvents, isOpen: () => isOpen };
 }

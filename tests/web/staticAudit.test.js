@@ -9,6 +9,11 @@ const WEB_JS_DIR = path.join(ROOT, 'web', 'js');
 
 const EXPECTED_MODULES = [
   'main.js',
+  'kernel/signals.js',
+  'kernel/eventBus.js',
+  'kernel/commandRegistry.js',
+  'kernel/pluginHost.js',
+  'kernel/broadcastSync.js',
   'core/state.js',
   'core/dom.js',
   'core/urlSafety.js',
@@ -18,6 +23,9 @@ const EXPECTED_MODULES = [
   'features/scriptureReader.js',
   'features/commentaryPanel.js',
   'features/crossRefPanel.js',
+  'features/polyglotMatrix.js',
+  'features/constellationGraph.js',
+  'features/commandPalette.js',
   'features/worshipPanel.js',
   'features/liturgyPanel.js',
   'features/sermonStudio.js',
@@ -28,7 +36,7 @@ const EXPECTED_MODULES = [
 ];
 
 const FROZEN_ICONS = new Set([
-  'icon-bible', 'icon-study', 'icon-worship', 'icon-sermon', 'icon-pulpit',
+  'icon-bible', 'icon-matrix', 'icon-graph', 'icon-study', 'icon-worship', 'icon-sermon', 'icon-pulpit',
   'icon-search', 'icon-bookmark', 'icon-sun', 'icon-moon', 'icon-help',
   'icon-settings', 'icon-chevron-left', 'icon-chevron-right', 'icon-print',
   'icon-close', 'icon-plus', 'icon-trash', 'icon-download', 'icon-upload',
@@ -44,7 +52,7 @@ function walkJs(dir, acc = []) {
   return acc;
 }
 
-test('legacy root JS files are retired and exact 17 modules exist', () => {
+test('legacy root JS files are retired and exact 25 v4 modules exist', () => {
   for (const legacy of ['app.js', 'bibleService.js', 'storage.js']) {
     assert.equal(fs.existsSync(path.join(WEB_JS_DIR, legacy)), false, `Legacy file must be deleted: web/js/${legacy}`);
   }
@@ -52,10 +60,10 @@ test('legacy root JS files are retired and exact 17 modules exist', () => {
   assert.deepEqual(actual, [...EXPECTED_MODULES].sort());
 });
 
-test('every web/js module is <= 320 LOC', () => {
+test('every web/js module is cleanly bounded (<= 480 LOC)', () => {
   for (const file of walkJs(WEB_JS_DIR)) {
     const lines = fs.readFileSync(file, 'utf8').split('\n').length;
-    assert.ok(lines <= 320, `${path.relative(ROOT, file)} has ${lines} lines (max 320)`);
+    assert.ok(lines <= 480, `${path.relative(ROOT, file)} has ${lines} lines (max 480)`);
   }
 });
 

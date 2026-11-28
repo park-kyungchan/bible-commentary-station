@@ -1,3 +1,3 @@
-"""Bible Commentary Station — Single Source of Truth (SSOT) Core Package."""
+"""Bible Commentary Station v4.0 — Spatial Scriptorium & Polyglot Exegesis Engine."""
 
-__version__ = "3.0.0"
+__version__ = "4.0.0"

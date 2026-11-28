@@ -18,11 +18,17 @@ const FROZEN_SHELL_ASSETS = [
   './css/pulpit.css',
   './css/print.css',
   './css/motion.css',
+  './css/v4-spatial.css',
   './icon.svg',
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/apple-touch-icon.png',
   './js/main.js',
+  './js/kernel/signals.js',
+  './js/kernel/eventBus.js',
+  './js/kernel/commandRegistry.js',
+  './js/kernel/pluginHost.js',
+  './js/kernel/broadcastSync.js',
   './js/core/state.js',
   './js/core/dom.js',
   './js/core/urlSafety.js',
@@ -32,6 +38,9 @@ const FROZEN_SHELL_ASSETS = [
   './js/features/scriptureReader.js',
   './js/features/commentaryPanel.js',
   './js/features/crossRefPanel.js',
+  './js/features/polyglotMatrix.js',
+  './js/features/constellationGraph.js',
+  './js/features/commandPalette.js',
   './js/features/worshipPanel.js',
   './js/features/liturgyPanel.js',
   './js/features/sermonStudio.js',
@@ -48,11 +57,11 @@ function extractArrayLiteral(src, constName) {
   return [...match[1].matchAll(/['"]([^'"]+)['"]/g)].map((m) => m[1]);
 }
 
-test('web/sw.js matches SPEC.md v4 cache names, frozen SHELL_ASSETS, corpus routing, and NB-R2-03 data warm', () => {
+test('web/sw.js matches v4.0 cache names (v5), SHELL_ASSETS, corpus routing, and graph.json warm', () => {
   const swSrc = fs.readFileSync(path.join(WEB_DIR, 'sw.js'), 'utf8');
 
-  assert.ok(swSrc.includes("const SHELL_CACHE = 'bible-station-shell-v4'"));
-  assert.ok(swSrc.includes("const CORPUS_CACHE = 'bible-station-corpus-v4'"));
+  assert.ok(swSrc.includes("const SHELL_CACHE = 'bible-station-shell-v5'"));
+  assert.ok(swSrc.includes("const CORPUS_CACHE = 'bible-station-corpus-v5'"));
   const corpusReMatch = swSrc.match(/const\s+CORPUS_PATH_RE\s*=\s*\/(.+?)\/;/);
   assert.ok(corpusReMatch, 'Missing CORPUS_PATH_RE in web/sw.js');
   const corpusRe = new RegExp(corpusReMatch[1]);
@@ -60,6 +69,7 @@ test('web/sw.js matches SPEC.md v4 cache names, frozen SHELL_ASSETS, corpus rout
     assert.ok(corpusRe.test(sample), `CORPUS_PATH_RE must match ${sample}`);
   }
   assert.equal(corpusRe.test('/data/manifest.json'), false, 'CORPUS_PATH_RE must not match metadata manifest.json');
+  assert.equal(corpusRe.test('/data/graph.json'), false, 'CORPUS_PATH_RE must not match metadata graph.json');
   assert.ok(swSrc.includes("type === 'SKIP_WAITING'"));
   const installBlock = swSrc.match(/addEventListener\(\s*'install'[\s\S]*?addEventListener\(\s*'activate'/);
   assert.ok(installBlock, 'Missing install listener in web/sw.js');
@@ -69,14 +79,10 @@ test('web/sw.js matches SPEC.md v4 cache names, frozen SHELL_ASSETS, corpus rout
   assert.deepEqual(shellAssets, FROZEN_SHELL_ASSETS);
 
   const initialData = extractArrayLiteral(swSrc, 'INITIAL_DATA_ASSETS');
-  assert.deepEqual(initialData, ['./data/manifest.json', './data/exegesis.json', './data/worship.json']);
+  assert.deepEqual(initialData, ['./data/manifest.json', './data/exegesis.json', './data/worship.json', './data/graph.json']);
 
-  const strictDisk = process.env.SW_STRICT_DISK === '1';
   for (const asset of shellAssets) {
     if (asset === './') continue;
-    if (!strictDisk && !asset.startsWith('./js/') && asset !== './manifest.json' && asset !== './index.html') {
-      continue;
-    }
     const diskPath = path.join(WEB_DIR, asset.slice(2));
     assert.ok(fs.existsSync(diskPath), `Precached asset missing on disk: ${asset}`);
   }

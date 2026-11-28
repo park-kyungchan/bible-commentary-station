@@ -1,8 +1,23 @@
+/**
+ * Bible Commentary Station v4.0 — Reactive Workspace Store
+ * Backed by fine-grained signals + localStorage persistence + migration from v3 prefs.
+ */
+
+import { signal } from '../kernel/signals.js';
+
 export const STORAGE_KEYS = Object.freeze({
-  PREFS: 'bibleStation.v3.prefs',
+  PREFS: 'bibleStation.v4.prefs',
+  PREFS_V3: 'bibleStation.v3.prefs',
   LAST_PLACE: 'bibleStation.v3.lastPlace',
   HIGHLIGHTS: 'bibleStation.v3.highlights',
 });
+
+export const THEMES = Object.freeze([
+  { id: 'hanji', label: '한지 주간', desc: '따뜻한 서재 한지 톤 (WCAG AAA)', dark: false },
+  { id: 'vellum', label: '양피지 고전', desc: '수도원 양피지·버건디 고전 톤', dark: false },
+  { id: 'obsidian', label: '흑요석 서재', desc: '눈이 편안한 심야 연구 다크 톤', dark: true },
+  { id: 'sanctuary', label: '강단 암전', desc: 'OLED 순수 흑색·황금 고대비', dark: true },
+]);
 
 export const FONT_STEPS = Object.freeze([
   { step: 0, label: '보통' },
@@ -10,6 +25,13 @@ export const FONT_STEPS = Object.freeze([
   { step: 2, label: '더 크게' },
   { step: 3, label: '아주 크게' },
 ]);
+
+export function normalizeTheme(val) {
+  if (val === 'light') return 'hanji';
+  if (val === 'dark') return 'obsidian';
+  if (THEMES.some((t) => t.id === val)) return val;
+  return 'hanji';
+}
 
 export function createRequestGuard(channel = 'default') {
   let generation = 0;
@@ -19,11 +41,7 @@ export function createRequestGuard(channel = 'default') {
     channel,
     next() {
       if (activeController) {
-        try {
-          activeController.abort();
-        } catch {
-          // Ignore abort errors on already-aborted controllers
-        }
+        try { activeController.abort(); } catch { /* ignore */ }
       }
       generation += 1;
       const myGen = generation;
@@ -39,11 +57,7 @@ export function createRequestGuard(channel = 'default') {
     },
     cancel() {
       if (activeController) {
-        try {
-          activeController.abort();
-        } catch {
-          // Ignore abort errors
-        }
+        try { activeController.abort(); } catch { /* ignore */ }
         activeController = null;
       }
       generation += 1;
@@ -83,25 +97,33 @@ function clampFontStep(val) {
 function clampPulpitPt(val) {
   const n = Number(val);
   if (!Number.isFinite(n)) return 34;
-  return Math.max(24, Math.min(60, Math.round(n)));
+  return Math.max(24, Math.min(64, Math.round(n)));
 }
 
 export function createStore(storageRef = globalThis.localStorage) {
-  const savedPrefs = readJson(storageRef, STORAGE_KEYS.PREFS, {});
+  const savedV4 = readJson(storageRef, STORAGE_KEYS.PREFS, null);
+  const savedPrefs = savedV4 || readJson(storageRef, STORAGE_KEYS.PREFS_V3, {});
   const savedHighlights = readJson(storageRef, STORAGE_KEYS.HIGHLIGHTS, {});
   const savedPlace = readJson(storageRef, STORAGE_KEYS.LAST_PLACE, null);
 
+  const defaultPolyglot = Array.isArray(savedPrefs.polyglotVersions) && savedPrefs.polyglotVersions.length >= 2
+    ? savedPrefs.polyglotVersions.slice(0, 4)
+    : ['nkrv', 'rnksv', 'esv'];
+
   const state = {
-    mode: 'bible',
-    theme: savedPrefs.theme === 'dark' ? 'dark' : 'light',
+    mode: 'bible', // 'bible' | 'matrix' | 'graph' | 'worship' | 'sermon'
+    theme: normalizeTheme(savedPrefs.theme),
+    zenMode: Boolean(savedPrefs.zenMode),
     fontStepIndex: clampFontStep(savedPrefs.fontStepIndex ?? 1),
     pulpitFontPt: clampPulpitPt(savedPrefs.pulpitFontPt ?? 34),
+    pulpitAutoScrollWpm: Number(savedPrefs.pulpitAutoScrollWpm) || 240,
     primaryVersion: typeof savedPrefs.primaryVersion === 'string'
       ? (savedPrefs.primaryVersion === 'nrsv' ? 'rnksv' : savedPrefs.primaryVersion)
       : '',
     parallelVersion: typeof savedPrefs.parallelVersion === 'string'
       ? (savedPrefs.parallelVersion === 'nrsv' ? 'rnksv' : savedPrefs.parallelVersion)
       : 'none',
+    polyglotVersions: defaultPolyglot,
 
     osis: 'GEN',
     chapter: 22,
@@ -124,6 +146,9 @@ export function createStore(storageRef = globalThis.localStorage) {
     liveCommError: '',
     liveCommLoadedKey: '',
 
+    graphFilter: 'ALL', // 'ALL' | 'OT' | 'NT' | 'CHAIN'
+    graphSelectedNodeId: null,
+
     worshipTab: 'liturgy',
     worshipSearch: '',
     worshipGroup: '전체',
@@ -143,24 +168,40 @@ export function createStore(storageRef = globalThis.localStorage) {
     lastSavedAt: null,
   };
 
+  // Reactive signals synced for modern v4 components
+  const signals = {
+    mode: signal(state.mode),
+    theme: signal(state.theme),
+    zenMode: signal(state.zenMode),
+    fontStepIndex: signal(state.fontStepIndex),
+    passage: signal({ osis: state.osis, chapter: state.chapter, verse: state.selectedVerse }),
+  };
+
   const guards = {
     chapter: createRequestGuard('chapter'),
+    matrix: createRequestGuard('matrix'),
     liveCommentary: createRequestGuard('liveCommentary'),
     search: createRequestGuard('search'),
     worshipDetail: createRequestGuard('worshipDetail'),
   };
 
   function savePrefs() {
-    return writeJson(storageRef, STORAGE_KEYS.PREFS, {
+    const payload = {
       theme: state.theme,
+      zenMode: state.zenMode,
       fontStepIndex: state.fontStepIndex,
       primaryVersion: state.primaryVersion,
       parallelVersion: state.parallelVersion,
+      polyglotVersions: state.polyglotVersions,
       pulpitFontPt: state.pulpitFontPt,
-    });
+      pulpitAutoScrollWpm: state.pulpitAutoScrollWpm,
+    };
+    writeJson(storageRef, STORAGE_KEYS.PREFS_V3, payload);
+    return writeJson(storageRef, STORAGE_KEYS.PREFS, payload);
   }
 
   function saveLastPlace(osis, chapter, verse) {
+    signals.passage.set({ osis, chapter, verse });
     return writeJson(storageRef, STORAGE_KEYS.LAST_PLACE, {
       osis,
       chapter,
@@ -176,25 +217,42 @@ export function createStore(storageRef = globalThis.localStorage) {
   function getPrefsSnapshot() {
     return {
       theme: state.theme,
+      zenMode: state.zenMode,
       fontStepIndex: state.fontStepIndex,
       primaryVersion: state.primaryVersion,
       parallelVersion: state.parallelVersion,
+      polyglotVersions: [...state.polyglotVersions],
       pulpitFontPt: state.pulpitFontPt,
+      pulpitAutoScrollWpm: state.pulpitAutoScrollWpm,
     };
   }
 
   function applyPrefsSnapshot(prefs) {
     if (!prefs || typeof prefs !== 'object') return;
-    if (prefs.theme === 'light' || prefs.theme === 'dark') state.theme = prefs.theme;
-    if (prefs.fontStepIndex !== undefined) state.fontStepIndex = clampFontStep(prefs.fontStepIndex);
+    if (typeof prefs.theme === 'string') {
+      state.theme = normalizeTheme(prefs.theme);
+      signals.theme.set(state.theme);
+    }
+    if (typeof prefs.zenMode === 'boolean') {
+      state.zenMode = prefs.zenMode;
+      signals.zenMode.set(state.zenMode);
+    }
+    if (prefs.fontStepIndex !== undefined) {
+      state.fontStepIndex = clampFontStep(prefs.fontStepIndex);
+      signals.fontStepIndex.set(state.fontStepIndex);
+    }
     if (prefs.pulpitFontPt !== undefined) state.pulpitFontPt = clampPulpitPt(prefs.pulpitFontPt);
     if (typeof prefs.primaryVersion === 'string') state.primaryVersion = prefs.primaryVersion;
     if (typeof prefs.parallelVersion === 'string') state.parallelVersion = prefs.parallelVersion;
+    if (Array.isArray(prefs.polyglotVersions) && prefs.polyglotVersions.length >= 2) {
+      state.polyglotVersions = prefs.polyglotVersions.slice(0, 4);
+    }
     savePrefs();
   }
 
   return {
     state,
+    signals,
     guards,
     savePrefs,
     saveLastPlace,

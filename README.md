@@ -1,39 +1,44 @@
-# 말씀 서재 v3.0 (Bible Commentary Station)
+# 말씀 서재 v4.0 — Spatial Scriptorium & Polyglot Exegesis Engine
 
-> **시니어 목회자를 위한 오프라인-퍼스트 성경 66권 23개 역본(한국어 14종 · 영어 9종, 개역개정 기본) · 12대 주석 관점 참고 요약 · 예배·예전(사도신경/주기도문/성찬/축도/137교독문/645찬송가/95복음성가) · 설교 스튜디오 · 강단 프롬프터 워크스테이션**  
-> **Zero-Cost ($0.00) 아키텍처**: 외부 종량제 클라우드 없이 Python 표준 라이브러리(의존성 0) + 로컬 SQLite Dual-FTS5 + 정적 PWA로 동작합니다.
+> **Zero-Cost ($0.00) · Offline-First · 66권 23개 역본 · 5대 공간 렌즈 · 성경 지식 성좌도 · 듀얼스크린 강단 텔레프롬프터**
 
-## 주요 아키텍처 (v3.0)
+## v4.0 대규모 아키텍처 & UI/UX 혁신 요약
 
-1. **Zero-Dependency SSOT 코어 패키지 (`bible_station/`)**
-   - `canon.py`: 성경 66권 정경 메타데이터(개역한글 1961 기준 1,189장 31,102절, 장별 절 수 SSOT), 12대 주석 관점 카탈로그(교파 중립적 설명), 구절 ID 공식.
-   - `schema.py`: **External-Content Dual FTS5 (`unicode61` + `trigram`) + SQLite 자동 동기화 트리거** 및 Flutter Drift 스키마 자동 생성기(`sync-drift`).
-   - `parsers.py` & `search.py`: 시니어 목회자 친화 관대 검색(`여호와는나의목자`, `복있는 사람`, `시 23편 1절`, `계시록 21:4`, `사랑?`) + 3단계 폴백(Trigram → Unicode61 → 공백제거) + 구절 자동 이동 + FTS5 인젝션 차단.
-   - `builder.py` & `cli.py`: 100% 멱등·결정적(Deterministic) 빌더, 23개 내장 역본(한국어 14종: 개역개정[기본]·개역한글·새번역·쉬운성경·우리말성경·현대인의 성경·공동번역개정판·바른성경·킹제임스 흠정역·한글킹제임스·현대어성경·개역한글 국한문·공동번역·가톨릭성경 + 영어 9종: ESV·TNIV·NASB·NLT·NKJV·NRSV·MSG·HCSB·GNT, 각 66권 청크 + 23종 오프라인 검색 인덱스), SHA-256 매니페스트(`schemaVersion: 3`, 1,543개 체크섬), SQLite Online Backup API 기반 WAL-free `VACUUM` 읽기 전용 안전 번들(`.db.gz`), 엄격 코퍼스 검증기(`validate`).
-   - `catalog_worship.py` & JSON 카탈로그: 새찬송가 645곡(중복 없는 통일찬송가 번호, 공식 제목 일치), 21세기 새교독문 137편 전편 오프라인 본문 지원(#88–#137 구조화 성경구절 시퀀스 포함), 복음성가·찬양 95곡 색인 및 발표 화면 연결, 예배 예전(사도신경·주기도문 새번역/전통번역, 성찬 예식, 축도 3종), PII 없는 예배 순서 템플릿 5종.
-   - `health_check.py`: 주간 운영 상태 점검 CLI (HelloAO API, 주석 공식 URL, Drive 예배 링크, 라이브 Pages SHA-256 무결성).
-2. **모듈형 오프라인 PWA (`web/`)**
-   - Sanctuary Hanji & Sumi Ink 디자인 시스템(WCAG AAA `>= 7.0:1`), 모바일 본문 영역 80%+, 48px 시니어 터치 타깃, 무눈부심 강단 프롬프터, IndexedDB 자동저장 + JSON 전체 백업/복원, 개인 소장 번역본 로컬 가져오기(BYOT).
-3. **자동화 검증 및 배포 게이트 (`.github/workflows/`)**
-   - `ci.yml`: Zero-dependency Python 3.12 빌드/패키징/결정적 출력/WAL-free `.db.gz` + 5-table FTS5/코퍼스·예배 불변성/PII·허용목록/Node v24 웹 모듈 테스트.
-   - `flutter-ci.yml`: Flutter stable (`>= 3.27`) 정적 가드레일(PII·SQLite strict literals), `flutter pub get`, `flutter analyze`, `flutter test`.
-   - `deploy-pages.yml`: `verify`(`ci.yml`) 통과 필수, `package.json` 제외 및 `.nojekyll` 포함 스테이징 후 GitHub Pages 배포.
-   - `scheduled-health.yml`: 매주 월요일 11:00 KST 자동 운영 상태 점검 및 중복 방지 `ops-health` 이슈 알림.
-4. **Flutter 클라이언트 (`lib/`)**
-   - Fail-closed SHA-256 부트스트랩(`ArtifactSyncService`), Sanctuary Hanji 라이트/다크/무눈부심 강단 테마 + 4단계 글자 크기 조절, 태블릿 66권 선택 모달/드로어, strict SQLite 쿼리 및 `gdrive_file_id` 기반 Google Drive 동기화, Drift 스키마 SSOT 동기화.
+### 1. 프론트엔드 무의존성 Reactive Micro-Kernel (`web/js/kernel/`)
+- **`signals.js`**: Fine-grained 반응형 프리미티브(`signal`, `computed`, `effect`, `batch`) 및 Undo/Redo 히스토리 스택(`createHistory`) 도입.
+- **`eventBus.js`**: 컴포넌트 간 콜백 스파게티를 제거하는 디커플링 Pub/Sub 이벤트 버스 + 진단 트레이스.
+- **`commandRegistry.js`**: `⌘K` / `Ctrl+K` / `/` 통합 커맨드 팔레트 엔진 — 성경 구절 즉시 워프(`시 23:1`, `롬 8:28`), 66권, 645곡 새찬송가, 4대 테마, 5대 공간 렌즈 통합 퍼지 검색.
+- **`pluginHost.js`**: 5대 공간 렌즈를 선언적으로 마운트/언마운트하는 플러그인 호스트.
+- **`broadcastSync.js`**: `BroadcastChannel` 기반 무비용 듀얼스크린 강단 보조 화면(`?view=stage`) 실시간 동기화.
 
-## 빠른 시작 (Quick Start)
+### 2. 기존 틀을 깨는 5대 공간 렌즈 (Spatial Lenses)
+1. **몰입 서재 (Scriptorium)**: 66권 성경 본문 + 12대 주석 관점 + 원어 풀이 + **몰입 읽기(Zen Focus) 모드**.
+2. **다중 역본 매트릭스 (Polyglot Synoptic Matrix)**: 23개 내장 역본 및 온라인 원문 중 **최대 4개 역본을 동시에 나란히 대조**, 추천 신학 프리셋(한·영 3역본, 한국어 4역본, 현대어·메시지, 직역·고전) 및 다중 역본 묶음 클리핑.
+3. **성경 지식 성좌도 (Scripture Constellation Graph)**: 결정적 파이썬 그래프 엔진(`bible_station/graph.py`)이 생성한 `web/data/graph.json`(92개 노드 · 117개 관주/구속사 엣지 · 8개 인물 축)을 인터랙티브 SVG 성좌도로 시각화하고 클릭 시 본문으로 즉시 워프.
+4. **예배 · 찬송 성소 (Worship Sanctuary)**: 예전 12종 · 새찬송가 645곡 · 교독문 137편 · 복음성가 95곡 · 예배 순서 8종.
+5. **설교 공방 (Homiletics Studio)** + **차세대 강단 텔레프롬프터**:
+   - 한국어 설교 발화 속도(분당 280자) 기반 **실시간 예상 설교 시간 예측기** 및 시각적 페이싱 바
+   - 대지 블록 순서 재배치(`↑`/`↓`)
+   - 강단 프롬프터 **자동 스크롤(S)**, **실시간 페이싱 게이지**, **암전(B)**, **보조 화면 동기화**
+
+### 3. "Luminance Scriptorium" 4대 감각 테마 (`web/css/tokens.css`, `web/css/v4-spatial.css`)
+- **한지 주간 (`hanji`)** · **양피지 고전 (`vellum`)** · **흑요석 서재 (`obsidian`)** · **강단 암전 OLED (`sanctuary`)** — 전 테마 WCAG AAA 고대비 유지 + 글래스모픽 탑바.
+
+### 4. Python 백엔드 컴포저블 파이프라인 (`bible_station/pipeline/`, `graph.py`)
+- 모놀리식 빌더를 `BuildContext` + `PipelineStage` + `BuildPipeline`의 8개 독립 스테이지로 분해.
+- 신규 CLI 명령: `python3 -m bible_station.cli graph` (성좌도 그래프 빌드), `python3 -m bible_station.cli serve` (무의존성 로컬 웹 서버).
+
+## 빠른 실행 및 테스트
 
 ```bash
-# 1. SQLite Dual-FTS5 마스터 DB + 결정적 웹 데이터(66권 청크·검색 인덱스·주석·예배) + WAL-free 번들 빌드
-python3 -m bible_station.cli build --export-web --export-bundle
-python3 -m bible_station.cli validate
+# 1. 성경 지식 성좌도 그래프 생성
+python3 -m bible_station.cli graph
 
-# 2. 단위 테스트 및 비파괴 엔지니어링 하네스 실행 (리포트 갱신 시 --write-report 지정)
-python3 -m unittest discover -s tests -p 'test_suite.py' -v
-python3 tests/run_harness.py
+# 2. v4.0 로컬 워크스테이션 실행
+python3 -m bible_station.cli serve --port 8090
+# 브라우저에서 http://127.0.0.1:8090 접속 (보조 강단 화면: ?view=stage)
 
-# 3. 오프라인-퍼스트 웹 워크스테이션 로컬 실행
-python3 -m http.server 8090 --directory web
-# 브라우저에서 http://localhost:8090 접속
+# 3. 테스트 실행
+python3 -m unittest discover -s tests -p 'test_v4_architecture.py' -v
+npm --prefix web test
 ```

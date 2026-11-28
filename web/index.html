@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="ko" data-theme="light" data-font-step="1" data-mode="bible">
+<html lang="ko" data-theme="hanji" data-font-step="1" data-mode="bible" data-zen="false">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://bible.helloao.org; frame-src https://drive.google.com https://docs.google.com https://accounts.google.com https://*.googleusercontent.com; object-src 'none'; base-uri 'self'; form-action 'self'">
-  <meta name="theme-color" content="#1B365D" />
-  <title>말씀 서재 — 큰글씨 성경 · 주석 · 예배 · 설교 준비</title>
+  <meta name="theme-color" content="#162E52" />
+  <title>말씀 서재 v4.0 — Spatial Scriptorium · 다중 역본 · 지식 성좌도 · 설교 공방</title>
   <link rel="manifest" href="./manifest.json" />
   <link rel="icon" href="./icon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
@@ -19,107 +19,71 @@
   <link rel="stylesheet" href="./css/pulpit.css" />
   <link rel="stylesheet" href="./css/print.css" />
   <link rel="stylesheet" href="./css/motion.css" />
+  <link rel="stylesheet" href="./css/v4-spatial.css" />
 </head>
 <body>
-  <!-- Inline SVG Icon Sprite (21 Frozen Editorial Symbols) -->
+  <!-- Inline SVG Icon Sprite -->
   <svg class="svg-sprite" aria-hidden="true" hidden>
     <symbol id="icon-bible" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
-      <path d="M12 6v6" />
-      <path d="M9.5 8.5h5" />
+      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" /><path d="M12 6v6" /><path d="M9.5 8.5h5" />
+    </symbol>
+    <symbol id="icon-matrix" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="3" width="18" height="18" rx="2" /><path d="M9 3v18M15 3v18M3 9h18M3 15h18" />
+    </symbol>
+    <symbol id="icon-graph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="5" r="2.5" /><circle cx="5" cy="18" r="2.5" /><circle cx="19" cy="18" r="2.5" /><circle cx="12" cy="13" r="2" />
+      <path d="M12 7.5v3.5M10.4 14.3 6.8 16.7M13.6 14.3l3.6 2.4" />
     </symbol>
     <symbol id="icon-study" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M2 5.5A2.5 2.5 0 0 1 4.5 3H10a3 3 0 0 1 2 1 3 3 0 0 1 2-1h5.5A2.5 2.5 0 0 1 22 5.5v13a1.5 1.5 0 0 1-1.5 1.5H14a2 2 0 0 0-2 2 2 2 0 0 0-2-2H3.5A1.5 1.5 0 0 1 2 18.5z" />
-      <path d="M12 4v18" />
+      <path d="M2 5.5A2.5 2.5 0 0 1 4.5 3H10a3 3 0 0 1 2 1 3 3 0 0 1 2-1h5.5A2.5 2.5 0 0 1 22 5.5v13a1.5 1.5 0 0 1-1.5 1.5H14a2 2 0 0 0-2 2 2 2 0 0 0-2-2H3.5A1.5 1.5 0 0 1 2 18.5z" /><path d="M12 4v18" />
     </symbol>
     <symbol id="icon-worship" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M9 18V5l12-2v13" />
-      <circle cx="6" cy="18" r="3" />
-      <circle cx="18" cy="16" r="3" />
+      <path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" />
     </symbol>
     <symbol id="icon-sermon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M12 20h9" />
-      <path d="M16.5 3.5a2.12 2.12 0 1 1 3 3L7 19l-4 1 1-4Z" />
+      <path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 1 1 3 3L7 19l-4 1 1-4Z" />
     </symbol>
     <symbol id="icon-pulpit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round">
-      <rect x="3" y="4" width="18" height="12" rx="2" />
-      <path d="M8 20h8" />
-      <path d="M12 16v4" />
-      <path d="M7 9h10" />
-      <path d="M7 12h6" />
+      <rect x="3" y="4" width="18" height="12" rx="2" /><path d="M8 20h8" /><path d="M12 16v4" /><path d="M7 9h10" /><path d="M7 12h6" />
     </symbol>
     <symbol id="icon-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="11" cy="11" r="7" />
-      <path d="m20 20-3.8-3.8" />
+      <circle cx="11" cy="11" r="7" /><path d="m20 20-3.8-3.8" />
     </symbol>
     <symbol id="icon-bookmark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round">
       <path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1z" />
     </symbol>
     <symbol id="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="12" cy="12" r="4" />
-      <path d="M12 2v2.5M12 19.5V22M4.93 4.93l1.77 1.77M17.3 17.3l1.77 1.77M2 12h2.5M19.5 12H22M4.93 19.07l1.77-1.77M17.3 6.7l1.77-1.77" />
+      <circle cx="12" cy="12" r="4" /><path d="M12 2v2.5M12 19.5V22M4.93 4.93l1.77 1.77M17.3 17.3l1.77 1.77M2 12h2.5M19.5 12H22M4.93 19.07l1.77-1.77M17.3 6.7l1.77-1.77" />
     </symbol>
     <symbol id="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round">
       <path d="M20.5 14.5A8.5 8.5 0 1 1 9.5 3.5a7 7 0 0 0 11 11z" />
     </symbol>
     <symbol id="icon-help" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="12" cy="12" r="9.5" />
-      <path d="M9.2 9.2a3 3 0 0 1 5.6 1.3c0 2-2.8 2.2-2.8 4" />
-      <circle cx="12" cy="17.5" r="0.6" fill="currentColor" />
+      <circle cx="12" cy="12" r="9.5" /><path d="M9.2 9.2a3 3 0 0 1 5.6 1.3c0 2-2.8 2.2-2.8 4" /><circle cx="12" cy="17.5" r="0.6" fill="currentColor" />
     </symbol>
     <symbol id="icon-settings" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M4 6h16M4 12h16M4 18h16" />
-      <circle cx="9" cy="6" r="2" fill="var(--bg-surface, #FFFDF9)" />
-      <circle cx="15" cy="12" r="2" fill="var(--bg-surface, #FFFDF9)" />
-      <circle cx="10" cy="18" r="2" fill="var(--bg-surface, #FFFDF9)" />
+      <path d="M4 6h16M4 12h16M4 18h16" /><circle cx="9" cy="6" r="2" fill="var(--bg-surface, #FFFDF9)" /><circle cx="15" cy="12" r="2" fill="var(--bg-surface, #FFFDF9)" /><circle cx="10" cy="18" r="2" fill="var(--bg-surface, #FFFDF9)" />
     </symbol>
-    <symbol id="icon-chevron-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="m15 18-6-6 6-6" />
-    </symbol>
-    <symbol id="icon-chevron-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="m9 6 6 6-6 6" />
-    </symbol>
+    <symbol id="icon-chevron-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6" /></symbol>
+    <symbol id="icon-chevron-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6" /></symbol>
     <symbol id="icon-print" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M6 9V3h12v6" />
-      <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
-      <rect x="6" y="14" width="12" height="7" rx="1" />
+      <path d="M6 9V3h12v6" /><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" /><rect x="6" y="14" width="12" height="7" rx="1" />
     </symbol>
-    <symbol id="icon-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M18 6 6 18M6 6l12 12" />
-    </symbol>
-    <symbol id="icon-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M12 5v14M5 12h14" />
-    </symbol>
+    <symbol id="icon-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12" /></symbol>
+    <symbol id="icon-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14" /></symbol>
     <symbol id="icon-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M3 6h18" />
-      <path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2" />
-      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-      <path d="M10 11v6M14 11v6" />
+      <path d="M3 6h18" /><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2" /><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" /><path d="M10 11v6M14 11v6" />
     </symbol>
-    <symbol id="icon-download" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M12 3v12" />
-      <path d="m7 10 5 5 5-5" />
-      <path d="M4 20h16" />
-    </symbol>
-    <symbol id="icon-upload" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M12 15V3" />
-      <path d="m7 8 5-5 5 5" />
-      <path d="M4 20h16" />
-    </symbol>
-    <symbol id="icon-external" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M14 4h6v6" />
-      <path d="M10 14 20 4" />
-      <path d="M20 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h5" />
-    </symbol>
-    <symbol id="icon-back" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M19 12H5" />
-      <path d="m12 19-7-7 7-7" />
-    </symbol>
+    <symbol id="icon-download" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12" /><path d="m7 10 5 5 5-5" /><path d="M4 20h16" /></symbol>
+    <symbol id="icon-upload" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3" /><path d="m7 8 5-5 5 5" /><path d="M4 20h16" /></symbol>
+    <symbol id="icon-external" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6" /><path d="M10 14 20 4" /><path d="M20 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h5" /></symbol>
+    <symbol id="icon-back" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5" /><path d="m12 19-7-7 7-7" /></symbol>
   </svg>
 
+  <button id="btnExitZen" type="button" class="btn btn-primary zen-exit-fab">몰입 모드 종료</button>
+
   <div class="app-shell">
-    <!-- Global Notification Banners (collapsed to 0px when data-open="false") -->
+    <!-- Global Notification Banners -->
     <div id="swUpdateBanner" class="global-banner global-banner-info" data-open="false" role="status" aria-live="polite">
       <span class="global-banner-text">새 버전이 준비되었습니다. 새로고침하면 최신 화면을 쓰실 수 있습니다.</span>
       <button id="btnSwReload" type="button" class="btn btn-primary">새로고침</button>
@@ -133,17 +97,26 @@
       </button>
     </div>
 
-    <!-- 1. Calm Single-Row Top Header -->
+    <!-- 1. Glassmorphic Spatial Topbar -->
     <header class="topbar">
       <div class="brand">
-        <img src="./icon.svg" alt="" class="brand-mark" width="36" height="36" />
+        <img src="./icon.svg" alt="" class="brand-mark" width="34" height="34" />
         <span class="brand-title">말씀 서재</span>
+        <span class="brand-version-pill">v4.0</span>
       </div>
 
-      <nav class="mode-nav" aria-label="주요 화면 선택">
+      <nav class="mode-nav" aria-label="5대 공간 렌즈 선택">
         <button type="button" class="mode-btn" data-action="set-mode" data-mode-target="bible" aria-current="page">
           <svg class="icon" aria-hidden="true"><use href="#icon-bible" /></svg>
           <span>성경 · 주석</span>
+        </button>
+        <button type="button" class="mode-btn" data-action="set-mode" data-mode-target="matrix">
+          <svg class="icon" aria-hidden="true"><use href="#icon-matrix" /></svg>
+          <span>다중 역본</span>
+        </button>
+        <button type="button" class="mode-btn" data-action="set-mode" data-mode-target="graph">
+          <svg class="icon" aria-hidden="true"><use href="#icon-graph" /></svg>
+          <span>지식 성좌도</span>
         </button>
         <button type="button" class="mode-btn" data-action="set-mode" data-mode-target="worship">
           <svg class="icon" aria-hidden="true"><use href="#icon-worship" /></svg>
@@ -151,26 +124,35 @@
         </button>
         <button type="button" class="mode-btn" data-action="set-mode" data-mode-target="sermon">
           <svg class="icon" aria-hidden="true"><use href="#icon-sermon" /></svg>
-          <span>설교 준비</span>
+          <span>설교 공방</span>
         </button>
       </nav>
 
       <div class="topbar-controls">
+        <button id="btnOpenCommand" type="button" class="omnibar-trigger" aria-label="빠른 명령 및 통합 검색 열기">
+          <svg class="icon" aria-hidden="true"><use href="#icon-search" /></svg>
+          <span class="omnibar-label">빠른 이동</span>
+          <kbd class="omnibar-kbd">⌘K</kbd>
+        </button>
+
         <div class="font-stepper" role="group" aria-label="글자 크기 조절">
           <button id="btnFontDec" type="button" class="stepper-btn" aria-label="글자 작게">가-</button>
           <span id="fontSizeLabel" class="stepper-label" aria-live="polite">크게</span>
           <button id="btnFontInc" type="button" class="stepper-btn" aria-label="글자 크게">가+</button>
         </div>
 
-        <button id="btnThemeToggle" type="button" class="btn btn-ghost topbar-btn" aria-pressed="false" aria-label="화면 밝기 전환">
-          <svg class="icon icon-moon-glyph" aria-hidden="true"><use href="#icon-moon" /></svg>
+        <button id="btnThemeToggle" type="button" class="btn btn-ghost topbar-btn" aria-pressed="false" aria-label="4대 테마 순환 전환">
           <svg class="icon icon-sun-glyph" aria-hidden="true"><use href="#icon-sun" /></svg>
-          <span>화면</span>
+          <span id="themeCycleLabel">한지</span>
         </button>
 
-        <button id="btnHelp" type="button" class="btn btn-ghost topbar-btn">
+        <button id="btnZenToggle" type="button" class="btn btn-ghost topbar-btn" aria-pressed="false" aria-label="몰입 읽기 모드">
+          <svg class="icon" aria-hidden="true"><use href="#icon-study" /></svg>
+          <span>몰입</span>
+        </button>
+
+        <button id="btnHelp" type="button" class="btn btn-ghost topbar-btn" aria-label="도움말">
           <svg class="icon" aria-hidden="true"><use href="#icon-help" /></svg>
-          <span>도움말</span>
         </button>
 
         <button id="btnPulpitTop" type="button" class="btn btn-warm topbar-pulpit-btn" data-action="open-pulpit">
@@ -180,9 +162,9 @@
       </div>
     </header>
 
-    <!-- 2. Unified Main Mode Views -->
+    <!-- 2. Unified 5-Lens Spatial Main -->
     <main class="app-main">
-      <!-- Mode 1: 성경 · 주석 -->
+      <!-- Lens 1: 성경 · 주석 (Scriptorium) -->
       <section id="viewBible" class="mode-view" data-view="bible" aria-label="성경과 주석">
         <div class="context-bar" role="region" aria-label="성경 이동과 찾기">
           <button id="btnOpenPicker" type="button" class="current-place-btn" aria-haspopup="dialog">
@@ -263,7 +245,17 @@
         </div>
       </section>
 
-      <!-- Mode 2: 예배 · 찬송 -->
+      <!-- Lens 2: 다중 역본 매트릭스 (Polyglot Synoptic Matrix) -->
+      <section id="viewMatrix" class="mode-view" data-view="matrix" aria-label="다중 역본 정밀 대조">
+        <div id="matrixContainer" class="lens-scroll"></div>
+      </section>
+
+      <!-- Lens 3: 성경 지식 성좌도 (Constellation Knowledge Graph) -->
+      <section id="viewGraph" class="mode-view" data-view="graph" aria-label="성경 지식 성좌도">
+        <div id="graphContainer" class="lens-scroll"></div>
+      </section>
+
+      <!-- Lens 4: 예배 · 찬송 -->
       <section id="viewWorship" class="mode-view" data-view="worship" data-has-detail="false" aria-label="예배와 찬송">
         <div class="worship-shell">
           <div class="worship-top">
@@ -290,8 +282,8 @@
         </div>
       </section>
 
-      <!-- Mode 3: 설교 준비 -->
-      <section id="viewSermon" class="mode-view" data-view="sermon" aria-label="설교 준비">
+      <!-- Lens 5: 설교 공방 (Homiletics Studio) -->
+      <section id="viewSermon" class="mode-view" data-view="sermon" aria-label="설교 공방">
         <div class="sermon-toolbar" role="region" aria-label="설교 관리 도구">
           <div class="sermon-toolbar-group">
             <label for="sermonSelect" class="sr-only">설교 선택</label>
@@ -340,25 +332,45 @@
       </section>
     </main>
 
-    <!-- 3. Mobile 4-Mode Bottom Navigation -->
+    <!-- 3. Mobile 5-Lens Bottom Navigation -->
     <nav id="mobileNav" class="mobile-nav" aria-label="주요 화면 전환">
       <button type="button" class="mobile-nav-btn" data-action="set-mode" data-mode-target="bible" aria-current="page">
         <svg class="icon" aria-hidden="true"><use href="#icon-bible" /></svg>
-        <span>성경·주석</span>
+        <span>성경</span>
+      </button>
+      <button type="button" class="mobile-nav-btn" data-action="set-mode" data-mode-target="matrix">
+        <svg class="icon" aria-hidden="true"><use href="#icon-matrix" /></svg>
+        <span>다중역본</span>
+      </button>
+      <button type="button" class="mobile-nav-btn" data-action="set-mode" data-mode-target="graph">
+        <svg class="icon" aria-hidden="true"><use href="#icon-graph" /></svg>
+        <span>성좌도</span>
       </button>
       <button type="button" class="mobile-nav-btn" data-action="set-mode" data-mode-target="worship">
         <svg class="icon" aria-hidden="true"><use href="#icon-worship" /></svg>
-        <span>예배·찬송</span>
+        <span>예배</span>
       </button>
       <button type="button" class="mobile-nav-btn" data-action="set-mode" data-mode-target="sermon">
         <svg class="icon" aria-hidden="true"><use href="#icon-sermon" /></svg>
-        <span>설교 준비</span>
-      </button>
-      <button id="btnPulpitMobile" type="button" class="mobile-nav-btn mobile-nav-pulpit" data-action="open-pulpit">
-        <svg class="icon" aria-hidden="true"><use href="#icon-pulpit" /></svg>
-        <span>강단 화면</span>
+        <span>설교</span>
       </button>
     </nav>
+  </div>
+
+  <!-- Universal Command Palette Overlay (⌘K / /) -->
+  <div id="cmdPaletteOverlay" class="cmd-overlay" role="dialog" aria-modal="true" aria-label="통합 빠른 이동 및 명령 팔레트" data-open="false" aria-hidden="true">
+    <div class="cmd-dialog">
+      <div class="cmd-input-row">
+        <svg class="icon" aria-hidden="true"><use href="#icon-search" /></svg>
+        <input id="cmdPaletteInput" type="search" class="cmd-input" placeholder="성경 구절(시 23:1), 찬송가(305), 테마, 렌즈 명령 입력..." autocomplete="off" />
+        <kbd class="cmd-kbd">ESC</kbd>
+      </div>
+      <div id="cmdPaletteList" class="cmd-list" role="listbox"></div>
+      <div class="cmd-footer">
+        <span>↑↓ 이동 · Enter 실행 · ESC 닫기</span>
+        <span>말씀 서재 v4.0 Omnibar</span>
+      </div>
+    </div>
   </div>
 
   <!-- Modal 1: 성경 66권 및 장 고르기 -->
@@ -387,9 +399,7 @@
       </div>
       <div class="modal-body">
         <div class="card">
-          <div class="card-header">
-            <h3>읽기 역본 및 대조 역본</h3>
-          </div>
+          <div class="card-header"><h3>읽기 역본 및 대조 역본</h3></div>
           <div class="form-stack">
             <div class="form-field">
               <label for="primaryVersionSelect" class="field-label">기본으로 읽을 성경</label>
@@ -401,15 +411,10 @@
             </div>
           </div>
         </div>
-
         <div class="card">
-          <div class="card-header">
-            <h3>내 성경 파일 가져오기</h3>
-          </div>
+          <div class="card-header"><h3>내 성경 파일 가져오기</h3></div>
           <p class="card-note">
-            <strong>한국어 14종 · 영어 9종 등 총 23개 성경 전 66권</strong>(개역개정 · 개역한글 · 새번역 · 쉬운성경 · 우리말성경 · 현대인의 성경 · 공동번역 · 바른성경 등)이 기본 내장되어 바로 대조해 읽으실 수 있습니다.
-            개인적으로 소장하신 다른 역본 문서 파일(메모장 파일)이 있으시면 아래에서 추가로 불러오실 수 있으며,
-            불러온 파일은 외부로 전송되지 않고 <strong>목사님 기기 안에만 안전하게 보관</strong>됩니다.
+            <strong>한국어 14종 · 영어 9종 등 총 23개 성경 전 66권</strong>이 기본 내장되어 있으며, 상단 <strong>다중 역본</strong> 렌즈에서 최대 4개 역본을 동시에 비교할 수 있습니다.
           </p>
           <div class="form-field">
             <label for="customBibleFileInput" class="field-label">내 성경 문서 파일 선택</label>
@@ -417,14 +422,8 @@
           </div>
           <div id="customBibleList" class="saved-file-list"></div>
         </div>
-
         <div class="card">
-          <div class="card-header">
-            <h3>내 찬송가 가사 파일 가져오기</h3>
-          </div>
-          <p class="card-note">
-            개인 소장 찬송가 가사 문서 파일을 불러오시면 찬송가 화면과 강단 큰 화면에서 인터넷 없이도 바로 보실 수 있습니다.
-          </p>
+          <div class="card-header"><h3>내 찬송가 가사 파일 가져오기</h3></div>
           <div class="form-field">
             <label for="customHymnFileInput" class="field-label">내 찬송가 문서 파일 선택</label>
             <input id="customHymnFileInput" type="file" class="input-field file-input" accept=".txt,.json,text/plain,application/json" />
@@ -439,7 +438,7 @@
   <div id="helpModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="helpModalTitle" data-open="false" aria-hidden="true">
     <div class="modal-box modal-box-medium">
       <div class="modal-head">
-        <h2 id="helpModalTitle" class="modal-title">쉬운 사용 안내</h2>
+        <h2 id="helpModalTitle" class="modal-title">말씀 서재 v4.0 사용 안내</h2>
         <button type="button" class="btn btn-ghost modal-close" aria-label="사용 안내 닫기">
           <svg class="icon" aria-hidden="true"><use href="#icon-close" /></svg>
           <span>닫기</span>
@@ -447,41 +446,16 @@
       </div>
       <div class="modal-body">
         <div class="card">
-          <div class="card-header">
-            <h3>1. 큰 글씨로 성경 읽고 비교하기</h3>
-          </div>
-          <p>
-            위쪽 <strong>가- / 가+</strong> 버튼으로 본문과 주석 글자 크기를 4단계로 키울 수 있으며, 선택한 크기와 마지막 읽던 곳은 자동으로 기억됩니다.
-            <strong>역본</strong> 버튼을 누르면 기본 내장된 <strong>한국어·영어 23개 성경 전 66권</strong>과 개인 소장 성경 파일을 자유롭게 선택해 나란히 대조해 읽으실 수 있습니다.
-          </p>
+          <div class="card-header"><h3>1. 5대 공간 렌즈 & ⌘K 빠른 이동</h3></div>
+          <p><strong>⌘K (또는 Ctrl+K / /)</strong>를 누르면 66권 성경 구절 워프(예: 시 23:1), 645곡 새찬송가, 4대 테마(한지·양피지·흑요석·강단암전), 몰입 모드로 즉시 이동합니다.</p>
         </div>
-
         <div class="card">
-          <div class="card-header">
-            <h3>2. 핵심 말씀 참고 요약과 고전 영문 주석</h3>
-          </div>
-          <p>
-            성경 절을 누르면 오른쪽에 핵심 말씀 참고 요약, 연결 말씀, 원어 풀이가 나타납니다.
-            원하실 때 <strong>고전 영문 주석 원문 불러오기</strong> 버튼을 눌러 추가 참고 자료를 보실 수도 있습니다.
-          </p>
+          <div class="card-header"><h3>2. 다중 역본 매트릭스 & 지식 성좌도</h3></div>
+          <p><strong>다중 역본</strong>에서는 23개 역본 중 최대 4종을 나란히 대조하고 묶어서 설교 노트에 담을 수 있으며, <strong>지식 성좌도</strong>에서는 상호 관주와 구속사 인물 축을 인터랙티브 그래프로 탐색합니다.</p>
         </div>
-
         <div class="card">
-          <div class="card-header">
-            <h3>3. 예배 예전 · 찬송가 · 교독문 · 예배 순서</h3>
-          </div>
-          <p>
-            <strong>예배 · 찬송</strong> 화면에서 사도신경, 주기도문, 성찬 예식, 축도와 645곡 새찬송가 색인, 137편 교독문, 주일 예배 순서를 한곳에서 준비하고 바로 <strong>강단 화면</strong>으로 띄울 수 있습니다.
-          </p>
-        </div>
-
-        <div class="card">
-          <div class="card-header">
-            <h3>4. 강단 화면 단축키 안내</h3>
-          </div>
-          <p>
-            강단 화면에서는 프레젠터 리모컨이나 키보드 <strong>오른쪽 화살표 · 스페이스바</strong>로 다음 대지, <strong>왼쪽 화살표</strong>로 이전 대지, <strong>+ / -</strong>로 글자 크기 조절, <strong>ESC</strong>로 나가실 수 있습니다.
-          </p>
+          <div class="card-header"><h3>3. 설교 공방 & 듀얼 스크린 강단 텔레프롬프터</h3></div>
+          <p>설교 작성 시 실시간 예상 설교 시간(분)이 계산되며, 강단 화면에서는 <strong>자동 스크롤(S)</strong>, <strong>암전(B)</strong>, <strong>보조 화면 동기화</strong>를 지원합니다.</p>
         </div>
       </div>
     </div>
@@ -497,9 +471,7 @@
           <span>닫기</span>
         </button>
       </div>
-      <div class="modal-body">
-        <p id="confirmMessage" class="confirm-message"></p>
-      </div>
+      <div class="modal-body"><p id="confirmMessage" class="confirm-message"></p></div>
       <div class="modal-footer">
         <button id="btnConfirmCancel" type="button" class="btn btn-secondary">취소</button>
         <button id="btnConfirmOk" type="button" class="btn btn-danger">확인하고 삭제</button>
@@ -507,8 +479,8 @@
     </div>
   </div>
 
-  <!-- 4. Zero-Glare Pulpit Presentation Overlay -->
-  <div id="pulpitOverlay" class="pulpit-overlay" role="dialog" aria-modal="true" aria-label="강단 큰 화면" data-open="false" aria-hidden="true">
+  <!-- 4. Zero-Glare Pulpit Teleprompter & Dual-Screen Broadcast Overlay -->
+  <div id="pulpitOverlay" class="pulpit-overlay" role="dialog" aria-modal="true" aria-label="강단 큰 화면" data-open="false" data-blackout="false" aria-hidden="true">
     <div class="pulpit-progress-track" aria-hidden="true">
       <div id="pulpitProgressBar" class="pulpit-progress-bar"></div>
     </div>
@@ -517,12 +489,16 @@
       <div class="pulpit-bar-left">
         <span id="pulpitProgress" class="pulpit-progress-text">1 / 1</span>
         <span id="pulpitTimer" class="pulpit-timer" data-warning="false" data-overtime="false">30:00</span>
+        <span id="pulpitPaceBadge" class="pulpit-pace-badge" data-pace="steady">순조로움</span>
         <button id="btnPulpitTimerToggle" type="button" class="pulpit-btn">일시정지</button>
         <button id="btnPulpitTimerReset" type="button" class="pulpit-btn">초기화</button>
       </div>
       <div class="pulpit-bar-right">
-        <button id="btnPulpitSmaller" type="button" class="pulpit-btn" aria-label="강단 글자 작게">가- 작게</button>
-        <button id="btnPulpitBigger" type="button" class="pulpit-btn" aria-label="강단 글자 크게">가+ 크게</button>
+        <button id="btnPulpitAutoScroll" type="button" class="pulpit-btn">자동 스크롤</button>
+        <button id="btnPulpitBlackout" type="button" class="pulpit-btn">암전 (B)</button>
+        <button id="btnPulpitDualScreen" type="button" class="pulpit-btn">보조 화면</button>
+        <button id="btnPulpitSmaller" type="button" class="pulpit-btn" aria-label="강단 글자 작게">가-</button>
+        <button id="btnPulpitBigger" type="button" class="pulpit-btn" aria-label="강단 글자 크게">가+</button>
         <button id="btnPulpitFullscreen" type="button" class="pulpit-btn">전체 화면</button>
         <button id="btnPulpitExit" type="button" class="pulpit-btn pulpit-btn-accent">
           <svg class="icon" aria-hidden="true"><use href="#icon-close" /></svg>
@@ -554,7 +530,7 @@
   <!-- Toast Status Notification -->
   <div id="toast" class="toast" data-open="false" role="status" aria-live="polite"></div>
 
-  <!-- Dedicated A4 Large-Print Sheet (hidden on screen, shown in @media print) -->
+  <!-- Dedicated A4 Large-Print Sheet -->
   <div id="printSheet" class="print-sheet" aria-hidden="true"></div>
 
   <script type="module" src="./js/main.js"></script>
