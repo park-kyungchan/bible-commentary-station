@@ -83,7 +83,7 @@ class TestCanonAndDatabaseIntegrity(unittest.TestCase):
 
     def test_01_zero_bs4_dependency_and_version_ssot(self) -> None:
         self.assertIsNone(importlib.util.find_spec("bs4"))
-        self.assertEqual(__version__, "3.0.0")
+        self.assertEqual(__version__, "4.0.0")
 
     def test_02_canon_66_books_and_krv_versification_alignment(self) -> None:
         self.assertEqual(len(BIBLE_BOOKS), 66)
@@ -513,7 +513,7 @@ class TestCorpusWorshipProvenanceAndSecurity(unittest.TestCase):
     def test_05_web_security_and_dynamic_js_css_scan(self) -> None:
         index_html = (WEB_DIR / "index.html").read_text(encoding="utf-8")
         self.assertNotIn("onclick=", index_html)
-        self.assertIn('data-theme="light"', index_html)
+        self.assertIn('data-theme="hanji"', index_html)
         self.assertNotIn("btnReadAloud", index_html)
 
         js_files = sorted((WEB_DIR / "js").rglob("*.js"))
