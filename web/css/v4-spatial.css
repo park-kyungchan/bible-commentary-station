@@ -619,3 +619,5 @@ html[data-zen="true"] .zen-exit-fab {
 .pacing-progress::-webkit-progress-bar { background: var(--bg-subtle); border-radius: var(--radius-pill); }
 .pacing-progress::-webkit-progress-value { background: var(--brand-primary); border-radius: var(--radius-pill); }
 .pacing-progress.is-over::-webkit-progress-value { background: var(--semantic-crimson); }
+
+.topbar button { min-width: 48px; min-height: 48px; }
